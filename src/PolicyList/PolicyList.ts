@@ -27,4 +27,11 @@ limitations under the License.
 import { PolicyListEditor } from './PolicyListEditor';
 import { PolicyListRevision } from './PolicyListRevision';
 
-export interface PolicyList extends PolicyListRevision, PolicyListEditor {}
+/**
+ * This exists only so that clients can hook into the edits made by the editor
+ * in order to produce a new revision as quickly as possible.
+ * That might not make sense though.
+ */
+export interface PolicyList extends PolicyListEditor {
+  currentRevision: PolicyListRevision;
+}

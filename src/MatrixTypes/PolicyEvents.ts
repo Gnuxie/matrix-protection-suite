@@ -67,6 +67,19 @@ export const ALL_RULE_TYPES = [
   ...SERVER_RULE_TYPES,
 ];
 
+export function variantsForPolicyRuleType(type: PolicyRuleType): string[] {
+  switch (type) {
+    case PolicyRuleType.User:
+      return USER_RULE_TYPES;
+    case PolicyRuleType.Server:
+      return SERVER_RULE_TYPES;
+    case PolicyRuleType.Room:
+      return ROOM_RULE_TYPES;
+    default:
+      throw new TypeError(`Unknown policy rule type ${type}`);
+  }
+}
+
 export function normalisePolicyRuleType(type: string): PolicyRuleType {
   if (USER_RULE_TYPES.includes(type)) {
     return PolicyRuleType.User;

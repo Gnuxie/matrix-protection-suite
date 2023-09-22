@@ -47,4 +47,5 @@ export interface PolicyListRevision {
   rulesOfKind(kind: PolicyRuleType, recommendation?: string): PolicyRule[];
   changes(state: PolicyRuleEvent[]): PolicyRuleChange[];
   revise(policyState: PolicyRuleEvent[]): PolicyListRevision;
+  hasEvent(eventId: string): boolean;
 }

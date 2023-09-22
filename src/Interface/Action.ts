@@ -24,13 +24,6 @@ limitations under the License.
  * However, this file is modified and the modifications in this file
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
-
-const noValue = Symbol('noValue');
-export type ActionNoValue = typeof noValue;
-export type TActionResult<Ok, Err> =
-  | ActionResult<Ok, ActionNoValue>
-  | ActionResult<ActionNoValue, Err>;
-
 /**
  * This is a utility specifically for validating user input, and reporting
  * what was wrong back to the end user in a way that makes sense.
@@ -43,44 +36,34 @@ export type TActionResult<Ok, Err> =
  * TO be clear this is only used when the user has done something wrong
  * and we need to communicate that. It is not for any other situation.
  */
-export class ActionResult<Ok = typeof noValue, Err = typeof noValue> {
-  private constructor(
-    private readonly okValue: Ok | typeof noValue,
-    private readonly errValue: Err | typeof noValue
-  ) {}
-  public static Ok<Ok>(value: Ok): ActionResult<Ok, typeof noValue> {
-    return new ActionResult<Ok, typeof noValue>(value, noValue);
-  }
-
-  public static Err<Err extends ActionError = ActionError>(
-    value: Err
-  ): ActionResult<typeof noValue, Err> {
-    return new ActionResult<typeof noValue, Err>(noValue, value);
-  }
-
-  public isOk(): this is ActionResult<Ok, typeof noValue> {
-    return this.okValue !== noValue;
-  }
-
-  public isErr(): this is ActionResult<typeof noValue, Err> {
-    return this.errValue !== noValue;
-  }
-
-  public get ok(): Ok {
-    if (this.isOk()) {
-      return this.okValue as Ok;
-    } else {
-      throw new TypeError('You did not check isOk before accessing ok');
+export type ActionResult<Ok, Error = ActionError> =
+  | {
+      ok: Ok;
+      isOkay: true;
     }
-  }
+  | {
+      error: Error;
+      isOkay: false;
+    };
 
-  public get err(): Err {
-    if (this.isErr()) {
-      return this.errValue as Err;
-    } else {
-      throw new TypeError('You did not check isErr before accessing err');
-    }
-  }
+export function Ok<Ok>(ok: Ok): ActionResult<Ok, never> {
+  return { ok, isOkay: true };
+}
+
+export function ResultError<Error>(error: Error): ActionResult<never, Error> {
+  return { error, isOkay: false };
+}
+
+export function isOk<Ok, Error = ActionError>(
+  result: ActionResult<Ok, Error>
+): result is ActionResult<Ok, never> {
+  return result.isOkay;
+}
+
+export function isError<Ok, Error = ActionError>(
+  result: ActionResult<Ok, Error>
+): result is ActionResult<never, Error> {
+  return !result.isOkay;
 }
 
 export class ActionError {
@@ -97,7 +80,7 @@ export class ActionError {
   public static Result(
     message: string,
     _options = {}
-  ): ActionResult<typeof noValue, ActionError> {
-    return ActionResult.Err(new ActionError(message));
+  ): ActionResult<never, ActionError> {
+    return ResultError(new ActionError(message));
   }
 }

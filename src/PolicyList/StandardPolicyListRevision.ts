@@ -286,4 +286,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       nextPolicyRulesByEventID
     );
   }
+  hasEvent(eventId: string): boolean {
+    return this.policyRuleByEventId.has(eventId);
+  }
 }
