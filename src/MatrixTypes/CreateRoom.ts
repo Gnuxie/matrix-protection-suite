@@ -26,6 +26,7 @@ limitations under the License.
  */
 
 import { Static, Type } from '@sinclair/typebox';
+import { PowerLevelsEventContent } from './PowerLevels';
 
 export type RoomCreateOptions = Static<typeof RoomCreateOptions>;
 export const RoomCreateOptions = Type.Object({
@@ -88,7 +89,11 @@ export const RoomCreateOptions = Type.Object({
       example: '1',
     })
   ),
-  creation_content: Type.Optional(Type.Unknown()),
+  creation_content: Type.Optional(
+    Type.Object({
+      type: Type.Optional(Type.String({ description: 'The type of the room' })),
+    })
+  ),
   initial_state: Type.Optional(
     Type.Array(
       Type.Object({
@@ -120,5 +125,5 @@ export const RoomCreateOptions = Type.Object({
         'This flag makes the server set the `is_direct` flag on the\n`m.room.member` events sent to the users in `invite` and\n`invite_3pid`. See [Direct Messaging](/client-server-api/#direct-messaging) for more information.',
     })
   ),
-  power_level_content_override: Type.Optional(Type.Unknown()),
+  power_level_content_override: Type.Optional(PowerLevelsEventContent),
 });

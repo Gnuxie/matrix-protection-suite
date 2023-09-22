@@ -26,6 +26,10 @@ limitations under the License.
  */
 
 const noValue = Symbol('noValue');
+export type ActionNoValue = typeof noValue;
+export type TActionResult<Ok, Err> =
+  | ActionResult<Ok, ActionNoValue>
+  | ActionResult<ActionNoValue, Err>;
 
 /**
  * This is a utility specifically for validating user input, and reporting
@@ -39,28 +43,26 @@ const noValue = Symbol('noValue');
  * TO be clear this is only used when the user has done something wrong
  * and we need to communicate that. It is not for any other situation.
  */
-export class ActionResult<Ok, Err extends ActionError = ActionError> {
+export class ActionResult<Ok = typeof noValue, Err = typeof noValue> {
   private constructor(
     private readonly okValue: Ok | typeof noValue,
     private readonly errValue: Err | typeof noValue
   ) {}
-  public static Ok<Ok, Err extends ActionError = ActionError>(
-    value: Ok
-  ): ActionResult<Ok, Err> {
-    return new ActionResult<Ok, Err>(value, noValue);
+  public static Ok<Ok>(value: Ok): ActionResult<Ok, typeof noValue> {
+    return new ActionResult<Ok, typeof noValue>(value, noValue);
   }
 
-  public static Err<Ok, Err extends ActionError = ActionError>(
+  public static Err<Err extends ActionError = ActionError>(
     value: Err
-  ): ActionResult<Ok, Err> {
-    return new ActionResult<Ok, Err>(noValue, value);
+  ): ActionResult<typeof noValue, Err> {
+    return new ActionResult<typeof noValue, Err>(noValue, value);
   }
 
-  public isOk(): boolean {
+  public isOk(): this is ActionResult<Ok, typeof noValue> {
     return this.okValue !== noValue;
   }
 
-  public isErr(): boolean {
+  public isErr(): this is ActionResult<typeof noValue, Err> {
     return this.errValue !== noValue;
   }
 
@@ -92,7 +94,10 @@ export class ActionError {
    * @param _options This exists so that the method is extensible by subclasses. Otherwise they wouldn't be able to pass other constructor arguments through this method.
    * @returns A CommandResult with a CommandError nested within.
    */
-  public static Result<Ok>(message: string, _options = {}): ActionResult<Ok> {
+  public static Result(
+    message: string,
+    _options = {}
+  ): ActionResult<typeof noValue, ActionError> {
     return ActionResult.Err(new ActionError(message));
   }
 }

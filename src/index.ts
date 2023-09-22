@@ -10,6 +10,7 @@ export * from './MatrixTypes/MatrixGlob';
 export * from './MatrixTypes/MatrixRoomReference';
 export * from './MatrixTypes/Permalinks';
 export * from './MatrixTypes/PolicyEvents';
+export * from './MatrixTypes/PowerLevels';
 
 export * from './PolicyList/PolicyList';
 export * from './PolicyList/PolicyListEditor';

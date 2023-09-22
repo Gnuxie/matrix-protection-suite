@@ -4,7 +4,7 @@
  */
 
 import { randomUUID } from 'crypto';
-import { ActionError, ActionResult } from './Action';
+import { ActionError, ActionNoValue, ActionResult } from './Action';
 import { Logger } from '../Logging/Logger';
 
 const log = new Logger('ActionException');
@@ -37,10 +37,10 @@ export class ActionException extends ActionError {
     this.log();
   }
 
-  public static Result<Ok>(
+  public static Result(
     message: string,
     options: { exception: Error; exceptionKind: ActionExceptionKind }
-  ): ActionResult<Ok, ActionException> {
+  ): ActionResult<ActionNoValue, ActionException> {
     return ActionResult.Err(
       new ActionException(options.exceptionKind, options.exception, message)
     );
