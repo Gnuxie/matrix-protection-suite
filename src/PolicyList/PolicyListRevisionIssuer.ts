@@ -24,31 +24,25 @@ limitations under the License.
  * However, this file is modified and the modifications in this file
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
-import { ActionResult } from '../Interface/Action';
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyRule, Recommendation } from './PolicyRule';
 
-export interface PolicyListEditor {
-  createPolicy(
-    entityType: PolicyRuleType,
-    recommendation: Recommendation,
-    entity: string,
-    reason: string,
-    additionalProperties: Record<string, unknown>
-  ): Promise<ActionResult<string /** The event ID of the new policy. */>>;
-  removePolicy(
-    ruleType: PolicyRuleType,
-    recommendation: Recommendation,
-    entity: string,
-    reason?: string
-  ): Promise<ActionResult<PolicyRule[]>>;
-  banEntity(
-    ruleType: PolicyRuleType,
-    entity: string,
-    reason?: string
-  ): Promise<ActionResult<string>>;
-  unbanEntity(
-    ruleType: PolicyRuleType,
-    entity: string
-  ): Promise<ActionResult<PolicyRule[]>>;
+import { PolicyListRevision } from './PolicyListRevision';
+import { PolicyRuleChange } from './PolicyRuleChange';
+
+export interface PolicyListRevisionIssuer {
+  currentRevision: PolicyListRevision;
+  on(
+    event: 'revision',
+    listener: (
+      nextRevision: PolicyListRevision,
+      changes: PolicyRuleChange[],
+      previousRevision: PolicyListRevision
+    ) => void
+  ): this;
+  emit(
+    event: 'revision',
+    nextRevision: PolicyListRevision,
+    changes: PolicyRuleChange[],
+    previousRevision: PolicyListRevision
+  ): boolean;
+  updateForEvent(eventId: string, eventType: string): void;
 }
