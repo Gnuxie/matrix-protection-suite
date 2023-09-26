@@ -31,6 +31,14 @@ import { PolicyListRevision } from './PolicyListRevision';
  * This exists only so that clients can hook into the edits made by the editor
  * in order to produce a new revision as quickly as possible.
  * That might not make sense though.
+ *
+ * It might not make sense since clients shouldn't be operating on raw lists
+ * only some kind of a policy aggregator can do that, and the policy list
+ * abstractions would only serve to implement that aggregator.
+ *
+ * This would also imply that the manager itself also only serves to implelment
+ * the aggregator, but that would be incorrect as edits still need to be done
+ * on the lists at this level of abstraction.
  */
 export interface PolicyList extends PolicyListEditor {
   currentRevision: PolicyListRevision;

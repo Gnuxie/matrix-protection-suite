@@ -3,11 +3,15 @@
  * All rights reserved.
  */
 
-import { MatrixRoomReference } from '../MatrixTypes/MatrixRoomReference';
+import {
+  MatrixRoomID,
+  MatrixRoomReference,
+} from '../MatrixTypes/MatrixRoomReference';
 import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
 import { ActionResult } from '../Interface/Action';
-import { PolicyList } from './PolicyList';
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
+import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
+import { PolicyListEditor } from './PolicyListEditor';
 
 export interface PolicyListManager {
   createList(
@@ -16,7 +20,11 @@ export interface PolicyListManager {
     createRoomOptions: RoomCreateOptions
   ): Promise<ActionResult<MatrixRoomReference>>;
 
-  getList(room: MatrixRoomReference): Promise<ActionResult<PolicyList>>;
+  getListRevisionIssuer(
+    room: MatrixRoomID
+  ): Promise<ActionResult<PolicyListRevisionIssuer>>;
+
+  getListEditor(room: MatrixRoomID): Promise<ActionResult<PolicyListEditor>>;
 
   getPolicyRuleEvents(
     room: MatrixRoomReference
