@@ -1,3 +1,7 @@
+export * from './Agglication/AggregationUnit';
+export * from './Agglication/ApplicationUnit';
+export * from './Agglication/PolicyAggregator';
+
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
