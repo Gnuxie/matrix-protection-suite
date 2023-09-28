@@ -1,5 +1,7 @@
 export * from './Interface/Action';
 export * from './Interface/ActionException';
+export * from './Interface/InternedInstanceFactory';
+export * from './Interface/PersistentData';
 
 export * from './Logging/Logger';
 

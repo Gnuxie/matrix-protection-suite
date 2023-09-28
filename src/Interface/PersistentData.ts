@@ -13,6 +13,9 @@ export type RawSchemedData = object &
 export type SchemaMigration = (
   input: RawSchemedData
 ) => Promise<RawSchemedData>;
+export type SchemaAssertion<T extends RawSchemedData> = (
+  data: RawSchemedData
+) => data is T;
 
 export abstract class PersistentData<
   Format extends RawSchemedData = RawSchemedData
@@ -23,7 +26,7 @@ export abstract class PersistentData<
    */
   protected abstract downgradeSchema: SchemaMigration[];
   protected abstract isAllowedToInferNoVersionAsZero: boolean;
-  protected abstract requestMatrixData(): Promise<unknown>;
+  protected abstract requestPersistentData(): Promise<unknown>;
   protected abstract storeMatixData(data: Format): Promise<void>;
   protected abstract createFirstData(): Promise<Format>;
 
@@ -71,7 +74,7 @@ export abstract class PersistentData<
     }
     const applicableSchema = this.downgradeSchema
       .slice(targetVersion + 1, currentVersion + 1)
-      .toReversed();
+      .reverse();
     const migratedData = await applicableSchema.reduce(
       async (
         previousData: Promise<RawSchemedData>,
@@ -85,7 +88,7 @@ export abstract class PersistentData<
   }
 
   protected async loadData(): Promise<Format> {
-    const rawData = await this.requestMatrixData();
+    const rawData = await this.requestPersistentData();
     if (rawData === undefined) {
       return await this.createFirstData();
     } else if (typeof rawData !== 'object' || rawData === null) {
