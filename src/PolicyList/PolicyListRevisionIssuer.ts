@@ -25,24 +25,27 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { PolicyListRevision } from './PolicyListRevision';
+import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';
 
-export interface PolicyListRevisionIssuer {
+export type RevisionListener = (
+  nextRevision: PolicyListRevision,
+  changes: PolicyRuleChange[],
+  previousRevision: PolicyListRevision
+) => void;
+
+/**
+ * This is really important as issuers can scope what policies from the original
+ * list/lists can consume by controlling what they emit.
+ */
+export declare interface PolicyListRevisionIssuer {
   currentRevision: PolicyListRevision;
-  on(
-    event: 'revision',
-    listener: (
-      nextRevision: PolicyListRevision,
-      changes: PolicyRuleChange[],
-      previousRevision: PolicyListRevision
-    ) => void
-  ): this;
-  emit(
-    event: 'revision',
-    nextRevision: PolicyListRevision,
-    changes: PolicyRuleChange[],
-    previousRevision: PolicyListRevision
-  ): boolean;
+  on(event: 'revision', listener: RevisionListener): this;
+  emit(event: 'revision', ...args: Parameters<RevisionListener>): boolean;
+  unregisterListeners(): void;
+}
+
+export interface PolicyRoomRevisionIssuer extends PolicyListRevisionIssuer {
+  currentRevision: PolicyRoomRevision;
   updateForEvent(eventId: string, eventType: string): void;
 }

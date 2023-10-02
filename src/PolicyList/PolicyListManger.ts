@@ -10,7 +10,7 @@ import {
 import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
 import { ActionResult } from '../Interface/Action';
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
-import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
+import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
 import { PolicyListEditor } from './PolicyListEditor';
 
 export interface PolicyListManager {
@@ -20,9 +20,9 @@ export interface PolicyListManager {
     createRoomOptions: RoomCreateOptions
   ): Promise<ActionResult<MatrixRoomReference>>;
 
-  getListRevisionIssuer(
+  getPolicyRoomRevisionIssuer(
     room: MatrixRoomID
-  ): Promise<ActionResult<PolicyListRevisionIssuer>>;
+  ): Promise<ActionResult<PolicyRoomRevisionIssuer>>;
 
   getListEditor(room: MatrixRoomID): Promise<ActionResult<PolicyListEditor>>;
 

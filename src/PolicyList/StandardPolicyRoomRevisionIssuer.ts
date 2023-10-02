@@ -26,23 +26,23 @@ limitations under the License.
  */
 
 import { EventEmitter } from 'stream';
-import { PolicyListRevision } from './PolicyListRevision';
-import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
+import { PolicyRoomRevision } from './PolicyListRevision';
+import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
 import { PolicyListManager } from './PolicyListManger';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
 
-const log = new Logger('StandardPolicyListRevisionIssuer');
+const log = new Logger('StandardPolicyRoomRevisionIssuer');
 
-export class StandardPolicyListRevisionIssuer
+export class StandardPolicyRoomRevisionIssuer
   extends EventEmitter
-  implements PolicyListRevisionIssuer
+  implements PolicyRoomRevisionIssuer
 {
   private readonly batcher: RevisionBatcher;
   constructor(
     public readonly room: MatrixRoomID,
-    public currentRevision: PolicyListRevision,
+    public currentRevision: PolicyRoomRevision,
     policyListManager: PolicyListManager
   ) {
     super();
@@ -57,6 +57,10 @@ export class StandardPolicyListRevisionIssuer
       return;
     }
     this.batcher.addToBatch(eventId);
+  }
+
+  public unregisterListeners(): void {
+    // nothing to do.
   }
 }
 
@@ -76,7 +80,7 @@ class RevisionBatcher {
   private batchedEvents = new Set<string /* event id */>();
 
   constructor(
-    private readonly policyListRevisionIssuer: StandardPolicyListRevisionIssuer,
+    private readonly policyListRevisionIssuer: StandardPolicyRoomRevisionIssuer,
     private readonly policyListManager: PolicyListManager
   ) {}
 
@@ -142,11 +146,14 @@ class RevisionBatcher {
       );
       return;
     }
-    const nextRevision = this.policyListRevisionIssuer.currentRevision.revise(
+    const nextRevision =
+      this.policyListRevisionIssuer.currentRevision.reviseFromState(
+        policyRuleEventsResult.ok
+      );
+    const previousRevision = this.policyListRevisionIssuer.currentRevision;
+    const changes = previousRevision.changesFromState(
       policyRuleEventsResult.ok
     );
-    const previousRevision = this.policyListRevisionIssuer.currentRevision;
-    const changes = previousRevision.changes(policyRuleEventsResult.ok);
     this.policyListRevisionIssuer.currentRevision = nextRevision;
     this.policyListRevisionIssuer.emit(
       'revision',

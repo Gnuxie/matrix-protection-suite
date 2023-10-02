@@ -25,50 +25,48 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { MatrixRoomReference } from '../MatrixTypes/MatrixRoomReference';
-import { Logger } from '../Logging/Logger';
-import {
-  PolicyRuleEvent,
-  PolicyRuleType,
-  isPolicyTypeObsolete,
-  normalisePolicyRuleType,
-} from '../MatrixTypes/PolicyEvents';
+import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from './PolicyListRevision';
-import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
+import { PolicyRule, Recommendation } from './PolicyRule';
 import { ChangeType, PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { UserID } from '../MatrixTypes/MatrixEntity';
 
-const log = new Logger('StandardPolicyListRevision');
+type PolicyRuleMap = PersistentMap<
+  PolicyRuleType,
+  PersistentMap<string, PolicyRule>
+>;
+
+type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
 
 export class StandardPolicyListRevision implements PolicyListRevision {
-  private constructor(
-    public readonly room: MatrixRoomReference,
+  public constructor(
     public readonly revisionID: Revision,
     /**
      * A map of state events indexed first by state type and then state keys.
      */
-    private readonly policyRules: PersistentMap<
-      PolicyRuleType,
-      PersistentMap<string, PolicyRule>
-    >,
+    private readonly policyRules: PolicyRuleMap,
     /**
      * Allow us to detect whether we have updated the state for this event.
      */
-    private readonly policyRuleByEventId: PersistentMap<
-      string /* event id */,
-      PolicyRule
-    >
+    private readonly policyRuleByEventId: PolicyRuleByEventIDMap
   ) {}
 
-  public static blankRevision(room: MatrixRoomReference): PolicyListRevision {
+  public static blankRevision(): StandardPolicyListRevision {
     return new StandardPolicyListRevision(
-      room,
       new Revision(),
       PersistentMap(),
       PersistentMap()
     );
+  }
+
+  public toPolicyRuleMap(): PolicyRuleMap {
+    return this.policyRules;
+  }
+
+  public toPolicyRuleByEventIDMap(): PolicyRuleByEventIDMap {
+    return this.policyRuleByEventId;
   }
 
   /**
@@ -77,7 +75,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
    * @param stateKey The state key e.g. rule:@bad:matrix.org
    * @returns A state event if present or null.
    */
-  private getPolicyRule(stateType: PolicyRuleType, stateKey: string) {
+  public getPolicyRule(stateType: PolicyRuleType, stateKey: string) {
     return this.policyRules.get(stateType)?.get(stateKey);
   }
 
@@ -143,95 +141,9 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     return rules;
   }
 
-  /**
-   * Calculate the changes from this revision with a more recent set of state events.
-   * Will only show the difference, if the set is the same then no changes will be returned.
-   * @param state The state events that reflect a different revision of the list.
-   * @returns Any changes between this revision and the new set of state events.
-   */
-  public changes(state: PolicyRuleEvent[]): PolicyRuleChange[] {
-    const changes: PolicyRuleChange[] = [];
-    for (const event of state) {
-      const ruleKind = normalisePolicyRuleType(event.type);
-      if (ruleKind === PolicyRuleType.Unknown) {
-        continue; // this rule is of an invalid or unknown type.
-      }
-      const existingRule = this.getPolicyRule(ruleKind, event.state_key);
-      const existingState = existingRule?.sourceEvent;
-
-      // Now we need to figure out if the current event is of an obsolete type
-      // (e.g. org.matrix.mjolnir.rule.user) when compared to the previousState (which might be m.policy.rule.user).
-      // We do not want to overwrite a rule of a newer type with an older type even if the event itself is supposedly more recent
-      // as it may be someone deleting the older versions of the rules.
-      if (existingState) {
-        if (isPolicyTypeObsolete(ruleKind, existingState.type, event.type)) {
-          log.info(
-            'PolicyList',
-            `In PolicyList ${this.room.toPermalink()}, conflict between rules ${
-              event['event_id']
-            } (with obsolete type ${event['type']}) ` +
-              `and ${existingState.event_id} (with standard type ${existingState['type']}). Ignoring rule with obsolete type.`
-          );
-          continue;
-        }
-      }
-
-      const changeType: null | ChangeType = (() => {
-        if (!existingState) {
-          return ChangeType.Added;
-        } else if (existingState.event_id === event.event_id) {
-          if (event.unsigned?.redacted_because) {
-            return ChangeType.Removed;
-          } else {
-            // Nothing has changed.
-            return null;
-          }
-        } else {
-          // Then the policy has been modified in some other way, possibly 'soft' redacted by a new event with empty content...
-          if (Object.keys(event['content']).length === 0) {
-            return ChangeType.Removed;
-          } else {
-            return ChangeType.Modified;
-          }
-        }
-      })();
-
-      // If we haven't got any information about what the rule used to be, then it wasn't a valid rule to begin with
-      // and so will not have been used. Removing a rule like this therefore results in no change.
-      if (changeType === ChangeType.Removed && existingRule) {
-        const redactedBecause = event.unsigned.redacted_because;
-        const sender =
-          typeof redactedBecause === 'object' &&
-          redactedBecause !== null &&
-          'sender' in redactedBecause &&
-          typeof redactedBecause.sender === 'string'
-            ? redactedBecause.sender
-            : event.sender;
-        changes.push({
-          changeType,
-          event,
-          sender,
-          rule: existingRule,
-          ...(existingState ? { existingState } : {}),
-        });
-        // Event has no content and cannot be parsed as a ListRule.
-        continue;
-      }
-      if (changeType) {
-        const rule = parsePolicyRule(event);
-        changes.push({
-          rule,
-          changeType,
-          event,
-          sender: event.sender,
-          ...(existingState ? { existingState } : {}),
-        });
-      }
-    }
-    return changes;
-  }
-
-  public revise(policyState: PolicyRuleEvent[]): PolicyListRevision {
+  public reviseFromChanges(
+    changes: PolicyRuleChange[]
+  ): StandardPolicyListRevision {
     let nextPolicyRules = this.policyRules;
     let nextPolicyRulesByEventID = this.policyRuleByEventId;
     const setPolicyRule = (
@@ -264,7 +176,6 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         rule.sourceEvent.event_id
       );
     };
-    const changes = this.changes(policyState);
     for (const change of changes) {
       if (
         change.changeType === ChangeType.Added ||
@@ -280,7 +191,6 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       }
     }
     return new StandardPolicyListRevision(
-      this.room,
       new Revision(),
       nextPolicyRules,
       nextPolicyRulesByEventID

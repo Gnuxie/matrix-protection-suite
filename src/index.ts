@@ -1,7 +1,3 @@
-export * from './Agglication/AggregationUnit';
-export * from './Agglication/ApplicationUnit';
-export * from './Agglication/PolicyAggregator';
-
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
@@ -27,4 +23,9 @@ export * from './PolicyList/PolicyRule';
 export * from './PolicyList/PolicyRuleChange';
 export * from './PolicyList/Revision';
 export * from './PolicyList/StandardPolicyListRevision';
-export * from './PolicyList/StandardPolicyListRevisionIssuer';
+export * from './PolicyList/StandardPolicyRoomRevision';
+export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
+
+export * from './Protection/Consequence';
+export * from './Protection/ProtectedRoomsSet';
+export * from './Protection/Protection';

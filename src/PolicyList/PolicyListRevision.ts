@@ -36,16 +36,23 @@ export const POLICY_ROOM_TYPE = 'support.feline.policy.lists.msc.v1';
 export const POLICY_ROOM_TYPE_VARIANTS = [POLICY_ROOM_TYPE];
 export const SHORTCODE_EVENT_TYPE = 'org.matrix.mjolnir.shortcode';
 
-export interface PolicyListRevision {
-  readonly room: MatrixRoomID;
-  readonly revisionID: Revision;
+export interface PolicyListRevisionView {
   allRules(): PolicyRule[];
   userRules(recommendation?: Recommendation): PolicyRule[];
   serverRules(recommendation?: Recommendation): PolicyRule[];
   roomRules(recommendation?: Recommendation): PolicyRule[];
   rulesMatchingEntity(entity: string, ruleKind?: PolicyRuleType): PolicyRule[];
   rulesOfKind(kind: PolicyRuleType, recommendation?: string): PolicyRule[];
-  changes(state: PolicyRuleEvent[]): PolicyRuleChange[];
-  revise(policyState: PolicyRuleEvent[]): PolicyListRevision;
+}
+
+export interface PolicyListRevision extends PolicyListRevisionView {
+  readonly revisionID: Revision;
+  reviseFromChanges(changes: PolicyRuleChange[]): PolicyListRevision;
+}
+
+export interface PolicyRoomRevision extends PolicyListRevision {
+  readonly room: MatrixRoomID;
+  reviseFromState(policyState: PolicyRuleEvent[]): PolicyRoomRevision;
+  changesFromState(state: PolicyRuleEvent[]): PolicyRuleChange[];
   hasEvent(eventId: string): boolean;
 }
