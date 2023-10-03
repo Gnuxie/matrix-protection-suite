@@ -41,7 +41,16 @@ import { StandardPolicyListRevision } from './StandardPolicyListRevision';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
+/**
+ * A standard implementation of `PolicyRoomRevision`.
+ * Implemented using `StandardPolicyListRevision`.
+ * @see {@link PolicyRoomRevision}.
+ */
 export class StandardPolicyRoomRevision implements PolicyRoomRevision {
+  /**
+   * @param room A MatrixRoomID for the room.
+   * @param revisionContainer A StandardPolicyListRevision (can be a blank revision).
+   */
   public constructor(
     public readonly room: MatrixRoomID,
     private readonly revisionContainer: StandardPolicyListRevision

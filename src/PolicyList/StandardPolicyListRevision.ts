@@ -33,14 +33,30 @@ import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { UserID } from '../MatrixTypes/MatrixEntity';
 
+/**
+ * A map interning rules by their rule type, and then their state key.
+ */
 type PolicyRuleMap = PersistentMap<
   PolicyRuleType,
   PersistentMap<string, PolicyRule>
 >;
 
+/**
+ * A map interning rules by their event id.
+ */
 type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
 
+/**
+ * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
+ */
 export class StandardPolicyListRevision implements PolicyListRevision {
+  /**
+   * Use {@link StandardPolicyListRevision.blankRevision} to get started.
+   * Only use this constructor if you are implementing a variant of PolicyListRevision.
+   * @param revisionID A revision ID to represent this revision.
+   * @param policyRules A map containing the rules for this revision by state type and then state key.
+   * @param policyRuleByEventId A map containing the rules ofr this revision by event id.
+   */
   public constructor(
     public readonly revisionID: Revision,
     /**
@@ -53,6 +69,9 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     private readonly policyRuleByEventId: PolicyRuleByEventIDMap
   ) {}
 
+  /**
+   * @returns An empty revision.
+   */
   public static blankRevision(): StandardPolicyListRevision {
     return new StandardPolicyListRevision(
       new Revision(),

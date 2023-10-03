@@ -24,6 +24,10 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+/**
+ * An interface for any object that provides a logging capability.
+ * @see {@link setGlobalLoggerProvider}.
+ */
 export interface ILoggerProvider {
   debug(moduleName: string, message: string, ...parts: unknown[]): void;
   info(moduleName: string, message: string, ...parts: unknown[]): void;
@@ -31,6 +35,11 @@ export interface ILoggerProvider {
   error(moduleName: string, message: string, ...parts: unknown[]): void;
 }
 
+/**
+ * A logger provider that uses the `console` object to provide logging capability.
+ * Intended only as a default that should be replaced by any client of this library.
+ * @see {@link setGlobalLoggerProvider}
+ */
 class DumbConsoleLogger implements ILoggerProvider {
   debug(...parts: unknown[]): void {
     console.debug(...parts);
@@ -48,6 +57,11 @@ class DumbConsoleLogger implements ILoggerProvider {
 
 let globalLoggerProvider = new DumbConsoleLogger();
 
+/**
+ * This is a utility used throughout the library to provide generic logging
+ * capability without being tied to one provider or logging implementation.
+ * @see {@link setGlobalLoggerProvider}
+ */
 export class Logger implements ILoggerProvider {
   constructor(public readonly moduleName: string) {}
 
@@ -68,6 +82,11 @@ export class Logger implements ILoggerProvider {
   }
 }
 
+/**
+ * Allows the provider for all instances of `Logger` to be set.
+ * @param provider An object that implements `ILoggerProvider`.
+ * @see {@link ILoggerProvider}.
+ */
 export function setGlobalLoggerProvider(provider: ILoggerProvider): void {
   globalLoggerProvider = provider;
 }

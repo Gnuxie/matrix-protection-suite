@@ -36,23 +36,81 @@ export const POLICY_ROOM_TYPE = 'support.feline.policy.lists.msc.v1';
 export const POLICY_ROOM_TYPE_VARIANTS = [POLICY_ROOM_TYPE];
 export const SHORTCODE_EVENT_TYPE = 'org.matrix.mjolnir.shortcode';
 
+/**
+ * An interface for reading rules from a `PolicyListRevision`.
+ */
 export interface PolicyListRevisionView {
+  /**
+   * @returns all of the rules enacted by the policy list.
+   */
   allRules(): PolicyRule[];
+  /**
+   * @param recommendation A recommendation to filter the rules to.
+   * @returns all of the rules enacted by the policy list that are of the type {@link PolicyRuleType.User}.
+   */
   userRules(recommendation?: Recommendation): PolicyRule[];
+  /**
+   * @param recommendation A recommendation to filter the rules to.
+   * @returns all of the rules enacted by the policy list that are of the type {@link PolicyRuleType.Server}.
+   */
   serverRules(recommendation?: Recommendation): PolicyRule[];
+  /**
+   * @param recommendation A recommendation to filter the rules to.
+   * @returns all of the rules enacted by the policy list that are of the type {@link PolicyRuleType.Room}.
+   */
   roomRules(recommendation?: Recommendation): PolicyRule[];
-  rulesMatchingEntity(entity: string, ruleKind?: PolicyRuleType): PolicyRule[];
-  rulesOfKind(kind: PolicyRuleType, recommendation?: string): PolicyRule[];
+  /**
+   * @param entity The entity that is being queried.
+   * @param type Restrict the search to only rules of this `PolicyRuleType`.
+   * @returns The rules that are enacted against the entity in the policy list.
+   */
+  rulesMatchingEntity(entity: string, type?: PolicyRuleType): PolicyRule[];
+  /**
+   * @param type The PolicyRuleType to restrict the rules to.
+   * @param recommendation A recommendation to also restrict the rules to.
+   */
+  rulesOfKind(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): PolicyRule[];
 }
 
+/**
+ * A revision is a view of a PolicyList at a given moment in the list's history.
+ * This may even be a representation of multiple lists aggregated together.
+ */
 export interface PolicyListRevision extends PolicyListRevisionView {
   readonly revisionID: Revision;
+  /**
+   * Create a new revision from a series of `PolicyRuleChange`'s
+   * @param changes The changes to use as a basis for a new revision.
+   * @returns A new `PolicyListRevision`.
+   */
   reviseFromChanges(changes: PolicyRuleChange[]): PolicyListRevision;
 }
 
+/**
+ * A revision of a PolicyRoom at a given moment in the room's history.
+ */
 export interface PolicyRoomRevision extends PolicyListRevision {
   readonly room: MatrixRoomID;
+  /**
+   * Create a new revision from the state of the associated Matrix room.
+   * @param policyState The state from the matrix room, obtained from `/state`.
+   * @returns A new PolicyRoomRevision.
+   */
   reviseFromState(policyState: PolicyRuleEvent[]): PolicyRoomRevision;
+  /**
+   * Calculate the changes to `PolicyRule`s contained in this revision based
+   * on new room state.
+   * @param state State events from /state.
+   * @returns A list of changes to `PolicyRule`s.
+   */
   changesFromState(state: PolicyRuleEvent[]): PolicyRuleChange[];
+  /**
+   * Check whether the list has a rule associated with this event.
+   * @param eventId The id of a policy rule event.
+   * @returns true if the revision contains a rule associated with the event.
+   */
   hasEvent(eventId: string): boolean;
 }

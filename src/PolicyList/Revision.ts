@@ -28,9 +28,10 @@ limitations under the License.
 import { monotonicFactory } from 'ulidx';
 
 /**
- * Represents a specific version of the state contained in `PolicyList`.
+ * Represents a specific version of the state contained in `PolicyListRevision`.
  * These are unique and can be compared with `supersedes`.
  * We use a ULID to work out whether a revision supersedes another.
+ * @see {@link PolicyListRevision}.
  */
 export class Revision {
   /**

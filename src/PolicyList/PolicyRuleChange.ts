@@ -34,6 +34,10 @@ export enum ChangeType {
   Modified = 'MODIFIED',
 }
 
+/**
+ * A way to guage the diff between two revisions.
+ * @see {@link PolicyListRevision}.
+ */
 export interface PolicyRuleChange {
   readonly changeType: ChangeType;
   /**

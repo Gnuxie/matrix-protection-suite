@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2022 Gnuxie <Gnuxie@protonmail.com>
+ * Copyright (C) 2022-2023 Gnuxie <Gnuxie@protonmail.com>
  * All rights reserved.
  *
  * This file is modified and is NOT licensed under the Apache License.
@@ -24,17 +24,23 @@ limitations under the License.
  * However, this file is modified and the modifications in this file
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
+
 /**
- * This is a utility specifically for validating user input, and reporting
- * what was wrong back to the end user in a way that makes sense.
- * We are trying to tell the user they did something wrong and what that is.
- * This is something completely different to a normal exception,
- * where we are saying to ourselves that our assumptions in our code about
- * the thing we're doing are completely wrong. The user never
- * should see exceptions as there is nothing they can do about it.
+ * The action result is a Result type that can be used for any interface that
+ * carries out a failable action. The idea being that any errors will be
+ * caught be the implementation of the interface and documented in an `ActionError`.
+ * This means that interfaces do not need to depend on the exact interface of
+ * any Errors and Exceptions that can be thrown by an implementation.
+ * As it is often impossible to know their interface.
+ * Additionally, this also provides a consistent way to describe what went wrong
+ * to a user of the application that can also be referenced in log files.
  *
- * TO be clear this is only used when the user has done something wrong
- * and we need to communicate that. It is not for any other situation.
+ * @typeParam Ok The result if the action was a success.
+ * @typeParam Error The result if the action was a failure.
+ * @see {@link Ok}
+ * @see {@link isOk}
+ * @see {@link ResultError}
+ * @see {@link isError}
  */
 export type ActionResult<Ok, Error = ActionError> =
   | {
@@ -46,36 +52,60 @@ export type ActionResult<Ok, Error = ActionError> =
       isOkay: false;
     };
 
+/**
+ * @param ok The value indicating a successful result.
+ * @returns Return an ActionResult that was a success with the value ok.
+ */
 export function Ok<Ok>(ok: Ok): ActionResult<Ok, never> {
   return { ok, isOkay: true };
 }
 
+/**
+ * @param error The value indicating a failed result.
+ * @returns An `ActionResult` that was a failure with the error value.
+ */
 export function ResultError<Error>(error: Error): ActionResult<never, Error> {
   return { error, isOkay: false };
 }
 
+/**
+ * Check an `ActionResult` was a success, can be used as a type assertion.
+ * @param result An `ActionResult` to check the success of.
+ * @returns `true` if the `ActionResult` was a success.
+ */
 export function isOk<Ok, Error = ActionError>(
   result: ActionResult<Ok, Error>
 ): result is ActionResult<Ok, never> {
   return result.isOkay;
 }
 
+/**
+ * Check an `ActionResult` was a failure, can be used as a type assertion.
+ * @param result The `ActionResult` to check the success of.
+ * @returns `true` if the `ActionResult` was a failure.
+ */
 export function isError<Ok, Error = ActionError>(
   result: ActionResult<Ok, Error>
 ): result is ActionResult<never, Error> {
   return !result.isOkay;
 }
 
+/**
+ * An extensible representation of an Error that describes what went wrong in a
+ * a standard way.
+ * @see {@link ActionException}
+ */
 export class ActionError {
   public constructor(public readonly message: string) {
     // nothing to do.
   }
 
   /**
-   * Utility to wrap the error into a Result.
-   * @param message The message for the CommandError.
-   * @param _options This exists so that the method is extensible by subclasses. Otherwise they wouldn't be able to pass other constructor arguments through this method.
-   * @returns A CommandResult with a CommandError nested within.
+   * Convienant factory method to wrap an `ActionError` into an `ActionResult`.
+   * @param message The message for the `ActionError` that concisely describes the problem.
+   * @param _options This exists so that the method is extensible by subclasses.
+   * Otherwise they wouldn't be able to pass other constructor arguments through this method.
+   * @returns An `ActionResult` with a `ActionError` as the `Error` value.
    */
   public static Result(
     message: string,

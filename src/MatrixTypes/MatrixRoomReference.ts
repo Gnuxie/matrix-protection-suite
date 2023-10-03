@@ -6,10 +6,16 @@
 import { RoomAlias } from './MatrixEntity';
 import { Permalinks } from './Permalinks';
 
+/**
+ * A function that can be used by the reference to join a room.
+ */
 type JoinRoom = (
   roomIdOrAlias: string,
   viaServers?: string[]
 ) => Promise</*room id*/ string>;
+/**
+ * A function that can be used by the reference to resolve an alias to a room id.
+ */
 type ResolveRoom = (roomIdOrAlias: string) => Promise</* room id */ string>;
 
 /**
@@ -38,6 +44,12 @@ export abstract class MatrixRoomReference {
     return new MatrixRoomID(roomId, viaServers);
   }
 
+  /**
+   * Create a `MatrixRoomReference` from a room ID or a room alias.
+   * @param roomIdOrAlias The room ID or the room alias.
+   * @param viaServers If a room ID is being provided, then these server names
+   * can be used to find the room.
+   */
   public static fromRoomIdOrAlias(
     roomIdOrAlias: string,
     viaServers: string[] = []
@@ -115,12 +127,20 @@ export abstract class MatrixRoomReference {
   }
 }
 
+/**
+ * A concrete `MatrixRoomReference` that represents only a room ID.
+ * @see {@link MatrixRoomReference}.
+ */
 export class MatrixRoomID extends MatrixRoomReference {
   public constructor(reference: string, viaServers: string[] = []) {
     super(reference, viaServers);
   }
 }
 
+/**
+ * A concrete `MatrixRoomReference` the represents only a room alias.
+ * @see {@link MatrixRoomReference}.
+ */
 export class MatrixRoomAlias extends MatrixRoomReference {
   public constructor(reference: string, viaServers: string[] = []) {
     super(reference, viaServers);

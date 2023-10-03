@@ -14,9 +14,8 @@ export * from './MatrixTypes/Permalinks';
 export * from './MatrixTypes/PolicyEvents';
 export * from './MatrixTypes/PowerLevels';
 
-export * from './PolicyList/PolicyList';
-export * from './PolicyList/PolicyListEditor';
-export * from './PolicyList/PolicyListManger';
+export * from './PolicyList/PolicyRoomEditor';
+export * from './PolicyList/PolicyRoomManger';
 export * from './PolicyList/PolicyListRevision';
 export * from './PolicyList/PolicyListRevisionIssuer';
 export * from './PolicyList/PolicyRule';

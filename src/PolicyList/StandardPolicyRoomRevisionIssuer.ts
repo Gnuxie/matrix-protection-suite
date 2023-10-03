@@ -28,22 +28,33 @@ limitations under the License.
 import { EventEmitter } from 'stream';
 import { PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyListManager } from './PolicyListManger';
+import { PolicyRoomManager } from './PolicyRoomManger';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
 
 const log = new Logger('StandardPolicyRoomRevisionIssuer');
 
+/**
+ * A standard implementation of PolicyRoomRevisionIssuer.
+ */
 export class StandardPolicyRoomRevisionIssuer
   extends EventEmitter
   implements PolicyRoomRevisionIssuer
 {
   private readonly batcher: RevisionBatcher;
+  /**
+   * Creates a new StandardPolicyRoomRevisionIssuer, you shouldn't have to use this,
+   * instead use the `PolicyRoomManager`.
+   * @see {@link PolicyRoomManager}.
+   * @param room The matrix room to issue revisions for.
+   * @param currentRevision The current revision for the room, can be blank.
+   * @param policyListManager The policy list manager to use to fetch room state with.
+   */
   constructor(
     public readonly room: MatrixRoomID,
     public currentRevision: PolicyRoomRevision,
-    policyListManager: PolicyListManager
+    policyListManager: PolicyRoomManager
   ) {
     super();
     this.batcher = new RevisionBatcher(this, policyListManager);
@@ -81,7 +92,7 @@ class RevisionBatcher {
 
   constructor(
     private readonly policyListRevisionIssuer: StandardPolicyRoomRevisionIssuer,
-    private readonly policyListManager: PolicyListManager
+    private readonly policyListManager: PolicyRoomManager
   ) {}
 
   /**
