@@ -1,5 +1,5 @@
 {
-  "name": "brokkr",
+  "name": "matrix-protection-suite",
   "version": "0.0.0",
   "main": "dist/index.min.js",
   "module": "dist/index.es.js",
@@ -14,7 +14,7 @@
   "license": "AFL-3.0",
   "private": true,
   "repository": {
-    "url": "https://github.com/Gnuxie/Brokkr.git",
+    "url": "https://github.com/Gnuxie/matrix-protection-suite.git",
     "type": "git"
   },
   "scripts": {
