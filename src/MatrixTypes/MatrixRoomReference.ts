@@ -3,6 +3,7 @@
  * All rights reserved.
  */
 
+import { StaticDecode, Type } from '@sinclair/typebox';
 import { RoomAlias } from './MatrixEntity';
 import { Permalinks } from './Permalinks';
 
@@ -146,3 +147,9 @@ export class MatrixRoomAlias extends MatrixRoomReference {
     super(reference, viaServers);
   }
 }
+
+export const Permalink = Type.Transform(Type.String())
+  .Decode((value) => MatrixRoomReference.fromPermalink(value))
+  .Encode((value) => value.toPermalink());
+
+export type Permalink = StaticDecode<typeof Permalink>;
