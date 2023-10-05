@@ -26,8 +26,11 @@ limitations under the License.
  */
 
 import { Static, Type } from '@sinclair/typebox';
-import { Value } from '@sinclair/typebox/value'
-import { PersistentData, RawSchemedData, SCHEMA_VERSION_KEY, SchemaMigration } from '../Interface/PersistentData';
+import {
+  PersistentData,
+  RawSchemedData,
+  SCHEMA_VERSION_KEY,
+} from '../Interface/PersistentData';
 import { Permalink } from '../MatrixTypes/MatrixRoomReference';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { ActionResult, Ok, isError } from '../Interface/Action';
@@ -166,19 +169,10 @@ export function isProtectedRoomsConfigEvent(
 ): value is ProtectedRoomsConfigEvent {
   return CProtectedRoomsConfigEvent.Check(value);
 }
-const value = CProtectedRoomsConfigEvent.Decode(undefined)
-// FIXME: All type assertions should be replaced with a parser
-//        (ie CompiledType.Decode).
-//        We should check what decode actually returns and throws
-//        and make our own ActionResult for it if it does throw.
-//        value throws `TransformDecodeCheckError` from value/transform
-//        compiled throws `TransformDecodeCheckError`
-//        we could even make our own wrapper that compiles these thingies for us.
-Value.Decode
+
 export abstract class ProtectedRoomsSetProtectedRoomsConfig extends PersistentData<
   ProtectedRoomsConfigEvent & RawSchemedData
 > {
-
   protected readonly isAllowedToInferNoVersionAsZero = true;
   protected readonly upgradeSchema = [
     async (
@@ -198,9 +192,32 @@ export abstract class ProtectedRoomsSetProtectedRoomsConfig extends PersistentDa
   ];
   protected readonly downgradeSchema = [
     async (
-      protectedRoomsConfigEvent
+      protectedRoomsConfigEvent: RawSchemedData
     ): Promise<MjolnirProtectedRoomsEvent & RawSchemedData> => {
-      if (!isProtectedRoomsConfigEvent())
+      if (!isProtectedRoomsConfigEvent(protectedRoomsConfigEvent)) {
+        throw new TypeError('protected rooms config data is corrupted');
+      }
+      return {
+        rooms: protectedRoomsConfigEvent.rooms.map(
+          (roomConfig) => roomConfig.reference
+        ),
+        [SCHEMA_VERSION_KEY]: 0,
+      };
+    },
+  ];
+
+  public async createFirstData(): Promise<
+    ActionResult<ProtectedRoomsConfigEvent & RawSchemedData>
+  > {
+    const data = {
+      rooms: [],
+      spaces: [],
+      [SCHEMA_VERSION_KEY]: 1,
+    };
+    const result = await this.storePersistentData(data);
+    if (isError(result)) {
+      return result;
     }
-  ]
+    return Ok(data);
+  }
 }
