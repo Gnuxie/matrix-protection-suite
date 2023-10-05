@@ -25,19 +25,12 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { Static, TSchema, Type } from '@sinclair/typebox';
+import { Static, Type } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value'
 import { PersistentData, RawSchemedData, SCHEMA_VERSION_KEY, SchemaMigration } from '../Interface/PersistentData';
 import { Permalink } from '../MatrixTypes/MatrixRoomReference';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { ActionResult, Ok, isError } from '../Interface/Action';
-
-export type MjolnirProtectedRoomsEvent = Static<
-  typeof MjolnirProtectedRoomsEvent
->;
-export const MjolnirProtectedRoomsEvent = Type.Object({
-  rooms: Type.Array(Permalink),
-});
 
 export type MjolnirWatchedPolicyRoomsEvent = Static<
   typeof MjolnirWatchedPolicyRoomsEvent
@@ -55,40 +48,17 @@ export function isMjolnirWatchedPolicyRoomsEvent(
 ): value is MjolnirWatchedPolicyRoomsEvent {
   return TMjolnirWatchedPolicyRoomsEvent.Check(value);
 }
-
-export const PROPAGATION_TYPE_POLICY_ROOM = 'ge.applied-langua.ge.draupnir.policy_room';
 export const PROPAGATION_TYPE_DIRECT = 'ge.applied-langua.ge.draupnir.direct';
 
-export const PolicyRoomDescription = Type.Object({
-  propagation: Type.Literal(PROPAGATION_TYPE_POLICY_ROOM),
-  reference: Permalink,
-});
-
-export type PolicyRoomDescription = Static<typeof PolicyRoomDescription>;
-
-export type DirectPolicyListIssuer<IssuerDescription extends TSchema> = Static<
-  ReturnType<typeof DirectPolicyListIssuer<IssuerDescription>>
->;
-export const DirectPolicyListIssuer = <IssuerDescription extends TSchema>(
-  IssuerDescription: IssuerDescription
-) =>
-  Type.Object({
-    propagation: Type.Literal(PROPAGATION_TYPE_DIRECT),
-    issuers: Type.Array(IssuerDescription),
-  });
-
-
-// ok a way around this problem is to have both issuers and references on the
-// descriptor, maybe?
 export const PolicyListIssuerDescription = Type.Recursive((This) =>
-  Type.Union([
-    PolicyRoomDescription,
-    DirectPolicyListIssuer(This),
-    Type.Object({
-      propagation: Type.String(),
-      issuers: Type.Array(This),
-    }),
-  ])
+  Type.Object({
+    propagation: Type.Union([
+      Type.Literal(PROPAGATION_TYPE_DIRECT),
+      Type.String(),
+    ]),
+    issuers: Type.Array(This),
+    references: Type.Array(Permalink),
+  })
 );
 
 export type PolicyListIssuerDescription = Static<
@@ -105,30 +75,6 @@ export function isPolicyListIssuerDescription(
   return CPolicyListIssuerDescription.Check(value);
 }
 
-const TProtectedRoomsSetPolicyListIssuerDescriptionConfig = Type.Extract(
-  PolicyListIssuerDescription,
-  Type.Required(Type.Object({ propagation: Type.Literal(PROPAGATION_TYPE_DIRECT) }))
-);
-
-type TProtectedRoomsSetPolicyListIssuerDescriptionConfig = Static<
-  typeof TProtectedRoomsSetPolicyListIssuerDescriptionConfig
->;
-
-const CProtectedRoomsSetPolicyListIssuerDescriptionConfig =
-  TypeCompiler.Compile(TProtectedRoomsSetPolicyListIssuerDescriptionConfig);
-
-export function isProtectedRoomsSetPolicyListIssuerDescriptionConfig(
-  value: unknown
-): value is TProtectedRoomsSetPolicyListIssuerDescriptionConfig {
-  return CProtectedRoomsSetPolicyListIssuerDescriptionConfig.Check(value);
-}
-
-Type.Required
-
-type TProtectedRoomsSetRoomsConfig = PersistentData<
-  MjolnirProtectedRoomsEvent & RawSchemedData
->;
-
 export abstract class ProtectedRoomsSetPolicyListIssuerDescriptionConfig extends PersistentData<
   PolicyListIssuerDescription & RawSchemedData
 > {
@@ -142,12 +88,8 @@ export abstract class ProtectedRoomsSetPolicyListIssuerDescriptionConfig extends
       }
       return {
         propagation: PROPAGATION_TYPE_DIRECT,
-        issuers: watchedListsData.references.map((reference) => {
-          return {
-            propagation: PROPAGATION_TYPE_POLICY_ROOM,
-            reference: reference,
-          };
-        }),
+        issuers: [],
+        references: watchedListsData.references,
         [SCHEMA_VERSION_KEY]: 1,
       };
     },
@@ -155,22 +97,18 @@ export abstract class ProtectedRoomsSetPolicyListIssuerDescriptionConfig extends
   protected readonly downgradeSchema = [
     async (
       policyListIssuerDescriptionData: RawSchemedData
-    ): Promise<MjolnirProtectedRoomsEvent & RawSchemedData> => {
-      if (
-        !isPolicyListIssuerDescription(policyListIssuerDescriptionData) ||
-        !isProtectedRoomsSetPolicyListIssuerDescriptionConfig(
-          policyListIssuerDescriptionData
-        )
-      ) {
+    ): Promise<MjolnirWatchedPolicyRoomsEvent & RawSchemedData> => {
+      if (!isPolicyListIssuerDescription(policyListIssuerDescriptionData)) {
         throw new TypeError(
           `Failed to validate corrupted policy issuer description`
         );
       }
       return {
-        references: policyListIssuerDescriptionData.issuers.
-      }
-    }
-  ]
+        references: policyListIssuerDescriptionData.references,
+        [SCHEMA_VERSION_KEY]: 0,
+      };
+    },
+  ];
 
   public async createFirstData(): Promise<
     ActionResult<PolicyListIssuerDescription & RawSchemedData>
@@ -178,6 +116,7 @@ export abstract class ProtectedRoomsSetPolicyListIssuerDescriptionConfig extends
     const data = {
       propagation: PROPAGATION_TYPE_DIRECT,
       issuers: [],
+      references: [],
       [SCHEMA_VERSION_KEY]: 1,
     };
     const result = await this.storePersistentData(data);
@@ -186,4 +125,82 @@ export abstract class ProtectedRoomsSetPolicyListIssuerDescriptionConfig extends
     }
     return Ok(data);
   }
+}
+
+export type MjolnirProtectedRoomsEvent = Static<
+  typeof MjolnirProtectedRoomsEvent
+>;
+export const MjolnirProtectedRoomsEvent = Type.Object({
+  rooms: Type.Array(Permalink),
+});
+
+export const CMjolnirProtectedRoomsEvent = TypeCompiler.Compile(
+  MjolnirProtectedRoomsEvent
+);
+
+export function isMjolnirProtectedRoomsEvent(
+  value: unknown
+): value is MjolnirProtectedRoomsEvent {
+  return CMjolnirProtectedRoomsEvent.Check(value);
+}
+
+export type ProtectedRoomsConfigEvent = Static<
+  typeof ProtectedRoomsConfigEvent
+>;
+
+const ProtectedRoomDescriptor = Type.Object({
+  reference: Permalink,
+});
+
+export const ProtectedRoomsConfigEvent = Type.Object({
+  rooms: Type.Array(ProtectedRoomDescriptor),
+  spaces: Type.Array(ProtectedRoomDescriptor),
+});
+
+export const CProtectedRoomsConfigEvent = TypeCompiler.Compile(
+  ProtectedRoomsConfigEvent
+);
+
+export function isProtectedRoomsConfigEvent(
+  value: unknown
+): value is ProtectedRoomsConfigEvent {
+  return CProtectedRoomsConfigEvent.Check(value);
+}
+const value = CProtectedRoomsConfigEvent.Decode(undefined)
+// FIXME: All type assertions should be replaced with a parser
+//        (ie CompiledType.Decode).
+//        We should check what decode actually returns and throws
+//        and make our own ActionResult for it if it does throw.
+//        value throws `TransformDecodeCheckError` from value/transform
+//        compiled throws `TransformDecodeCheckError`
+//        we could even make our own wrapper that compiles these thingies for us.
+Value.Decode
+export abstract class ProtectedRoomsSetProtectedRoomsConfig extends PersistentData<
+  ProtectedRoomsConfigEvent & RawSchemedData
+> {
+
+  protected readonly isAllowedToInferNoVersionAsZero = true;
+  protected readonly upgradeSchema = [
+    async (
+      mjolnirData: RawSchemedData
+    ): Promise<ProtectedRoomsConfigEvent & RawSchemedData> => {
+      if (!isMjolnirProtectedRoomsEvent(mjolnirData)) {
+        throw TypeError('Mjolnir data is corrupted');
+      }
+      return {
+        rooms: mjolnirData.rooms.map((room) => {
+          return { reference: room };
+        }),
+        spaces: [],
+        [SCHEMA_VERSION_KEY]: 1,
+      };
+    },
+  ];
+  protected readonly downgradeSchema = [
+    async (
+      protectedRoomsConfigEvent
+    ): Promise<MjolnirProtectedRoomsEvent & RawSchemedData> => {
+      if (!isProtectedRoomsConfigEvent())
+    }
+  ]
 }
