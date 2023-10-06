@@ -52,6 +52,7 @@ export declare interface PolicyListRevisionIssuer {
    * A listener for when a new revision has been issued.
    */
   on(event: 'revision', listener: RevisionListener): this;
+  off(...args: Parameters<PolicyListRevisionIssuer['on']>): this;
   emit(event: 'revision', ...args: Parameters<RevisionListener>): boolean;
   /**
    * This is mostly used when PolicyListRevisionIssuer's have listeners

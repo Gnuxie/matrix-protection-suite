@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2022-2023 Gnuxie <Gnuxie@protonmail.com>
+ * Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
  * All rights reserved.
  *
  * This file is modified and is NOT licensed under the Apache License.
@@ -7,7 +7,7 @@
  * https://github.com/matrix-org/mjolnir
  * which included the following license notice:
 
-Copyright 2019-2023 The Matrix.org Foundation C.I.C.
+Copyright 2022 The Matrix.org Foundation C.I.C.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,3 +25,15 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+import { ActionResult } from '../Interface/Action';
+import { Protection } from './Protection';
+
+/**
+ * Problem: how would a client produce a protection from this ?
+ * i don't think it can :/
+ */
+export interface ProtectionsConfig {
+  readonly allProtections: Protection[];
+  addProtection(protection: Protection): Promise<ActionResult<void>>;
+  removeProtection(protection: Protection): Promise<ActionResult<void>>;
+}

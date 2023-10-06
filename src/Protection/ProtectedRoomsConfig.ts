@@ -31,104 +31,10 @@ import {
   RawSchemedData,
   SCHEMA_VERSION_KEY,
 } from '../Interface/PersistentData';
-import { Permalink } from '../MatrixTypes/MatrixRoomReference';
+import { MatrixRoomID, Permalink } from '../MatrixTypes/MatrixRoomReference';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { ActionResult, Ok, isError } from '../Interface/Action';
-
-export type MjolnirWatchedPolicyRoomsEvent = Static<
-  typeof MjolnirWatchedPolicyRoomsEvent
->;
-export const MjolnirWatchedPolicyRoomsEvent = Type.Object({
-  references: Type.Array(Permalink),
-});
-
-const TMjolnirWatchedPolicyRoomsEvent = TypeCompiler.Compile(
-  MjolnirWatchedPolicyRoomsEvent
-);
-
-export function isMjolnirWatchedPolicyRoomsEvent(
-  value: unknown
-): value is MjolnirWatchedPolicyRoomsEvent {
-  return TMjolnirWatchedPolicyRoomsEvent.Check(value);
-}
-export const PROPAGATION_TYPE_DIRECT = 'ge.applied-langua.ge.draupnir.direct';
-
-export const PolicyListIssuerDescription = Type.Recursive((This) =>
-  Type.Object({
-    propagation: Type.Union([
-      Type.Literal(PROPAGATION_TYPE_DIRECT),
-      Type.String(),
-    ]),
-    issuers: Type.Array(This),
-    references: Type.Array(Permalink),
-  })
-);
-
-export type PolicyListIssuerDescription = Static<
-  typeof PolicyListIssuerDescription
->;
-
-const CPolicyListIssuerDescription = TypeCompiler.Compile(
-  PolicyListIssuerDescription
-);
-
-export function isPolicyListIssuerDescription(
-  value: unknown
-): value is PolicyListIssuerDescription {
-  return CPolicyListIssuerDescription.Check(value);
-}
-
-export abstract class ProtectedRoomsSetPolicyListIssuerDescriptionConfig extends PersistentData<
-  PolicyListIssuerDescription & RawSchemedData
-> {
-  protected readonly isAllowedToInferNoVersionAsZero = true;
-  protected readonly upgradeSchema = [
-    async (
-      watchedListsData: RawSchemedData
-    ): Promise<PolicyListIssuerDescription & RawSchemedData> => {
-      if (!isMjolnirWatchedPolicyRoomsEvent(watchedListsData)) {
-        throw new TypeError(`Failed to validate corrupted Mjolnir data`);
-      }
-      return {
-        propagation: PROPAGATION_TYPE_DIRECT,
-        issuers: [],
-        references: watchedListsData.references,
-        [SCHEMA_VERSION_KEY]: 1,
-      };
-    },
-  ];
-  protected readonly downgradeSchema = [
-    async (
-      policyListIssuerDescriptionData: RawSchemedData
-    ): Promise<MjolnirWatchedPolicyRoomsEvent & RawSchemedData> => {
-      if (!isPolicyListIssuerDescription(policyListIssuerDescriptionData)) {
-        throw new TypeError(
-          `Failed to validate corrupted policy issuer description`
-        );
-      }
-      return {
-        references: policyListIssuerDescriptionData.references,
-        [SCHEMA_VERSION_KEY]: 0,
-      };
-    },
-  ];
-
-  public async createFirstData(): Promise<
-    ActionResult<PolicyListIssuerDescription & RawSchemedData>
-  > {
-    const data = {
-      propagation: PROPAGATION_TYPE_DIRECT,
-      issuers: [],
-      references: [],
-      [SCHEMA_VERSION_KEY]: 1,
-    };
-    const result = await this.storePersistentData(data);
-    if (isError(result)) {
-      return result;
-    }
-    return Ok(data);
-  }
-}
+import { Value } from '../Interface/Value';
 
 export type MjolnirProtectedRoomsEvent = Static<
   typeof MjolnirProtectedRoomsEvent
@@ -170,9 +76,67 @@ export function isProtectedRoomsConfigEvent(
   return CProtectedRoomsConfigEvent.Check(value);
 }
 
-export abstract class ProtectedRoomsSetProtectedRoomsConfig extends PersistentData<
-  ProtectedRoomsConfigEvent & RawSchemedData
-> {
+export interface ProtectedRoomsConfig {
+  readonly allRooms: MatrixRoomID[];
+  addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
+  removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
+  addSpace(room: MatrixRoomID): Promise<ActionResult<void>>;
+  removeSpace(room: MatrixRoomID): Promise<ActionResult<void>>;
+}
+
+export abstract class AbstractProtectedRoomsConfig
+  extends PersistentData<ProtectedRoomsConfigEvent & RawSchemedData>
+  implements ProtectedRoomsConfig
+{
+  protected readonly explicitlyProtectedRooms = new Map<string, MatrixRoomID>();
+  protected async handleDataChange(
+    rawData: ProtectedRoomsConfigEvent
+  ): Promise<void> {
+    const decodedDataResult = Value.Decode(ProtectedRoomsConfigEvent, rawData);
+    if (isError(decodedDataResult)) {
+      throw new TypeError('Somehow we have stored invalid data');
+    }
+    this.explicitlyProtectedRooms.clear();
+    for (const room of decodedDataResult.ok.rooms) {
+      this.explicitlyProtectedRooms.set(
+        room.reference.toRoomIdOrAlias(),
+        room.reference
+      );
+    }
+  }
+  public get allRooms(): MatrixRoomID[] {
+    return [...this.explicitlyProtectedRooms.values()];
+  }
+  // FIXME: we need to have some kind of hook on store/load that forces the state in this class to be rebuilt.
+  public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
+    return await this.storePersistentData({
+      rooms: [
+        ...[...this.explicitlyProtectedRooms.values()].map((room) => {
+          return { reference: room.toPermalink() };
+        }),
+        { reference: room.toPermalink() },
+      ],
+      spaces: [],
+      [SCHEMA_VERSION_KEY]: 1,
+    });
+  }
+  public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
+    return await this.storePersistentData({
+      rooms: [...this.explicitlyProtectedRooms.values()]
+        .filter((roomID) => roomID.toRoomIdOrAlias() !== room.toRoomIdOrAlias())
+        .map((room) => {
+          return { reference: room.toPermalink() };
+        }),
+      spaces: [],
+      [SCHEMA_VERSION_KEY]: 1,
+    });
+  }
+  addSpace(_room: MatrixRoomID): Promise<ActionResult<void>> {
+    throw new Error('Method not implemented.');
+  }
+  removeSpace(_room: MatrixRoomID): Promise<ActionResult<void>> {
+    throw new Error('Method not implemented.');
+  }
   protected readonly isAllowedToInferNoVersionAsZero = true;
   protected readonly upgradeSchema = [
     async (
