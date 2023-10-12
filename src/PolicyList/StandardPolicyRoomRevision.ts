@@ -25,8 +25,6 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { Logger } from '../Logging/Logger';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import {
   PolicyRuleEvent,
   PolicyRuleType,
@@ -37,25 +35,192 @@ import { PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
 import { ChangeType, PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
-import { StandardPolicyListRevision } from './StandardPolicyListRevision';
+import { Map as PersistentMap } from 'immutable';
+import { UserID } from '../MatrixTypes/MatrixEntity';
+import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import { Logger } from '../Logging/Logger';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
 /**
- * A standard implementation of `PolicyRoomRevision`.
- * Implemented using `StandardPolicyListRevision`.
- * @see {@link PolicyRoomRevision}.
+ * A map interning rules by their rule type, and then their state key.
+ */
+type PolicyRuleMap = PersistentMap<
+  PolicyRuleType,
+  PersistentMap<string, PolicyRule>
+>;
+
+/**
+ * A map interning rules by their event id.
+ */
+type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
+
+/**
+ * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
  */
 export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   /**
-   * @param room A MatrixRoomID for the room.
-   * @param revisionContainer A StandardPolicyListRevision (can be a blank revision).
+   * Use {@link StandardPolicyRoomRevision.blankRevision} to get started.
+   * Only use this constructor if you are implementing a variant of PolicyListRevision.
+   * @param revisionID A revision ID to represent this revision.
+   * @param policyRules A map containing the rules for this revision by state type and then state key.
+   * @param policyRuleByEventId A map containing the rules ofr this revision by event id.
    */
   public constructor(
     public readonly room: MatrixRoomID,
-    private readonly revisionContainer: StandardPolicyListRevision
-  ) {
-    // nothing to do.
+    public readonly revisionID: Revision,
+    /**
+     * A map of state events indexed first by state type and then state keys.
+     */
+    private readonly policyRules: PolicyRuleMap,
+    /**
+     * Allow us to detect whether we have updated the state for this event.
+     */
+    private readonly policyRuleByEventId: PolicyRuleByEventIDMap
+  ) {}
+
+  /**
+   * @returns An empty revision.
+   */
+  public static blankRevision(room: MatrixRoomID): StandardPolicyRoomRevision {
+    return new StandardPolicyRoomRevision(
+      room,
+      new Revision(),
+      PersistentMap(),
+      PersistentMap()
+    );
+  }
+
+  /**
+   * Lookup the current rules cached for the list.
+   * @param stateType The event type e.g. m.policy.rule.user.
+   * @param stateKey The state key e.g. rule:@bad:matrix.org
+   * @returns A state event if present or null.
+   */
+  public getPolicyRule(stateType: PolicyRuleType, stateKey: string) {
+    return this.policyRules.get(stateType)?.get(stateKey);
+  }
+
+  allRules(): PolicyRule[] {
+    return [...this.policyRuleByEventId.values()];
+  }
+  userRules(recommendation?: Recommendation): PolicyRule[] {
+    return this.rulesOfKind(PolicyRuleType.User, recommendation);
+  }
+  serverRules(recommendation?: Recommendation): PolicyRule[] {
+    return this.rulesOfKind(PolicyRuleType.Server, recommendation);
+  }
+  roomRules(recommendation?: Recommendation): PolicyRule[] {
+    return this.rulesOfKind(PolicyRuleType.Room, recommendation);
+  }
+  rulesMatchingEntity(
+    entity: string,
+    ruleKind?: PolicyRuleType | undefined
+  ): PolicyRule[] {
+    const ruleTypeOf = (entityPart: string): PolicyRuleType => {
+      if (ruleKind) {
+        return ruleKind;
+      } else if (entityPart.startsWith('#') || entityPart.startsWith('#')) {
+        return PolicyRuleType.Room;
+      } else if (entity.startsWith('@')) {
+        return PolicyRuleType.User;
+      } else {
+        return PolicyRuleType.Server;
+      }
+    };
+
+    if (ruleTypeOf(entity) === PolicyRuleType.User) {
+      // We special case because want to see whether a server ban is preventing this user from participating too.
+      const userId = new UserID(entity);
+      return [
+        ...this.userRules().filter((rule) => rule.isMatch(entity)),
+        ...this.serverRules().filter((rule) => rule.isMatch(userId.domain)),
+      ];
+    } else {
+      return this.rulesOfKind(ruleTypeOf(entity)).filter((rule) =>
+        rule.isMatch(entity)
+      );
+    }
+  }
+
+  rulesOfKind(
+    kind: PolicyRuleType,
+    recommendation?: Recommendation | undefined
+  ): PolicyRule[] {
+    const rules: PolicyRule[] = [];
+    const stateKeyMap = this.policyRules.get(kind);
+    if (stateKeyMap) {
+      for (const rule of stateKeyMap.values()) {
+        if (rule && rule.kind === kind) {
+          if (recommendation === undefined) {
+            rules.push(rule);
+          } else if (rule.recommendation === recommendation) {
+            rules.push(rule);
+          }
+        }
+      }
+    }
+    return rules;
+  }
+
+  public reviseFromChanges(
+    changes: PolicyRuleChange[]
+  ): StandardPolicyRoomRevision {
+    let nextPolicyRules = this.policyRules;
+    let nextPolicyRulesByEventID = this.policyRuleByEventId;
+    const setPolicyRule = (
+      stateType: PolicyRuleType,
+      stateKey: string,
+      rule: PolicyRule
+    ): void => {
+      const typeTable = nextPolicyRules.get(stateType) ?? PersistentMap();
+      nextPolicyRules = nextPolicyRules.set(
+        stateType,
+        typeTable.set(stateKey, rule)
+      );
+      nextPolicyRulesByEventID = nextPolicyRulesByEventID.set(
+        rule.sourceEvent.event_id,
+        rule
+      );
+    };
+    const removePolicyRule = (rule: PolicyRule): void => {
+      const typeTable = nextPolicyRules.get(rule.kind);
+      if (typeTable === undefined) {
+        throw new TypeError(
+          `Cannot find a rule for ${rule.sourceEvent.event_id}, this should be impossible`
+        );
+      }
+      nextPolicyRules = nextPolicyRules.set(
+        rule.kind,
+        typeTable.delete(rule.sourceEvent.state_key)
+      );
+      nextPolicyRulesByEventID = nextPolicyRulesByEventID.delete(
+        rule.sourceEvent.event_id
+      );
+    };
+    for (const change of changes) {
+      if (
+        change.changeType === ChangeType.Added ||
+        change.changeType === ChangeType.Modified
+      ) {
+        setPolicyRule(
+          change.rule.kind,
+          change.rule.sourceEvent.state_key,
+          change.rule
+        );
+      } else if (change.changeType === ChangeType.Removed) {
+        removePolicyRule(change.rule);
+      }
+    }
+    return new StandardPolicyRoomRevision(
+      this.room,
+      new Revision(),
+      nextPolicyRules,
+      nextPolicyRulesByEventID
+    );
+  }
+  hasEvent(eventId: string): boolean {
+    return this.policyRuleByEventId.has(eventId);
   }
 
   /**
@@ -71,10 +236,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       if (ruleKind === PolicyRuleType.Unknown) {
         continue; // this rule is of an invalid or unknown type.
       }
-      const existingRule = this.revisionContainer.getPolicyRule(
-        ruleKind,
-        event.state_key
-      );
+      const existingRule = this.getPolicyRule(ruleKind, event.state_key);
       const existingState = existingRule?.sourceEvent;
 
       // Now we need to figure out if the current event is of an obsolete type
@@ -149,46 +311,8 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     return changes;
   }
 
-  public reviseFromChanges(changes: PolicyRuleChange[]): PolicyRoomRevision {
-    const nextRevision = this.revisionContainer.reviseFromChanges(changes);
-    return new StandardPolicyRoomRevision(this.room, nextRevision);
-  }
-
   public reviseFromState(policyState: PolicyRuleEvent[]): PolicyRoomRevision {
     const changes = this.changesFromState(policyState);
     return this.reviseFromChanges(changes);
-  }
-
-  public get revisionID(): Revision {
-    return this.revisionContainer.revisionID;
-  }
-
-  hasEvent(eventId: string): boolean {
-    return this.revisionContainer.hasEvent(eventId);
-  }
-
-  public allRules(): PolicyRule[] {
-    return this.revisionContainer.allRules();
-  }
-  userRules(recommendation?: Recommendation | undefined): PolicyRule[] {
-    return this.revisionContainer.userRules(recommendation);
-  }
-  serverRules(recommendation?: Recommendation | undefined): PolicyRule[] {
-    return this.revisionContainer.serverRules(recommendation);
-  }
-  roomRules(recommendation?: Recommendation | undefined): PolicyRule[] {
-    return this.revisionContainer.roomRules(recommendation);
-  }
-  rulesMatchingEntity(
-    entity: string,
-    ruleKind?: PolicyRuleType | undefined
-  ): PolicyRule[] {
-    return this.revisionContainer.rulesMatchingEntity(entity, ruleKind);
-  }
-  rulesOfKind(
-    kind: PolicyRuleType,
-    recommendation?: Recommendation | undefined
-  ): PolicyRule[] {
-    return this.revisionContainer.rulesOfKind(kind, recommendation);
   }
 }

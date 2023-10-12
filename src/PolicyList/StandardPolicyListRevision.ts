@@ -33,18 +33,10 @@ import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { UserID } from '../MatrixTypes/MatrixEntity';
 
-/**
- * A map interning rules by their rule type, and then their state key.
- */
-type PolicyRuleMap = PersistentMap<
+type PolicyRuleByType = PersistentMap<
   PolicyRuleType,
-  PersistentMap<string, PolicyRule>
+  PersistentMap<string /* event id */, PolicyRule>
 >;
-
-/**
- * A map interning rules by their event id.
- */
-type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
 
 /**
  * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
@@ -60,46 +52,22 @@ export class StandardPolicyListRevision implements PolicyListRevision {
   public constructor(
     public readonly revisionID: Revision,
     /**
-     * A map of state events indexed first by state type and then state keys.
-     */
-    private readonly policyRules: PolicyRuleMap,
-    /**
      * Allow us to detect whether we have updated the state for this event.
      */
-    private readonly policyRuleByEventId: PolicyRuleByEventIDMap
+    private readonly policyRuleByType: PolicyRuleByType
   ) {}
 
   /**
    * @returns An empty revision.
    */
   public static blankRevision(): StandardPolicyListRevision {
-    return new StandardPolicyListRevision(
-      new Revision(),
-      PersistentMap(),
-      PersistentMap()
-    );
-  }
-
-  public toPolicyRuleMap(): PolicyRuleMap {
-    return this.policyRules;
-  }
-
-  public toPolicyRuleByEventIDMap(): PolicyRuleByEventIDMap {
-    return this.policyRuleByEventId;
-  }
-
-  /**
-   * Lookup the current rules cached for the list.
-   * @param stateType The event type e.g. m.policy.rule.user.
-   * @param stateKey The state key e.g. rule:@bad:matrix.org
-   * @returns A state event if present or null.
-   */
-  public getPolicyRule(stateType: PolicyRuleType, stateKey: string) {
-    return this.policyRules.get(stateType)?.get(stateKey);
+    return new StandardPolicyListRevision(new Revision(), PersistentMap());
   }
 
   allRules(): PolicyRule[] {
-    return [...this.policyRuleByEventId.values()];
+    return [...this.policyRuleByType.values()]
+      .map((byEventId) => [...byEventId.values()])
+      .flat();
   }
   userRules(recommendation?: Recommendation): PolicyRule[] {
     return this.rulesOfKind(PolicyRuleType.User, recommendation);
@@ -145,9 +113,9 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     recommendation?: Recommendation | undefined
   ): PolicyRule[] {
     const rules: PolicyRule[] = [];
-    const stateKeyMap = this.policyRules.get(kind);
-    if (stateKeyMap) {
-      for (const rule of stateKeyMap.values()) {
+    const eventIdMap = this.policyRuleByType.get(kind);
+    if (eventIdMap) {
+      for (const rule of eventIdMap.values()) {
         if (rule && rule.kind === kind) {
           if (recommendation === undefined) {
             rules.push(rule);
@@ -163,36 +131,28 @@ export class StandardPolicyListRevision implements PolicyListRevision {
   public reviseFromChanges(
     changes: PolicyRuleChange[]
   ): StandardPolicyListRevision {
-    let nextPolicyRules = this.policyRules;
-    let nextPolicyRulesByEventID = this.policyRuleByEventId;
+    let nextPolicyRulesByType = this.policyRuleByType;
     const setPolicyRule = (
       stateType: PolicyRuleType,
-      stateKey: string,
       rule: PolicyRule
     ): void => {
-      const typeTable = nextPolicyRules.get(stateType) ?? PersistentMap();
-      nextPolicyRules = nextPolicyRules.set(
+      const byEventTable =
+        nextPolicyRulesByType.get(stateType) ?? PersistentMap();
+      nextPolicyRulesByType = nextPolicyRulesByType.set(
         stateType,
-        typeTable.set(stateKey, rule)
-      );
-      nextPolicyRulesByEventID = nextPolicyRulesByEventID.set(
-        rule.sourceEvent.event_id,
-        rule
+        byEventTable.set(rule.sourceEvent.event_id, rule)
       );
     };
     const removePolicyRule = (rule: PolicyRule): void => {
-      const typeTable = nextPolicyRules.get(rule.kind);
-      if (typeTable === undefined) {
+      const byEventTable = nextPolicyRulesByType.get(rule.kind);
+      if (byEventTable === undefined) {
         throw new TypeError(
           `Cannot find a rule for ${rule.sourceEvent.event_id}, this should be impossible`
         );
       }
-      nextPolicyRules = nextPolicyRules.set(
+      nextPolicyRulesByType = nextPolicyRulesByType.set(
         rule.kind,
-        typeTable.delete(rule.sourceEvent.state_key)
-      );
-      nextPolicyRulesByEventID = nextPolicyRulesByEventID.delete(
-        rule.sourceEvent.event_id
+        byEventTable.delete(rule.sourceEvent.event_id)
       );
     };
     for (const change of changes) {
@@ -200,22 +160,21 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         change.changeType === ChangeType.Added ||
         change.changeType === ChangeType.Modified
       ) {
-        setPolicyRule(
-          change.rule.kind,
-          change.rule.sourceEvent.state_key,
-          change.rule
-        );
+        setPolicyRule(change.rule.kind, change.rule);
       } else if (change.changeType === ChangeType.Removed) {
         removePolicyRule(change.rule);
       }
     }
     return new StandardPolicyListRevision(
       new Revision(),
-      nextPolicyRules,
-      nextPolicyRulesByEventID
+      nextPolicyRulesByType
     );
   }
   hasEvent(eventId: string): boolean {
-    return this.policyRuleByEventId.has(eventId);
+    return (
+      [...this.policyRuleByType.values()].find((byEvent) =>
+        byEvent.has(eventId)
+      ) !== undefined
+    );
   }
 }
