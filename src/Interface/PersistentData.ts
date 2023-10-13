@@ -156,6 +156,4 @@ export abstract class PersistentData<
     }
     throw new TypeError('The schema version or data has been corrupted');
   }
-
-  protected abstract handleDataChange(data: Format): Promise<void>;
 }

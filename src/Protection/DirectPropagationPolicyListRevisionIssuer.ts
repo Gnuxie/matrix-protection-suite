@@ -50,8 +50,6 @@ export class DirectPropagationPolicyListRevisionIssuer
     _newRevision: PolicyListRevision,
     changes: PolicyRuleChange[]
   ) {
-    // FIXME: StandardPolicyListRevision cannot intern events by state key
-    // because of conflicts with other lists.
     const oldRevision = this.revision;
     this.revision = this.revision.reviseFromChanges(changes);
     this.emit('revision', this.revision, changes, oldRevision);

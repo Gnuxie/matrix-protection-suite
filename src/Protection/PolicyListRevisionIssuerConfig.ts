@@ -31,10 +31,10 @@ import {
   RawSchemedData,
   SCHEMA_VERSION_KEY,
 } from '../Interface/PersistentData';
-import { Permalink } from '../MatrixTypes/MatrixRoomReference';
+import { MatrixRoomID, Permalink } from '../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
-import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
+import { PolicyListRevisionIssuer, PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
 
 export type MjolnirWatchedPolicyRoomsEvent = Static<
@@ -75,6 +75,12 @@ export function isPolicyListIssuerDescription(
 
 export interface PolicyListRevisionIssuerConfig {
   readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
+  watchList<T>(
+    propagation: string,
+    list: MatrixRoomID,
+    options: T
+  ): Promise<void>;
+  unwatchList(propagation: string, list: MatrixRoomID): Promise<void>;
 }
 
 export abstract class AbstractPolicyListRevisionIssuerConfig
@@ -117,12 +123,32 @@ export abstract class AbstractPolicyListRevisionIssuerConfig
   ) {
     super();
   }
+
+  async watchList<T>(propagation: string, list: MatrixRoomID, options: T): Promise<void> {
+    if (propagation !== PROPAGATION_TYPE_DIRECT) {
+      throw new TypeError('unimplemented propagation type');
+    }
+
+  }
+  /// FIXME: i don't think this makes sense, there can only be an add/remove and reload
+  /// method, since without CRDT style backend (which owuld be too complicated) there's
+  /// no easy way to figure out what's been added and removed.
   protected async handleDataChange(rawData: PolicyListIssuerDescription): Promise<void> {
     const rawDataResult = Value.Decode(PolicyListIssuerDescription, rawData);
     if (isError(rawDataResult)) {
       throw new TypeError();
     }
-    const policyRoomRevisionIssuers
+    // we need to add new revision listeners but how are we supposed
+    // to propagate changes from all rules when a new list is added?.
+    // how are we supposed to know what lists have been removed?
+    const policyRoomRevisionIssuers: PolicyRoomRevisionIssuer[] = [];
+    for (const reference of rawDataResult.ok.references) {
+      const issuerResult = await this.policyRoomManager.getPolicyRoomRevisionIssuer(reference);
+      if (isError(issuerResult)) {
+        throw new TypeError();
+      }
+      policyRoomRevisionIssuers.push(issuerResult.ok);
+    }
 
   }
 
