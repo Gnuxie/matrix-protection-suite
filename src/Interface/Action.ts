@@ -25,6 +25,16 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+type ActionResultOk<Ok> = {
+  ok: Ok;
+  isOkay: true;
+};
+
+type ActionResultError<Error = ActionError> = {
+  error: Error;
+  isOkay: false;
+};
+
 /**
  * The action result is a Result type that can be used for any interface that
  * carries out a failable action. The idea being that any errors will be
@@ -43,14 +53,8 @@ limitations under the License.
  * @see {@link isError}
  */
 export type ActionResult<Ok, Error = ActionError> =
-  | {
-      ok: Ok;
-      isOkay: true;
-    }
-  | {
-      error: Error;
-      isOkay: false;
-    };
+  | ActionResultOk<Ok>
+  | ActionResultError<Error>;
 
 /**
  * @param ok The value indicating a successful result.
@@ -75,7 +79,7 @@ export function ResultError<Error>(error: Error): ActionResult<never, Error> {
  */
 export function isOk<Ok, Error = ActionError>(
   result: ActionResult<Ok, Error>
-): result is ActionResult<Ok, never> {
+): result is ActionResultOk<Ok> {
   return result.isOkay;
 }
 
@@ -86,7 +90,7 @@ export function isOk<Ok, Error = ActionError>(
  */
 export function isError<Ok, Error = ActionError>(
   result: ActionResult<Ok, Error>
-): result is ActionResult<never, Error> {
+): result is ActionResultError<Error> {
   return !result.isOkay;
 }
 

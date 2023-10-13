@@ -34,8 +34,15 @@ import {
 import { MatrixRoomID, Permalink } from '../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
-import { PolicyListRevisionIssuer, PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
+import {
+  PolicyListRevisionIssuer,
+  PolicyRoomRevisionIssuer,
+} from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
+import {
+  DirectPropagationPolicyListRevisionIssuer,
+  StandardDirectPropagationPolicyListRevisionIssuer,
+} from './DirectPropagationPolicyListRevisionIssuer';
 
 export type MjolnirWatchedPolicyRoomsEvent = Static<
   typeof MjolnirWatchedPolicyRoomsEvent
@@ -74,19 +81,14 @@ export function isPolicyListIssuerDescription(
 }
 
 export interface PolicyListRevisionIssuerConfig {
-  readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
-  watchList<T>(
-    propagation: string,
-    list: MatrixRoomID,
-    options: T
-  ): Promise<void>;
-  unwatchList(propagation: string, list: MatrixRoomID): Promise<void>;
+  loadData(): Promise<ActionResult<SchemedPolicyListIssuerDescription>>;
+  saveData(data: SchemedPolicyListIssuerDescription): ActionResult<void>;
 }
 
-export abstract class AbstractPolicyListRevisionIssuerConfig
-  extends PersistentData<PolicyListIssuerDescription & RawSchemedData>
-  implements PolicyListRevisionIssuerConfig
-{
+type SchemedPolicyListIssuerDescription = PolicyListIssuerDescription &
+  RawSchemedData;
+
+export abstract class AbstractPolicyListRevisionIssuerConfig extends PersistentData<SchemedPolicyListIssuerDescription> {
   protected readonly isAllowedToInferNoVersionAsZero = true;
   protected readonly upgradeSchema = [
     async (
@@ -124,34 +126,6 @@ export abstract class AbstractPolicyListRevisionIssuerConfig
     super();
   }
 
-  async watchList<T>(propagation: string, list: MatrixRoomID, options: T): Promise<void> {
-    if (propagation !== PROPAGATION_TYPE_DIRECT) {
-      throw new TypeError('unimplemented propagation type');
-    }
-
-  }
-  /// FIXME: i don't think this makes sense, there can only be an add/remove and reload
-  /// method, since without CRDT style backend (which owuld be too complicated) there's
-  /// no easy way to figure out what's been added and removed.
-  protected async handleDataChange(rawData: PolicyListIssuerDescription): Promise<void> {
-    const rawDataResult = Value.Decode(PolicyListIssuerDescription, rawData);
-    if (isError(rawDataResult)) {
-      throw new TypeError();
-    }
-    // we need to add new revision listeners but how are we supposed
-    // to propagate changes from all rules when a new list is added?.
-    // how are we supposed to know what lists have been removed?
-    const policyRoomRevisionIssuers: PolicyRoomRevisionIssuer[] = [];
-    for (const reference of rawDataResult.ok.references) {
-      const issuerResult = await this.policyRoomManager.getPolicyRoomRevisionIssuer(reference);
-      if (isError(issuerResult)) {
-        throw new TypeError();
-      }
-      policyRoomRevisionIssuers.push(issuerResult.ok);
-    }
-
-  }
-
   public async createFirstData(): Promise<
     ActionResult<PolicyListIssuerDescription & RawSchemedData>
   > {
@@ -166,5 +140,148 @@ export abstract class AbstractPolicyListRevisionIssuerConfig
       return result;
     }
     return Ok(data);
+  }
+}
+
+export interface PolicyListRevisionIssuerManager {
+  readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
+  watchList<T>(
+    propagation: string,
+    list: MatrixRoomID,
+    options: T
+  ): Promise<void>;
+  unwatchList(propagation: string, list: MatrixRoomID): Promise<void>;
+}
+
+export class StandardPolicyListRevisionIssuerManager
+  implements PolicyListRevisionIssuerManager
+{
+  private constructor(
+    public readonly policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
+    private readonly policyRoomManager: PolicyRoomManager,
+    private readonly config: PolicyListRevisionIssuerConfig
+  ) {
+    // nowt to do innit.
+  }
+
+  public static async createAndLoad(
+    config: PolicyListRevisionIssuerConfig,
+    policyRoomManager: PolicyRoomManager
+  ): Promise<StandardPolicyListRevisionIssuerManager> {
+    const data = await (async () => {
+      const dataResult = await config.loadData();
+      if (isError(dataResult)) {
+        throw new TypeError(
+          `Couldn't load StandardPolicyListRevisionIssuer because: ${dataResult.error.message}`
+        );
+      }
+      const parseResult = Value.Decode(
+        PolicyListIssuerDescription,
+        dataResult.ok
+      );
+      if (isError(parseResult)) {
+        throw new TypeError(
+          `Couldn't load StandardPolicyListRevisionIssuer because: ${parseResult.error.message}`
+        );
+      }
+      return parseResult.ok;
+    })();
+
+    const policyRoomRevisionIssuers: PolicyRoomRevisionIssuer[] = [];
+    for (const reference of data.references) {
+      const issuerResult = await policyRoomManager.getPolicyRoomRevisionIssuer(
+        reference
+      );
+      if (isError(issuerResult)) {
+        throw new TypeError();
+      }
+      policyRoomRevisionIssuers.push(issuerResult.ok);
+    }
+    const issuer = new StandardDirectPropagationPolicyListRevisionIssuer(
+      policyRoomRevisionIssuers
+    );
+    return new StandardPolicyListRevisionIssuerManager(
+      issuer,
+      policyRoomManager,
+      config
+    );
+  }
+
+  public async watchList(
+    propagation: string,
+    room: MatrixRoomID
+  ): Promise<void> {
+    if (propagation !== PROPAGATION_TYPE_DIRECT) {
+      throw new TypeError(`Unsupported propagation type ${propagation}`);
+    }
+    const listResult = await this.policyRoomManager.getPolicyRoomRevisionIssuer(
+      room
+    );
+    // FIXME add a utility function to ActionResult that asserts isOk by thorwing
+    // an error with a template if not or something idk.
+    if (isError(listResult)) {
+      throw new TypeError(
+        `Could not watch the list ${room.toPermalink()} because: ${
+          listResult.error.message
+        }`
+      );
+    }
+    const saveResult = this.config.saveData({
+      propagation: PROPAGATION_TYPE_DIRECT,
+      issuers: [],
+      references: this.policyListRevisionIssuer.references.map((reference) =>
+        reference.toPermalink()
+      ),
+      [SCHEMA_VERSION_KEY]: 1,
+    });
+    if (isError(saveResult)) {
+      // FIXME: I don't know if we want these type errors or not? or to propagate them up?
+      throw new TypeError(
+        `Unable to watch the list ${room.toPermalink()} because ${
+          saveResult.error.message
+        }`
+      );
+    }
+    this.policyListRevisionIssuer.addIssuer(listResult.ok);
+  }
+
+  public async unwatchList(
+    propagation: string,
+    room: MatrixRoomID
+  ): Promise<void> {
+    if (propagation !== PROPAGATION_TYPE_DIRECT) {
+      throw new TypeError(`Unsupported propagation type ${propagation}`);
+    }
+    const listResult = await this.policyRoomManager.getPolicyRoomRevisionIssuer(
+      room
+    );
+    // FIXME add a utility function to ActionResult that asserts isOk by thorwing
+    // an error with a template if not or something idk.
+    if (isError(listResult)) {
+      throw new TypeError(
+        `Could not watch the list ${room.toPermalink()} because: ${
+          listResult.error.message
+        }`
+      );
+    }
+    const saveResult = this.config.saveData({
+      propagation: PROPAGATION_TYPE_DIRECT,
+      issuers: [],
+      references: this.policyListRevisionIssuer.references
+        .filter(
+          (reference) => reference.toRoomIdOrAlias() !== room.toRoomIdOrAlias()
+        )
+        .map((reference) => reference.toPermalink()),
+      [SCHEMA_VERSION_KEY]: 1,
+    });
+    if (isError(saveResult)) {
+      // FIXME: I don't know if we want these type errors or not? or to propagate them up?
+      throw new TypeError(
+        `Unable to watch the list ${room.toPermalink()} because ${
+          saveResult.error.message
+        }`
+      );
+    }
+    this.policyListRevisionIssuer.removeIssuer(listResult.ok);
   }
 }
