@@ -25,16 +25,25 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+/**
+ * An ActionResult indicating success.
+ */
 type ActionResultOk<Ok> = {
   ok: Ok;
   isOkay: true;
   match: typeof match;
 };
 
+/**
+ * An ActionResult indicating failure.
+ */
 type ActionResultError<Error = ActionError> = {
   error: Error;
   isOkay: false;
   match: typeof match;
+  /**
+   * Add context to an action result as it is passed down the stack.
+   */
   addContext: typeof addContext;
 };
 

@@ -33,6 +33,9 @@ import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { UserID } from '../MatrixTypes/MatrixEntity';
 
+/**
+ * A map of policy rules, by their type and then event id.
+ */
 type PolicyRuleByType = PersistentMap<
   PolicyRuleType,
   PersistentMap<string /* event id */, PolicyRule>
