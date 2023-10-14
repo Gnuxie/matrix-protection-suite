@@ -1,9 +1,9 @@
-import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
+import { PolicyListRevisionIssuerManager } from './PolicyListRevisionIssuerConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig';
 import { ProtectionsConfig } from './ProtectionsConfig';
 
 export interface ProtectedRoomsSet {
-  readonly issuer: PolicyListRevisionIssuer;
+  readonly issuerManager: PolicyListRevisionIssuerManager;
   readonly protections: ProtectionsConfig;
   readonly protectedRooms: ProtectedRoomsConfig;
 }

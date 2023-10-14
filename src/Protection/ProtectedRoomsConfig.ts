@@ -107,7 +107,6 @@ export abstract class AbstractProtectedRoomsConfig
   public get allRooms(): MatrixRoomID[] {
     return [...this.explicitlyProtectedRooms.values()];
   }
-  // FIXME: we need to have some kind of hook on store/load that forces the state in this class to be rebuilt.
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     return await this.storePersistentData({
       rooms: [

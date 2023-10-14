@@ -82,7 +82,9 @@ export function isPolicyListIssuerDescription(
 
 export interface PolicyListRevisionIssuerConfig {
   loadData(): Promise<ActionResult<SchemedPolicyListIssuerDescription>>;
-  saveData(data: SchemedPolicyListIssuerDescription): ActionResult<void>;
+  storePersistentData(
+    data: SchemedPolicyListIssuerDescription
+  ): Promise<ActionResult<void>>;
 }
 
 type SchemedPolicyListIssuerDescription = PolicyListIssuerDescription &
@@ -226,7 +228,7 @@ export class StandardPolicyListRevisionIssuerManager
         }`
       );
     }
-    const saveResult = this.config.saveData({
+    const saveResult = await this.config.storePersistentData({
       propagation: PROPAGATION_TYPE_DIRECT,
       issuers: [],
       references: this.policyListRevisionIssuer.references.map((reference) =>
@@ -264,7 +266,7 @@ export class StandardPolicyListRevisionIssuerManager
         }`
       );
     }
-    const saveResult = this.config.saveData({
+    const saveResult = await this.config.storePersistentData({
       propagation: PROPAGATION_TYPE_DIRECT,
       issuers: [],
       references: this.policyListRevisionIssuer.references
