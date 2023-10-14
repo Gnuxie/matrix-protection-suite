@@ -151,8 +151,11 @@ export interface PolicyListRevisionIssuerManager {
     propagation: string,
     list: MatrixRoomID,
     options: T
-  ): Promise<void>;
-  unwatchList(propagation: string, list: MatrixRoomID): Promise<void>;
+  ): Promise<ActionResult<void>>;
+  unwatchList(
+    propagation: string,
+    list: MatrixRoomID
+  ): Promise<ActionResult<void>>;
 }
 
 export class StandardPolicyListRevisionIssuerManager
@@ -212,21 +215,15 @@ export class StandardPolicyListRevisionIssuerManager
   public async watchList(
     propagation: string,
     room: MatrixRoomID
-  ): Promise<void> {
+  ): Promise<ActionResult<void>> {
     if (propagation !== PROPAGATION_TYPE_DIRECT) {
       throw new TypeError(`Unsupported propagation type ${propagation}`);
     }
     const listResult = await this.policyRoomManager.getPolicyRoomRevisionIssuer(
       room
     );
-    // FIXME add a utility function to ActionResult that asserts isOk by thorwing
-    // an error with a template if not or something idk.
     if (isError(listResult)) {
-      throw new TypeError(
-        `Could not watch the list ${room.toPermalink()} because: ${
-          listResult.error.message
-        }`
-      );
+      return listResult.addContext(`Watch the list ${room.toPermalink()}`);
     }
     const saveResult = await this.config.storePersistentData({
       propagation: PROPAGATION_TYPE_DIRECT,
@@ -237,34 +234,24 @@ export class StandardPolicyListRevisionIssuerManager
       [SCHEMA_VERSION_KEY]: 1,
     });
     if (isError(saveResult)) {
-      // FIXME: I don't know if we want these type errors or not? or to propagate them up?
-      throw new TypeError(
-        `Unable to watch the list ${room.toPermalink()} because ${
-          saveResult.error.message
-        }`
-      );
+      return saveResult.addContext(`Watch the list ${room.toPermalink()}`);
     }
     this.policyListRevisionIssuer.addIssuer(listResult.ok);
+    return Ok(undefined);
   }
 
   public async unwatchList(
     propagation: string,
     room: MatrixRoomID
-  ): Promise<void> {
+  ): Promise<ActionResult<void>> {
     if (propagation !== PROPAGATION_TYPE_DIRECT) {
       throw new TypeError(`Unsupported propagation type ${propagation}`);
     }
     const listResult = await this.policyRoomManager.getPolicyRoomRevisionIssuer(
       room
     );
-    // FIXME add a utility function to ActionResult that asserts isOk by thorwing
-    // an error with a template if not or something idk.
     if (isError(listResult)) {
-      throw new TypeError(
-        `Could not watch the list ${room.toPermalink()} because: ${
-          listResult.error.message
-        }`
-      );
+      return listResult.addContext(`Unwatch the list ${room.toPermalink()}`);
     }
     const saveResult = await this.config.storePersistentData({
       propagation: PROPAGATION_TYPE_DIRECT,
@@ -277,13 +264,9 @@ export class StandardPolicyListRevisionIssuerManager
       [SCHEMA_VERSION_KEY]: 1,
     });
     if (isError(saveResult)) {
-      // FIXME: I don't know if we want these type errors or not? or to propagate them up?
-      throw new TypeError(
-        `Unable to watch the list ${room.toPermalink()} because ${
-          saveResult.error.message
-        }`
-      );
+      return saveResult.addContext(`Unwatch the list ${room.toPermalink()}`);
     }
     this.policyListRevisionIssuer.removeIssuer(listResult.ok);
+    return Ok(undefined);
   }
 }

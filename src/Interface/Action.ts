@@ -28,11 +28,14 @@ limitations under the License.
 type ActionResultOk<Ok> = {
   ok: Ok;
   isOkay: true;
+  match: typeof match;
 };
 
 type ActionResultError<Error = ActionError> = {
   error: Error;
   isOkay: false;
+  match: typeof match;
+  addContext: typeof addContext;
 };
 
 /**
@@ -61,7 +64,7 @@ export type ActionResult<Ok, Error = ActionError> =
  * @returns Return an ActionResult that was a success with the value ok.
  */
 export function Ok<Ok>(ok: Ok): ActionResult<Ok, never> {
-  return { ok, isOkay: true };
+  return { ok, isOkay: true, match };
 }
 
 /**
@@ -69,7 +72,7 @@ export function Ok<Ok>(ok: Ok): ActionResult<Ok, never> {
  * @returns An `ActionResult` that was a failure with the error value.
  */
 export function ResultError<Error>(error: Error): ActionResult<never, Error> {
-  return { error, isOkay: false };
+  return { error, isOkay: false, match, addContext };
 }
 
 /**
@@ -94,12 +97,33 @@ export function isError<Ok, Error = ActionError>(
   return !result.isOkay;
 }
 
+function addContext<Error extends ActionError = ActionError>(
+  this: ActionResultError<Error>,
+  message: string
+): ActionResultError<Error> {
+  this.error.addContext(message);
+  return this;
+}
+
+function match<T, Ok, Error = ActionError>(
+  this: ActionResult<Ok, Error>,
+  ok: (ok: Ok) => T,
+  error: (error: Error) => T
+): T {
+  if (isError(this)) {
+    return error(this.error);
+  } else {
+    return ok(this.ok);
+  }
+}
+
 /**
  * An extensible representation of an Error that describes what went wrong in a
  * a standard way.
  * @see {@link ActionException}
  */
 export class ActionError {
+  private readonly context: string[] = new Array(0);
   public constructor(public readonly message: string) {
     // nothing to do.
   }
@@ -116,5 +140,16 @@ export class ActionError {
     _options = {}
   ): ActionResult<never, ActionError> {
     return ResultError(new ActionError(message));
+  }
+
+  /**
+   * Add some context to the ActionError as it is passed down the stack.
+   * @param message A short message to contextualise the action, e.g. something
+   * in future tense. e.g. `Watch the list {list.toPermalink()}`.
+   * @returns This ActionError.
+   */
+  public addContext(message: string): this {
+    this.context.push(message);
+    return this;
   }
 }
