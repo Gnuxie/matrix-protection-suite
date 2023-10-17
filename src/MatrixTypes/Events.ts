@@ -69,7 +69,7 @@ export type SyncRoomEvent<Content extends TSchema = typeof TContent> = Static<
   ReturnType<typeof SyncRoomEvent<Content>>
 >;
 export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Intersect([
+  Type.Composite([
     Event(Content),
     Type.Object({
       event_id: StringEventID,
@@ -87,7 +87,7 @@ export type RoomEvent<Content extends TSchema = typeof TContent> = Static<
   ReturnType<typeof RoomEvent<Content>>
 >;
 export const RoomEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Intersect([
+  Type.Composite([
     SyncRoomEvent(Content),
     Type.Object({
       room_id: StringRoomID,
@@ -98,7 +98,7 @@ export type SyncStateEvent<Content extends TSchema = typeof TContent> = Static<
   ReturnType<typeof SyncStateEvent<Content>>
 >;
 export const SyncStateEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Intersect([
+  Type.Composite([
     SyncRoomEvent(Content),
     Type.Object({
       state_key: Type.String({
@@ -112,7 +112,7 @@ export type StateEvent<Content extends TSchema = typeof TContent> = Static<
   ReturnType<typeof StateEvent<Content>>
 >;
 export const StateEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Intersect([RoomEvent(Content), SyncStateEvent(Content)]);
+  Type.Composite([RoomEvent(Content), SyncStateEvent(Content)]);
 
 export type StrippedStateEvent = Static<typeof StrippedStateEvent>;
 export const StrippedStateEvent = Type.Object({

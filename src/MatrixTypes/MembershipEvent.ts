@@ -105,7 +105,7 @@ export const MembershipEventContent = Type.Object({
 });
 
 export type MembershipEvent = Static<typeof MembershipEvent>;
-export const MembershipEvent = Type.Intersect([
+export const MembershipEvent = Type.Composite([
   StateEvent(MembershipEventContent),
   Type.Object({
     content: MembershipEventContent,
