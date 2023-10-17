@@ -26,6 +26,7 @@ limitations under the License.
  */
 
 import { ActionResult } from '../Interface/Action';
+import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 
 export enum StandardConsequence {
   /**
@@ -56,7 +57,7 @@ export enum StandardConsequence {
 export interface ConsequenceProvider {
   consequenceForUserInRoom(
     roomId: string,
-    userId: string,
+    user: StringUserID,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForServerInRoom(

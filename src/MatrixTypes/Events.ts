@@ -25,6 +25,7 @@ limitations under the License.
  */
 
 import { Static, TSchema, Type } from '@sinclair/typebox';
+import { StringUserID } from './StringlyTypedMatrix';
 
 const TContent = Type.Unknown();
 
@@ -70,10 +71,7 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
       event_id: Type.String({
         description: 'The globally unique event identifier.',
       }),
-      sender: Type.String({
-        description:
-          'Contains the fully-qualified ID of the user who sent this event.',
-      }),
+      sender: StringUserID,
       origin_server_ts: Type.Number({
         description:
           'Timestamp in milliseconds on originating homeserver when this event was sent.',
@@ -122,5 +120,5 @@ export const StrippedStateEvent = Type.Object({
   content: Type.Unknown(),
   state_key: Type.String({ description: 'The `state_key` for the event.' }),
   type: Type.String({ description: 'The `type` for the event.' }),
-  sender: Type.String({ description: 'The `sender` for the event.' }),
+  sender: StringUserID,
 });

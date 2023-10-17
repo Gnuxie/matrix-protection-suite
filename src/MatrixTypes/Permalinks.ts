@@ -28,6 +28,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+import { StringUserID, isStringUserID } from './StringlyTypedMatrix';
+
 /**
  * The parts of a permalink.
  * @see Permalinks
@@ -42,7 +44,7 @@ export interface PermalinkParts {
   /**
    * The user ID the permalink references. May be undefined.
    */
-  userId?: string;
+  userId?: StringUserID;
 
   /**
    * The event ID the permalink references. May be undefined.
@@ -127,6 +129,9 @@ export class Permalinks {
 
     const entity = decodeURIComponent(url.entity);
     if (entity[0] === '@') {
+      if (!isStringUserID(entity)) {
+        throw new TypeError(`Invalid User ID in matrix.to URL: ${entity}`);
+      }
       return {
         userId: entity,
         roomIdOrAlias: undefined,
