@@ -4,6 +4,7 @@
  */
 
 import { MembershipEventContent } from '../MatrixTypes/MembershipEvent';
+import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 
 export enum Membership {
   Join = 'join',
@@ -35,11 +36,12 @@ export enum ProfileChangeType {
 
 export class MembershipChange {
   constructor(
-    public readonly userId: string,
-    public readonly sender: string,
+    public readonly userID: StringUserID,
+    public readonly sender: StringUserID,
+    public readonly roomID: StringRoomID,
     public readonly membership: Membership,
-    public readonly membershipChangeType: string,
-    public readonly profileChangeType: string,
+    public readonly membershipChangeType: MembershipChangeType,
+    public readonly profileChangeType: ProfileChangeType,
     public readonly content: MembershipEventContent
   ) {
     // nothing to do.
