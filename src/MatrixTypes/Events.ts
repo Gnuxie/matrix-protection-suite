@@ -116,3 +116,11 @@ export type StateEvent<Content extends TSchema = typeof TContent> = Static<
 >;
 export const StateEvent = <Content extends TSchema>(Content: Content) =>
   Type.Intersect([RoomEvent(Content), SyncStateEvent(Content)]);
+
+export type StrippedStateEvent = Static<typeof StrippedStateEvent>;
+export const StrippedStateEvent = Type.Object({
+  content: Type.Unknown(),
+  state_key: Type.String({ description: 'The `state_key` for the event.' }),
+  type: Type.String({ description: 'The `type` for the event.' }),
+  sender: Type.String({ description: 'The `sender` for the event.' }),
+});
