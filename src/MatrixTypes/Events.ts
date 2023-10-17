@@ -25,7 +25,11 @@ limitations under the License.
  */
 
 import { Static, TSchema, Type } from '@sinclair/typebox';
-import { StringUserID } from './StringlyTypedMatrix';
+import {
+  StringEventID,
+  StringRoomID,
+  StringUserID,
+} from './StringlyTypedMatrix';
 
 const TContent = Type.Unknown();
 
@@ -68,9 +72,7 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
   Type.Intersect([
     Event(Content),
     Type.Object({
-      event_id: Type.String({
-        description: 'The globally unique event identifier.',
-      }),
+      event_id: StringEventID,
       sender: StringUserID,
       origin_server_ts: Type.Number({
         description:
@@ -88,10 +90,7 @@ export const RoomEvent = <Content extends TSchema>(Content: Content) =>
   Type.Intersect([
     SyncRoomEvent(Content),
     Type.Object({
-      room_id: Type.String({
-        description:
-          'The ID of the room associated with this event. Will not be present on events\nthat arrive through `/sync`, despite being required everywhere else.',
-      }),
+      room_id: StringRoomID,
     }),
   ]);
 

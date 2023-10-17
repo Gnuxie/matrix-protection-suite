@@ -5,8 +5,8 @@
 
 import { Type } from '@sinclair/typebox';
 
-const secret = Symbol('matrix-user-id');
-export type StringUserID = string & { [secret]: true };
+const UserIDSecret = Symbol('StringUserID');
+export type StringUserID = string & { [UserIDSecret]: true };
 
 export const StringUserID = Type.Transform(
   Type.String({
@@ -18,7 +18,7 @@ export const StringUserID = Type.Transform(
     if (isStringUserID(value)) {
       return value;
     } else {
-      throw new TypeError(`Couldnt' decode ${value} as an mxid`);
+      throw new TypeError(`Couldnt' decode ${value} as an StringUserID`);
     }
   })
   .Encode((value) => value);
@@ -34,3 +34,45 @@ export function serverName(userID: StringUserID): string {
   }
   return match;
 }
+
+const StringRoomIDSecret = Symbol('StringRoomID');
+export type StringRoomID = string & { [StringRoomIDSecret]: true };
+
+export const StringRoomID = Type.Transform(
+  Type.String({
+    description: 'The ID of the room associated with this event.',
+  })
+)
+  .Decode((value) => {
+    if (isStringRoomID(value)) {
+      return value;
+    } else {
+      throw new TypeError(`Couldn't decode ${value} as a StringRoomID`);
+    }
+  })
+  .Encode((value) => value);
+
+export function isStringRoomID(string: string): string is StringRoomID {
+  return /^![^:]*:(\S)*/.test(string);
+}
+
+const StringEventIDSecret = Symbol('StringEventID');
+export type StringEventID = string & { [StringEventIDSecret]: true };
+
+export function isStringEventID(string: string): string is StringEventID {
+  return string.startsWith('!');
+}
+
+export const StringEventID = Type.Transform(
+  Type.String({
+    description: 'The globally unique event identifier.',
+  })
+)
+  .Decode((value) => {
+    if (isStringEventID(value)) {
+      return value;
+    } else {
+      throw new TypeError(`Couldn't decode ${value} as a StringEventID`);
+    }
+  })
+  .Encode((value) => value);
