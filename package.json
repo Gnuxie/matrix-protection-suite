@@ -23,7 +23,7 @@
     "make:docs": "typedoc",
     "test": "jest --coverage",
     "test:ci": "cross-env CI=1 jest",
-    "prepare": "husky install"
+    "prepare": "husky install && yarn build"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.4.4",
