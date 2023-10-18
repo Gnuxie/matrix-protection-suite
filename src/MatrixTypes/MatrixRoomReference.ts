@@ -6,6 +6,7 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { RoomAlias } from './MatrixEntity';
 import { Permalinks } from './Permalinks';
+import { StringRoomID, isStringRoomID } from './StringlyTypedMatrix';
 
 /**
  * A function that can be used by the reference to join a room.
@@ -107,7 +108,7 @@ export abstract class MatrixRoomReference {
   public async joinClient(client: {
     joinRoom: JoinRoom;
   }): Promise<MatrixRoomID> {
-    if (this.reference.startsWith('!')) {
+    if (this instanceof MatrixRoomID) {
       await client.joinRoom(this.reference, this.viaServers);
       return this;
     } else {
@@ -134,7 +135,14 @@ export abstract class MatrixRoomReference {
  */
 export class MatrixRoomID extends MatrixRoomReference {
   public constructor(reference: string, viaServers: string[] = []) {
+    if (!isStringRoomID(reference)) {
+      throw new TypeError(`invalid reference for roomID ${reference}`);
+    }
     super(reference, viaServers);
+  }
+
+  public toRoomIdOrAlias(): StringRoomID {
+    return this.reference as StringRoomID;
   }
 }
 
