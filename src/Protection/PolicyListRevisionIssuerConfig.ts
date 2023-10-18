@@ -31,7 +31,12 @@ import {
   RawSchemedData,
   SCHEMA_VERSION_KEY,
 } from '../Interface/PersistentData';
-import { MatrixRoomID, Permalink } from '../MatrixTypes/MatrixRoomReference';
+import {
+  MatrixRoomAlias,
+  MatrixRoomID,
+  Permalink,
+  ResolveRoom,
+} from '../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
 import {
@@ -171,6 +176,9 @@ export class StandardPolicyListRevisionIssuerManager
 
   public static async createAndLoad(
     config: PolicyListRevisionIssuerConfig,
+    client: {
+      resolveRoom: ResolveRoom;
+    },
     policyRoomManager: PolicyRoomManager
   ): Promise<StandardPolicyListRevisionIssuerManager> {
     const data = await (async () => {
@@ -193,7 +201,11 @@ export class StandardPolicyListRevisionIssuerManager
     })();
 
     const policyRoomRevisionIssuers: PolicyRoomRevisionIssuer[] = [];
-    for (const reference of data.references) {
+    for (const unresolvedReference of data.references) {
+      const reference =
+        unresolvedReference instanceof MatrixRoomAlias
+          ? await unresolvedReference.resolve(client)
+          : unresolvedReference;
       const issuerResult = await policyRoomManager.getPolicyRoomRevisionIssuer(
         reference
       );

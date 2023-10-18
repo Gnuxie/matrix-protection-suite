@@ -31,10 +31,16 @@ import {
   RawSchemedData,
   SCHEMA_VERSION_KEY,
 } from '../Interface/PersistentData';
-import { MatrixRoomID, Permalink } from '../MatrixTypes/MatrixRoomReference';
+import {
+  MatrixRoomAlias,
+  MatrixRoomID,
+  Permalink,
+  ResolveRoom,
+} from '../MatrixTypes/MatrixRoomReference';
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 import { ActionResult, Ok, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
+import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 
 export type MjolnirProtectedRoomsEvent = Static<
   typeof MjolnirProtectedRoomsEvent
@@ -88,8 +94,12 @@ export abstract class AbstractProtectedRoomsConfig
   extends PersistentData<ProtectedRoomsConfigEvent & RawSchemedData>
   implements ProtectedRoomsConfig
 {
-  protected readonly explicitlyProtectedRooms = new Map<string, MatrixRoomID>();
+  protected readonly explicitlyProtectedRooms = new Map<
+    StringRoomID,
+    MatrixRoomID
+  >();
   protected async handleDataChange(
+    client: { resolveRoom: ResolveRoom },
     rawData: ProtectedRoomsConfigEvent
   ): Promise<void> {
     const decodedDataResult = Value.Decode(ProtectedRoomsConfigEvent, rawData);
@@ -97,11 +107,12 @@ export abstract class AbstractProtectedRoomsConfig
       throw new TypeError('Somehow we have stored invalid data');
     }
     this.explicitlyProtectedRooms.clear();
-    for (const room of decodedDataResult.ok.rooms) {
-      this.explicitlyProtectedRooms.set(
-        room.reference.toRoomIdOrAlias(),
-        room.reference
-      );
+    for (const { reference } of decodedDataResult.ok.rooms) {
+      const room =
+        reference instanceof MatrixRoomAlias
+          ? await reference.resolve(client)
+          : reference;
+      this.explicitlyProtectedRooms.set(room.toRoomIdOrAlias(), room);
     }
   }
   public get allRooms(): MatrixRoomID[] {

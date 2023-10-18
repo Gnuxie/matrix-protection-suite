@@ -11,35 +11,28 @@ import { StringRoomID, isStringRoomID } from './StringlyTypedMatrix';
 /**
  * A function that can be used by the reference to join a room.
  */
-type JoinRoom = (
+export type JoinRoom = (
   roomIdOrAlias: string,
   viaServers?: string[]
-) => Promise</*room id*/ string>;
+) => Promise<StringRoomID>;
 /**
  * A function that can be used by the reference to resolve an alias to a room id.
  */
-type ResolveRoom = (roomIdOrAlias: string) => Promise</* room id */ string>;
+export type ResolveRoom = (roomIdOrAlias: string) => Promise<StringRoomID>;
 
-/**
- * This is a universal reference for a matrix room.
- * This is really useful because there are at least 3 ways of referring to a Matrix room,
- * and some of them require extra steps to be useful in certain contexts (aliases, permalinks).
- */
-export abstract class MatrixRoomReference {
-  protected constructor(
-    protected readonly reference: string,
-    protected readonly viaServers: string[] = []
-  ) {}
+export type MatrixRoomReference = MatrixRoomID | MatrixRoomAlias;
 
-  public toPermalink(): string {
-    return Permalinks.forRoom(this.reference, this.viaServers);
-  }
-
-  public static fromAlias(alias: string): MatrixRoomReference {
+// we disable this warning because it's not relevant, we're not making a module
+// we're trying to add generic functions to a type.
+// Comes at a cost that anyone actually using this from JS and not TS is
+// going to be confused.
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MatrixRoomReference {
+  export function fromAlias(alias: string): MatrixRoomReference {
     return new MatrixRoomAlias(alias);
   }
 
-  public static fromRoomId(
+  export function fromRoomId(
     roomId: string,
     viaServers: string[] = []
   ): MatrixRoomID {
@@ -52,7 +45,7 @@ export abstract class MatrixRoomReference {
    * @param viaServers If a room ID is being provided, then these server names
    * can be used to find the room.
    */
-  public static fromRoomIdOrAlias(
+  export function fromRoomIdOrAlias(
     roomIdOrAlias: string,
     viaServers: string[] = []
   ): MatrixRoomReference {
@@ -61,6 +54,21 @@ export abstract class MatrixRoomReference {
     } else {
       return new MatrixRoomAlias(roomIdOrAlias, viaServers);
     }
+  }
+}
+/**
+ * This is a universal reference for a matrix room.
+ * This is really useful because there are at least 3 ways of referring to a Matrix room,
+ * and some of them require extra steps to be useful in certain contexts (aliases, permalinks).
+ */
+abstract class AbstractMatrixRoomReference {
+  protected constructor(
+    protected readonly reference: string,
+    protected readonly viaServers: string[] = []
+  ) {}
+
+  public toPermalink(): string {
+    return Permalinks.forRoom(this.reference, this.viaServers);
   }
 
   /**
@@ -133,7 +141,7 @@ export abstract class MatrixRoomReference {
  * A concrete `MatrixRoomReference` that represents only a room ID.
  * @see {@link MatrixRoomReference}.
  */
-export class MatrixRoomID extends MatrixRoomReference {
+export class MatrixRoomID extends AbstractMatrixRoomReference {
   public constructor(reference: string, viaServers: string[] = []) {
     if (!isStringRoomID(reference)) {
       throw new TypeError(`invalid reference for roomID ${reference}`);
@@ -150,14 +158,14 @@ export class MatrixRoomID extends MatrixRoomReference {
  * A concrete `MatrixRoomReference` the represents only a room alias.
  * @see {@link MatrixRoomReference}.
  */
-export class MatrixRoomAlias extends MatrixRoomReference {
+export class MatrixRoomAlias extends AbstractMatrixRoomReference {
   public constructor(reference: string, viaServers: string[] = []) {
     super(reference, viaServers);
   }
 }
 
 export const Permalink = Type.Transform(Type.String())
-  .Decode((value) => MatrixRoomReference.fromPermalink(value))
+  .Decode((value) => AbstractMatrixRoomReference.fromPermalink(value))
   .Encode((value) => value.toPermalink());
 
 export type Permalink = StaticDecode<typeof Permalink>;
