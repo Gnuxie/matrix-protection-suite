@@ -25,52 +25,47 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { StateEvent } from '../MatrixTypes/Events';
+import { StaticDecode } from '@sinclair/typebox';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { MembershipChange } from './MembershipChange';
 
 /**
- * An interface for reading rules from a `PolicyListRevision`.
+ * A revision is a view of a Membership at a given moment in history.
+ * This may even be a representation of multiple rooms aggregated together.
  */
-export interface MembersRevisionView {
-  room: MatrixRoomID;
-}
-
-/**
- * A revision is a view of a PolicyList at a given moment in the list's history.
- * This may even be a representation of multiple lists aggregated together.
- */
-export interface MembersRevision extends MembersRevisionView {
+export interface MembershipRevision {
   /**
-   * Create a new revision from a series of `PolicyRuleChange`'s
+   * Create a new revision from a series of `MembershipChange`'s
    * @param changes The changes to use as a basis for a new revision.
-   * @returns A new `PolicyListRevision`.
+   * @returns A new `MembershipRevision`.
    */
-  reviseFromChanges(changes: MembershipChange[]): MembersRevision;
+  reviseFromChanges(changes: MembershipChange[]): MembershipRevision;
 }
 
 /**
- * A revision of a PolicyRoom at a given moment in the room's history.
+ * A revision of a Matrix Room's memberships at a given moment in the room's history.
  */
-export interface RoomMembersRevision extends MembersRevision {
+export interface RoomMembershipRevision extends MembershipRevision {
   readonly room: MatrixRoomID;
+  reviseFromChanges(changes: MembershipChange[]): RoomMembershipRevision;
   /**
    * Create a new revision from the state of the associated Matrix room.
-   * @param policyState The state from the matrix room, obtained from `/state`.
+   * @param state The state from the matrix room, obtained from `/state`.
    * @returns A new PolicyRoomRevision.
    */
-  reviseFromState(policyState: StateEvent[]): RoomMembersRevision;
+  reviseFromMembership(
+    membershipEvents: StaticDecode<typeof MembershipEvent>[]
+  ): RoomMembershipRevision;
   /**
-   * Calculate the changes to `PolicyRule`s contained in this revision based
+   * Calculate the changes to memberships contained in this revision based
    * on new room state.
    * @param state State events from /state.
-   * @returns A list of changes to `PolicyRule`s.
+   * @returns A list of changes to memberships.
    */
-  changesFromState(state: StateEvent[]): MembershipChange[];
-  /**
-   * Check whether the list has a rule associated with this event.
-   * @param eventId The id of a policy rule event.
-   * @returns true if the revision contains a rule associated with the event.
-   */
-  hasEvent(eventId: string): boolean;
+  changesFromMembership(
+    state: StaticDecode<typeof MembershipEvent>[]
+  ): MembershipChange[];
+  hasEvent(eventID: StringEventID): boolean;
 }
