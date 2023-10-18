@@ -38,6 +38,16 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
     // nothing to do.
   }
 
+  public static blankRevision(
+    room: MatrixRoomID
+  ): StandardRoomMembershipRevision {
+    return new StandardRoomMembershipRevision(
+      room,
+      PersistentMap(),
+      PersistentMap()
+    );
+  }
+
   public hasEvent(eventID: StringEventID): boolean {
     return this.membershipByEventID.has(eventID);
   }
