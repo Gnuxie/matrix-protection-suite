@@ -27,6 +27,7 @@ limitations under the License.
 
 import { Static, Type } from '@sinclair/typebox';
 import { StateEvent, StrippedStateEvent, UnsignedData } from './Events';
+import { StringUserID } from './StringlyTypedMatrix';
 
 export type MembershipEventUnsigned = Static<typeof MembershipEventUnsigned>;
 export const MembershipEventUnsigned = Type.Composite([
@@ -109,10 +110,7 @@ export const MembershipEvent = Type.Composite([
   StateEvent(MembershipEventContent),
   Type.Object({
     content: MembershipEventContent,
-    state_key: Type.String({
-      description:
-        'The `user_id` this membership event relates to. In all cases except for when `membership` is\n`join`, the user ID sending the event does not need to match the user ID in the `state_key`,\nunlike other events. Regular authorisation rules still apply.',
-    }),
+    state_key: StringUserID,
     type: Type.Literal('m.room.member'),
     unsigned: MembershipEventUnsigned,
   }),
