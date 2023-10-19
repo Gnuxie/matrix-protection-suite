@@ -37,7 +37,7 @@ export enum ProtectedRoomChangeType {
   Removed = 'removed',
 }
 
-export type ProtectedRoomChangeListener = (
+export type ProtectedRoomsChangeListener = (
   room: MatrixRoomID,
   changeType: ProtectedRoomChangeType
 ) => void;
@@ -46,9 +46,12 @@ export interface ProtectedRoomsConfig {
   readonly allRooms: MatrixRoomID[];
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
-  on(event: 'change', listener: ProtectedRoomChangeListener): this;
-  off(event: 'change', listener: ProtectedRoomChangeListener): this;
-  emit(event: 'change', ...args: Parameters<ProtectedRoomChangeListener>): void;
+  on(event: 'change', listener: ProtectedRoomsChangeListener): this;
+  off(event: 'change', listener: ProtectedRoomsChangeListener): this;
+  emit(
+    event: 'change',
+    ...args: Parameters<ProtectedRoomsChangeListener>
+  ): void;
 }
 
 export class StandardProtectedRoomsConfig

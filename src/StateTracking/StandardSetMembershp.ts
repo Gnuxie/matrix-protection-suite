@@ -14,6 +14,12 @@ import {
   RoomMembershipRevisionIssuer,
 } from './MembershipRevisionIssuer';
 import { RoomMembershipManager } from './RoomMembershipManager';
+import {
+  ProtectedRoomChangeType,
+  ProtectedRoomsChangeListener,
+  ProtectedRoomsConfig,
+} from '../Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
+import { Task } from '../Interface/Task';
 
 export class StandardSetMembership
   extends EventEmitter
@@ -25,11 +31,40 @@ export class StandardSetMembership
   >();
 
   private readonly revisionListener: MembershipRevisionListener<RoomMembershipRevision>;
+  private readonly protectedRoomsChangeListener: ProtectedRoomsChangeListener;
 
-  constructor(private readonly roomMembershipManager: RoomMembershipManager) {
+  private constructor(
+    private readonly roomMembershipManager: RoomMembershipManager,
+    private readonly protectedRoomsConfig: ProtectedRoomsConfig
+  ) {
     super();
     this.revisionListener = this.membershipRevision.bind(this);
+    this.protectedRoomsChangeListener = this.protectedRoomsListener.bind(this);
+    this.protectedRoomsConfig.on('change', this.protectedRoomsChangeListener);
   }
+
+  public static async create(
+    roomMembershipManager: RoomMembershipManager,
+    protectedRoomsConfig: ProtectedRoomsConfig
+  ): Promise<ActionResult<SetMembership>> {
+    const setMembership = new StandardSetMembership(
+      roomMembershipManager,
+      protectedRoomsConfig
+    );
+    const results = await Promise.all(
+      protectedRoomsConfig.allRooms.map((room) => setMembership.addRoom(room))
+    );
+    const failedResults = results.filter((result) => isError(result));
+    if (failedResults.length > 0) {
+      if (!isError(failedResults[1])) {
+        // just make typescript happy.
+        throw new TypeError('This is catastrophically wrong');
+      }
+      return failedResults[1];
+    }
+    return Ok(setMembership);
+  }
+
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     const issuerResult =
       await this.roomMembershipManager.getRoomMembershipRevisionIssuer(room);
@@ -52,6 +87,7 @@ export class StandardSetMembership
     for (const issuer of this.issuers.values()) {
       issuer.off('revision', this.revisionListener);
     }
+    this.protectedRoomsConfig.off('change', this.protectedRoomsChangeListener);
   }
 
   private membershipRevision(
@@ -65,6 +101,18 @@ export class StandardSetMembership
       nextRevision,
       changes,
       previousRevision
+    );
+  }
+
+  private protectedRoomsListener(
+    ...[room, changeType]: Parameters<ProtectedRoomsChangeListener>
+  ): void {
+    Task(
+      (async (): Promise<ActionResult<void>> => {
+        return changeType === ProtectedRoomChangeType.Added
+          ? await this.addRoom(room)
+          : Ok(this.removeRoom(room));
+      })()
     );
   }
 }
