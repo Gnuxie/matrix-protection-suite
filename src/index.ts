@@ -3,6 +3,7 @@ export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
 export * from './Interface/PersistentData';
+export * from './Interface/PersistentMatrixData';
 export * from './Interface/Value';
 
 export * from './Logging/Logger';
@@ -29,6 +30,8 @@ export * from './PolicyList/StandardPolicyListRevision';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
+export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
+export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 export * from './Protection/Consequence';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/PolicyListRevisionIssuerConfig';

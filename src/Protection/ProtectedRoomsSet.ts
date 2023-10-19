@@ -1,5 +1,5 @@
 import { PolicyListRevisionIssuerManager } from './PolicyListRevisionIssuerConfig';
-import { ProtectedRoomsConfig } from './ProtectedRoomsConfig';
+import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
 import { ProtectionsConfig } from './ProtectionsConfig';
 
 export interface ProtectedRoomsSet {
