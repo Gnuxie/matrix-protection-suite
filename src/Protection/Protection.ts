@@ -33,14 +33,28 @@ import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { ConsequenceProvider } from './Consequence';
 
 /**
+ * This is a description of a protection, which is used
+ * to create protections in a facory method dynamically.
+ */
+export interface ProtectionDescription {
+  readonly name: string;
+  readonly description: string;
+  readonly constructor: {
+    new: (
+      description: ProtectionDescription,
+      consequenceProvider: ConsequenceProvider
+    ) => Protection;
+  };
+}
+
+/**
  * Represents a protection mechanism of sorts. Protections are intended to be
  * event-based (ie: X messages in a period of time, or posting X events).
  *
  * Protections are guaranteed to be run before redaction handlers.
  */
 export interface Protection {
-  readonly name: string;
-  readonly description: string;
+  readonly description: ProtectionDescription;
   readonly requiredEventPermissions: string[];
   readonly requiredPermissions: string[];
 
@@ -66,8 +80,7 @@ export class AbstractProtection
   implements Omit<Protection, 'handleEvent' | 'handlePolicyChange'>
 {
   protected constructor(
-    public readonly name: string,
-    public readonly description: string,
+    public readonly description: ProtectionDescription,
     protected readonly consequenceProvider: ConsequenceProvider,
     private readonly clientEventPermissions: string[],
     private readonly clientPermissions: string[]
@@ -88,4 +101,37 @@ export class AbstractProtection
       ...this.consequenceProvider.requiredPermissions,
     ];
   }
+}
+
+const PROTECTIONS = new Map<string, ProtectionDescription>();
+
+export function registerProtection(description: ProtectionDescription): void {
+  if (PROTECTIONS.has(description.name)) {
+    throw new TypeError(
+      `There is already a protection registered with the name ${description.name}`
+    );
+  }
+  PROTECTIONS.set(description.name, description);
+}
+
+export function findProtection(
+  name: string
+): ProtectionDescription | undefined {
+  return PROTECTIONS.get(name);
+}
+
+export function describeProtection({
+  name,
+  description,
+  protectionClass,
+}: {
+  name: string;
+  description: string;
+  protectionClass: ProtectionDescription['constructor'];
+}) {
+  registerProtection({
+    name,
+    description,
+    constructor: protectionClass,
+  });
 }
