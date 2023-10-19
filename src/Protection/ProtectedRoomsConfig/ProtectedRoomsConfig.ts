@@ -30,21 +30,38 @@ import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { PersistentMatrixData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
+import EventEmitter from 'events';
+
+export enum ProtectedRoomChangeType {
+  Added = 'added',
+  Removed = 'removed',
+}
+
+export type ProtectedRoomChangeListener = (
+  room: MatrixRoomID,
+  changeType: ProtectedRoomChangeType
+) => void;
 
 export interface ProtectedRoomsConfig {
   readonly allRooms: MatrixRoomID[];
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
+  on(event: 'change', listener: ProtectedRoomChangeListener): this;
+  off(event: 'change', listener: ProtectedRoomChangeListener): this;
+  emit(event: 'change', ...args: Parameters<ProtectedRoomChangeListener>): void;
 }
 
-export class StandardProtectedRoomsConfig implements ProtectedRoomsConfig {
+export class StandardProtectedRoomsConfig
+  extends EventEmitter
+  implements ProtectedRoomsConfig
+{
   private constructor(
     private readonly store: PersistentMatrixData<
       typeof MjolnirProtectedRoomsEvent
     >,
     private readonly protectedRooms: Map<StringRoomID, MatrixRoomID>
   ) {
-    // nothing to do
+    super();
   }
   public static async create(
     store: PersistentMatrixData<typeof MjolnirProtectedRoomsEvent>
@@ -74,6 +91,7 @@ export class StandardProtectedRoomsConfig implements ProtectedRoomsConfig {
       );
     }
     this.protectedRooms.set(room.toRoomIdOrAlias(), room);
+    this.emit('change', room, ProtectedRoomChangeType.Added);
     return Ok(undefined);
   }
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
@@ -88,6 +106,7 @@ export class StandardProtectedRoomsConfig implements ProtectedRoomsConfig {
       );
     }
     this.protectedRooms.delete(room.toRoomIdOrAlias());
+    this.emit('change', room, ProtectedRoomChangeType.Removed);
     return Ok(undefined);
   }
 }
