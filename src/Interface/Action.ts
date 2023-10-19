@@ -161,4 +161,8 @@ export class ActionError {
     this.context.push(message);
     return this;
   }
+
+  public getContext(): string[] {
+    return this.context;
+  }
 }
