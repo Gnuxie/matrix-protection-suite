@@ -41,5 +41,7 @@ export * from './StateTracking/MembershipChange';
 export * from './StateTracking/MembershipRevision';
 export * from './StateTracking/MembershipRevisionIssuer';
 export * from './StateTracking/RoomMembershipManager';
+export * from './StateTracking/SetMembership';
 export * from './StateTracking/StandardRoomMembershipRevision';
 export * from './StateTracking/StandardRoomMembershipRevisionIssuer';
+export * from './StateTracking/StandardSetMembershp';
