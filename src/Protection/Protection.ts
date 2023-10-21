@@ -30,7 +30,18 @@ import { RoomEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import { MembershipChange } from '../StateTracking/MembershipChange';
+import { RoomMembershipRevision } from '../StateTracking/MembershipRevision';
 import { ConsequenceProvider } from './Consequence';
+import { ProtectedRoomsSet } from './ProtectedRoomsSet';
+
+export interface ProtectionConstructor {
+  new (
+    description: ProtectionDescription,
+    consequenceProvider: ConsequenceProvider,
+    protectedRoomsSet: ProtectedRoomsSet
+  ): Protection;
+}
 
 /**
  * This is a description of a protection, which is used
@@ -39,12 +50,7 @@ import { ConsequenceProvider } from './Consequence';
 export interface ProtectionDescription {
   readonly name: string;
   readonly description: string;
-  readonly constructor: {
-    new: (
-      description: ProtectionDescription,
-      consequenceProvider: ConsequenceProvider
-    ) => Protection;
-  };
+  readonly factory: ProtectionConstructor;
 }
 
 /**
@@ -62,7 +68,7 @@ export interface Protection {
    * Handle a single event from a protected room, to decide if we need to
    * respond to it
    */
-  handleEvent(
+  handleEvent?(
     room: MatrixRoomID,
     event: RoomEvent
   ): Promise<ActionResult<void>>;
@@ -70,9 +76,14 @@ export interface Protection {
   /**
    * I mean for this to work, we need to setup the aggregation data types.
    */
-  handlePolicyChange(
+  handlePolicyChange?(
     revision: PolicyListRevision,
     changes: PolicyRuleChange[]
+  ): Promise<ActionResult<void>>;
+
+  handleMembershipChange?(
+    revision: RoomMembershipRevision,
+    changes: MembershipChange[]
   ): Promise<ActionResult<void>>;
 }
 
@@ -82,6 +93,7 @@ export class AbstractProtection
   protected constructor(
     public readonly description: ProtectionDescription,
     protected readonly consequenceProvider: ConsequenceProvider,
+    protected readonly protectedRoomsSet: ProtectedRoomsSet,
     private readonly clientEventPermissions: string[],
     private readonly clientPermissions: string[]
   ) {
@@ -123,15 +135,15 @@ export function findProtection(
 export function describeProtection({
   name,
   description,
-  protectionClass,
+  factory,
 }: {
   name: string;
   description: string;
-  protectionClass: ProtectionDescription['constructor'];
+  factory: ProtectionDescription['factory'];
 }) {
   registerProtection({
     name,
     description,
-    constructor: protectionClass,
+    factory,
   });
 }

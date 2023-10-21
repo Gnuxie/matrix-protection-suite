@@ -4,8 +4,9 @@
  */
 
 import { ActionResult } from '../Interface/Action';
+import { MatrixGlob } from '../MatrixTypes/MatrixGlob';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
+import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { MembershipChange } from './MembershipChange';
 import { RoomMembershipRevision } from './MembershipRevision';
 
