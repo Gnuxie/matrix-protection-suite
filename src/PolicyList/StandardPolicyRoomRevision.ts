@@ -36,7 +36,6 @@ import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
 import { ChangeType, PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
-import { UserID } from '../MatrixTypes/MatrixEntity';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Logger } from '../Logging/Logger';
 
@@ -104,18 +103,10 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   allRules(): PolicyRule[] {
     return [...this.policyRuleByEventId.values()];
   }
-  userRules(recommendation?: Recommendation): PolicyRule[] {
-    return this.rulesOfKind(PolicyRuleType.User, recommendation);
-  }
-  serverRules(recommendation?: Recommendation): PolicyRule[] {
-    return this.rulesOfKind(PolicyRuleType.Server, recommendation);
-  }
-  roomRules(recommendation?: Recommendation): PolicyRule[] {
-    return this.rulesOfKind(PolicyRuleType.Room, recommendation);
-  }
-  rulesMatchingEntity(
+  allRulesMatchingEntity(
     entity: string,
-    ruleKind?: PolicyRuleType | undefined
+    ruleKind?: PolicyRuleType | undefined,
+    recommendation?: Recommendation
   ): PolicyRule[] {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
@@ -128,22 +119,22 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         return PolicyRuleType.Server;
       }
     };
-
-    if (ruleTypeOf(entity) === PolicyRuleType.User) {
-      // We special case because want to see whether a server ban is preventing this user from participating too.
-      const userId = new UserID(entity);
-      return [
-        ...this.userRules().filter((rule) => rule.isMatch(entity)),
-        ...this.serverRules().filter((rule) => rule.isMatch(userId.domain)),
-      ];
-    } else {
-      return this.rulesOfKind(ruleTypeOf(entity)).filter((rule) =>
-        rule.isMatch(entity)
-      );
-    }
+    return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
+      (rule) => rule.isMatch(entity)
+    );
   }
 
-  rulesOfKind(
+  findRuleMatchingEntity(
+    entity: string,
+    type: PolicyRuleType,
+    recommendation: Recommendation
+  ): PolicyRule | undefined {
+    return this.allRulesOfType(type, recommendation).find((rule) =>
+      rule.isMatch(entity)
+    );
+  }
+
+  allRulesOfType(
     kind: PolicyRuleType,
     recommendation?: Recommendation | undefined
   ): PolicyRule[] {

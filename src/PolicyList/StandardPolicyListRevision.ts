@@ -30,15 +30,20 @@ import { PolicyListRevision } from './PolicyListRevision';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { ChangeType, PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
-import { Map as PersistentMap } from 'immutable';
-import { UserID } from '../MatrixTypes/MatrixEntity';
+import { Map as PersistentMap, List as PersistentList } from 'immutable';
+import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 
 /**
  * A map of policy rules, by their type and then event id.
  */
 type PolicyRuleByType = PersistentMap<
   PolicyRuleType,
-  PersistentMap<string /* event id */, PolicyRule>
+  PersistentMap<StringEventID, PolicyRule>
+>;
+
+type PolicyRuleScopes = PersistentMap<
+  PolicyRuleType,
+  PersistentMap<Recommendation, PolicyRuleScope>
 >;
 
 /**
@@ -57,14 +62,19 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     /**
      * Allow us to detect whether we have updated the state for this event.
      */
-    private readonly policyRuleByType: PolicyRuleByType
+    private readonly policyRuleByType: PolicyRuleByType,
+    private readonly policyRuleScopes: PolicyRuleScopes
   ) {}
 
   /**
    * @returns An empty revision.
    */
   public static blankRevision(): StandardPolicyListRevision {
-    return new StandardPolicyListRevision(new Revision(), PersistentMap());
+    return new StandardPolicyListRevision(
+      new Revision(),
+      PersistentMap(),
+      PersistentMap()
+    );
   }
 
   allRules(): PolicyRule[] {
@@ -72,18 +82,10 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       .map((byEventId) => [...byEventId.values()])
       .flat();
   }
-  userRules(recommendation?: Recommendation): PolicyRule[] {
-    return this.rulesOfKind(PolicyRuleType.User, recommendation);
-  }
-  serverRules(recommendation?: Recommendation): PolicyRule[] {
-    return this.rulesOfKind(PolicyRuleType.Server, recommendation);
-  }
-  roomRules(recommendation?: Recommendation): PolicyRule[] {
-    return this.rulesOfKind(PolicyRuleType.Room, recommendation);
-  }
-  rulesMatchingEntity(
+  allRulesMatchingEntity(
     entity: string,
-    ruleKind?: PolicyRuleType | undefined
+    ruleKind?: PolicyRuleType | undefined,
+    recommendation?: Recommendation
   ): PolicyRule[] {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
@@ -96,22 +98,34 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         return PolicyRuleType.Server;
       }
     };
+    if (recommendation !== undefined) {
+      const scope = this.policyRuleScopes
+        .get(ruleTypeOf(entity))
+        ?.get(recommendation);
+      if (scope === undefined) {
+        return [];
+      }
+      return scope.allRulesMatchingEntity(entity);
+    }
+    return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
+      (rule) => rule.isMatch(entity)
+    );
+  }
 
-    if (ruleTypeOf(entity) === PolicyRuleType.User) {
-      // We special case because want to see whether a server ban is preventing this user from participating too.
-      const userId = new UserID(entity);
-      return [
-        ...this.userRules().filter((rule) => rule.isMatch(entity)),
-        ...this.serverRules().filter((rule) => rule.isMatch(userId.domain)),
-      ];
+  findRuleMatchingEntity(
+    entity: string,
+    type: PolicyRuleType,
+    recommendation: Recommendation
+  ): PolicyRule | undefined {
+    const scope = this.policyRuleScopes.get(type)?.get(recommendation);
+    if (scope === undefined) {
+      return undefined;
     } else {
-      return this.rulesOfKind(ruleTypeOf(entity)).filter((rule) =>
-        rule.isMatch(entity)
-      );
+      return scope.findRuleMatchingEntity(entity);
     }
   }
 
-  rulesOfKind(
+  allRulesOfType(
     kind: PolicyRuleType,
     recommendation?: Recommendation | undefined
   ): PolicyRule[] {
@@ -143,7 +157,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         nextPolicyRulesByType.get(stateType) ?? PersistentMap();
       nextPolicyRulesByType = nextPolicyRulesByType.set(
         stateType,
-        byEventTable.set(rule.sourceEvent.event_id, rule)
+        byEventTable.set(rule.sourceEvent.event_id as StringEventID, rule)
       );
     };
     const removePolicyRule = (rule: PolicyRule): void => {
@@ -155,7 +169,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       }
       nextPolicyRulesByType = nextPolicyRulesByType.set(
         rule.kind,
-        byEventTable.delete(rule.sourceEvent.event_id)
+        byEventTable.delete(rule.sourceEvent.event_id as StringEventID)
       );
     };
     for (const change of changes) {
@@ -168,16 +182,143 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         removePolicyRule(change.rule);
       }
     }
+    const nextPolicyRuleScopes = [...this.policyRuleScopes.values()]
+      .flatMap((byRecommendation) => [...byRecommendation.values()])
+      .reduce((map, scope) => {
+        return map.setIn([scope.entityType, scope.recommendation], scope);
+      }, PersistentMap() as PolicyRuleScopes);
     return new StandardPolicyListRevision(
       new Revision(),
-      nextPolicyRulesByType
+      nextPolicyRulesByType,
+      nextPolicyRuleScopes
     );
   }
   hasEvent(eventId: string): boolean {
     return (
       [...this.policyRuleByType.values()].find((byEvent) =>
-        byEvent.has(eventId)
+        byEvent.has(eventId as StringEventID)
       ) !== undefined
     );
+  }
+}
+
+type PolicyRuleByEntity = PersistentMap<
+  string /*rule entity*/,
+  PersistentList<PolicyRule>
+>;
+
+class PolicyRuleScope {
+  constructor(
+    public readonly revisionID: Revision,
+    /**
+     * The entity type that this cache is for e.g. RULE_USER.
+     */
+    public readonly entityType: PolicyRuleType,
+    /**
+     * The recommendation that this cache is for e.g. m.ban (RECOMMENDATION_BAN).
+     */
+    public readonly recommendation: Recommendation,
+    /**
+     * Glob rules always have to be scanned against every entity.
+     */
+    private readonly globRules: PolicyRuleByEntity,
+    /**
+     * This table allows us to skip matching an entity against every literal.
+     */
+    private readonly literalRules: PolicyRuleByEntity
+  ) {
+    // nothing to do.
+  }
+  reviseFromChanges(
+    revision: Revision,
+    changes: PolicyRuleChange[]
+  ): PolicyRuleScope {
+    const addRuleToMap = (
+      map: PolicyRuleByEntity,
+      rule: PolicyRule
+    ): PolicyRuleByEntity => {
+      const rules = map.get(rule.entity) ?? PersistentList();
+      return map.set(rule.entity, rules.push(rule));
+    };
+    const removeRuleFromMap = (
+      map: PolicyRuleByEntity,
+      ruleToRemove: PolicyRule
+    ): PolicyRuleByEntity => {
+      const rules = (map.get(ruleToRemove.entity) ?? PersistentList()).filter(
+        (rule) =>
+          rule.sourceEvent.event_id !== ruleToRemove.sourceEvent.event_id
+      );
+      if (rules.size === 0) {
+        return map.delete(ruleToRemove.entity);
+      } else {
+        return map.set(ruleToRemove.entity, rules);
+      }
+    };
+    let nextGlobRules = this.globRules;
+    let nextLiteralRules = this.literalRules;
+    const addRule = (rule: PolicyRule): void => {
+      nextGlobRules = addRuleToMap(nextGlobRules, rule);
+      nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
+    };
+    const removeRule = (rule: PolicyRule): void => {
+      nextGlobRules = removeRuleFromMap(nextGlobRules, rule);
+      nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
+    };
+    for (const change of changes) {
+      if (
+        change.rule.kind !== this.entityType ||
+        change.rule.recommendation !== this.recommendation
+      ) {
+        continue;
+      }
+      switch (change.changeType) {
+        case ChangeType.Added:
+        case ChangeType.Modified:
+          addRule(change.rule);
+          break;
+        case ChangeType.Removed:
+          removeRule(change.rule);
+      }
+    }
+    return new PolicyRuleScope(
+      revision,
+      this.entityType,
+      this.recommendation,
+      nextGlobRules,
+      nextLiteralRules
+    );
+  }
+  public literalRulesMatchingEntity(entity: string): PolicyRule[] {
+    return [...(this.literalRules.get(entity) ?? [])];
+  }
+  public globRulesMatchingEntity(entity: string): PolicyRule[] {
+    return [...this.globRules.values()]
+      .filter((rules) => {
+        const [firstRule] = rules;
+        if (firstRule === undefined) {
+          throw new TypeError('There should never be an empty list in the map');
+        }
+        return firstRule.isMatch(entity);
+      })
+      .map((rules) => [...rules])
+      .flat();
+  }
+  allRulesMatchingEntity(entity: string): PolicyRule[] {
+    return [
+      ...this.literalRulesMatchingEntity(entity),
+      ...this.globRulesMatchingEntity(entity),
+    ];
+  }
+  findRuleMatchingEntity(entity: string): PolicyRule | undefined {
+    const literalRule = this.literalRules.get(entity);
+    if (literalRule !== undefined) {
+      return literalRule.get(0);
+    }
+    const globRules = this.globRulesMatchingEntity(entity);
+    if (globRules.length === 0) {
+      return undefined;
+    } else {
+      return globRules.at(0);
+    }
   }
 }

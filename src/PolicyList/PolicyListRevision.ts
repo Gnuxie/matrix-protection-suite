@@ -45,34 +45,35 @@ export interface PolicyListRevisionView {
    */
   allRules(): PolicyRule[];
   /**
-   * @param recommendation A recommendation to filter the rules to.
-   * @returns all of the rules enacted by the policy list that are of the type {@link PolicyRuleType.User}.
-   */
-  userRules(recommendation?: Recommendation): PolicyRule[];
-  /**
-   * @param recommendation A recommendation to filter the rules to.
-   * @returns all of the rules enacted by the policy list that are of the type {@link PolicyRuleType.Server}.
-   */
-  serverRules(recommendation?: Recommendation): PolicyRule[];
-  /**
-   * @param recommendation A recommendation to filter the rules to.
-   * @returns all of the rules enacted by the policy list that are of the type {@link PolicyRuleType.Room}.
-   */
-  roomRules(recommendation?: Recommendation): PolicyRule[];
-  /**
    * @param entity The entity that is being queried.
    * @param type Restrict the search to only rules of this `PolicyRuleType`.
+   * @param recommendation The recommendation for the rule.
    * @returns The rules that are enacted against the entity in the policy list.
    */
-  rulesMatchingEntity(entity: string, type?: PolicyRuleType): PolicyRule[];
+  allRulesMatchingEntity(
+    entity: string,
+    type?: PolicyRuleType,
+    recommendation?: Recommendation
+  ): PolicyRule[];
   /**
    * @param type The PolicyRuleType to restrict the rules to.
    * @param recommendation A recommendation to also restrict the rules to.
    */
-  rulesOfKind(
+  allRulesOfType(
     type: PolicyRuleType,
     recommendation?: Recommendation
   ): PolicyRule[];
+  /**
+   * Find the first rule that matches the entity.
+   * @param entity The entity to search a rule for.
+   * @param type The rule type for the entity.
+   * @param recommendation The recommendation that we are looking for.
+   */
+  findRuleMatchingEntity(
+    entity: string,
+    type: PolicyRuleType,
+    recommendation: Recommendation
+  ): PolicyRule | undefined;
 }
 
 /**
