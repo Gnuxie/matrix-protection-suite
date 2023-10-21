@@ -25,20 +25,26 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { StaticDecode } from "@sinclair/typebox";
-import { ActionError, ActionResult, Ok, ResultError, isError } from "../../Interface/Action";
-import { MatrixRoomID } from "../../MatrixTypes/MatrixRoomReference";
-import { PolicyListRevision } from "../../PolicyList/PolicyListRevision";
-import { ChangeType, PolicyRuleChange } from "../../PolicyList/PolicyRuleChange";
-import { ConsequenceProvider } from "../Consequence";
-import { AbstractProtection, Protection, ProtectionDescription, describeProtection } from "../Protection";
-import { RoomEvent } from "../../MatrixTypes/Events";
-import { MembershipChange, MembershipChangeType } from "../../StateTracking/MembershipChange";
-import { RoomMembershipRevision } from "../../StateTracking/MembershipRevision";
-import { ProtectedRoomsSet } from "../ProtectedRoomsSet";
-import { PolicyRuleType } from "../../MatrixTypes/PolicyEvents";
-import { Recommendation } from "../../PolicyList/PolicyRule";
-import { MultipleErrors } from "../../Interface/MultipleErrors";
+import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
+import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
+import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
+import { ConsequenceProvider } from '../Consequence';
+import {
+  AbstractProtection,
+  Protection,
+  ProtectionDescription,
+  describeProtection,
+} from '../Protection';
+import {
+  MembershipChange,
+  MembershipChangeType,
+} from '../../StateTracking/MembershipChange';
+import { RoomMembershipRevision } from '../../StateTracking/MembershipRevision';
+import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
+import { Recommendation } from '../../PolicyList/PolicyRule';
+import { MultipleErrors } from '../../Interface/MultipleErrors';
+import AccessControl, { Access } from '../AccessControl';
 
 class MemberBanSynchronisationProtection
   extends AbstractProtection
@@ -69,10 +75,11 @@ class MemberBanSynchronisationProtection
         case MembershipChangeType.Unbanned:
           continue;
       }
-      const applicableRules = directIssuer.currentRevision.rulesMatchingEntity(
-        change.userID,
-        PolicyRuleType.User
-      );
+      const applicableRules =
+        directIssuer.currentRevision.allRulesMatchingEntity(
+          change.userID,
+          PolicyRuleType.User
+        );
 
       for (const rule of applicableRules) {
         if (rule.recommendation === Recommendation.Ban) {
@@ -99,15 +106,46 @@ class MemberBanSynchronisationProtection
     }
   }
 
-  handlePolicyChange(
-    revision: PolicyListRevision,
-    changes: PolicyRuleChange[]
+  public async synchroniseWithRevision(
+    revision: PolicyListRevision
   ): Promise<ActionResult<void>> {
-    for (const change of changes) {
-      if (change.changeType === ChangeType.Added) {
-        for (const room of this.protectedRoomsSet.protectedRoomsConfig.allRooms)
+    const errors: ActionError[] = [];
+    for (const membershipRevision of this.protectedRoomsSet.setMembership
+      .allRooms) {
+      for (const membership of membershipRevision.members()) {
+        const access = AccessControl.getAccessForUser(
+          revision,
+          membership.userID,
+          'IGNORE_SERVER'
+        );
+        if (access.outcome === Access.Banned) {
+          const consequenceResult =
+            await this.consequenceProvider.consequenceForUserInRoom(
+              membership.roomID,
+              membership.userID,
+              access.rule?.reason ?? '<no reason supplied>'
+            );
+          if (isError(consequenceResult)) {
+            errors.push(consequenceResult.error);
+          }
+        }
       }
     }
+    if (errors.length > 1) {
+      return MultipleErrors.Result(
+        `There were errors when enacting consequences against members when synchronising with revision`,
+        { errors }
+      );
+    } else {
+      return Ok(undefined);
+    }
+  }
+
+  public async handlePolicyChange(
+    revision: PolicyListRevision,
+    _changes: PolicyRuleChange[]
+  ): Promise<ActionResult<void>> {
+    return await this.synchroniseWithRevision(revision);
   }
 }
 

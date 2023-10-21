@@ -48,6 +48,10 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
     );
   }
 
+  public members() {
+    return this.membershipByEventID.values();
+  }
+
   public hasEvent(eventID: StringEventID): boolean {
     return this.membershipByEventID.has(eventID);
   }

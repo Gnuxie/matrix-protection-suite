@@ -4,9 +4,8 @@
  */
 
 import { ActionResult } from '../Interface/Action';
-import { MatrixGlob } from '../MatrixTypes/MatrixGlob';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
+import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import { MembershipChange } from './MembershipChange';
 import { RoomMembershipRevision } from './MembershipRevision';
 
@@ -27,4 +26,5 @@ export declare interface SetMembership {
     ...args: Parameters<SetMembershipListener>
   ): boolean;
   unregisterListeners(): void;
+  allRooms: RoomMembershipRevision[];
 }

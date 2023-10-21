@@ -68,4 +68,5 @@ export interface RoomMembershipRevision extends MembershipRevision {
     state: StaticDecode<typeof MembershipEvent>[]
   ): MembershipChange[];
   hasEvent(eventID: StringEventID): boolean;
+  members(): IterableIterator<MembershipChange>;
 }

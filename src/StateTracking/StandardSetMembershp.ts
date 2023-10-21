@@ -89,6 +89,9 @@ export class StandardSetMembership
     }
     this.protectedRoomsConfig.off('change', this.protectedRoomsChangeListener);
   }
+  public get allRooms(): RoomMembershipRevision[] {
+    return [...this.issuers.values()].map((issuer) => issuer.currentRevision);
+  }
 
   private membershipRevision(
     ...[nextRevision, changes, previousRevision]: Parameters<
