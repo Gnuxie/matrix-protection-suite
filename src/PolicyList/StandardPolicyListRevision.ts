@@ -77,6 +77,10 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     );
   }
 
+  public isBlankRevision(): boolean {
+    return this.policyRuleByType.isEmpty();
+  }
+
   allRules(): PolicyRule[] {
     return [...this.policyRuleByType.values()]
       .map((byEventId) => [...byEventId.values()])

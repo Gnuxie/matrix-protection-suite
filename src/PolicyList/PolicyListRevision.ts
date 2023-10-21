@@ -88,6 +88,10 @@ export interface PolicyListRevision extends PolicyListRevisionView {
    * @returns A new `PolicyListRevision`.
    */
   reviseFromChanges(changes: PolicyRuleChange[]): PolicyListRevision;
+  /**
+   * Is this the first revision that has been issued?
+   */
+  isBlankRevision(): boolean;
 }
 
 /**

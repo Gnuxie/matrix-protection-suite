@@ -90,6 +90,10 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     );
   }
 
+  public isBlankRevision(): boolean {
+    return this.policyRuleByEventId.isEmpty();
+  }
+
   /**
    * Lookup the current rules cached for the list.
    * @param stateType The event type e.g. m.policy.rule.user.
