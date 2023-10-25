@@ -25,9 +25,9 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { Static, Type } from '@sinclair/typebox';
-import { TypeCompiler } from '@sinclair/typebox/compiler';
+import { Static, StaticDecode, Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
+import { Value } from '../Interface/Value';
 
 export enum PolicyRuleType {
   /// `entity` is to be parsed as a glob of users IDs
@@ -42,6 +42,8 @@ export enum PolicyRuleType {
   Unknown = 'unknown',
 }
 
+// FIXME: I don't see how this is relevant. The obsoleting behavior is weird,
+//        and they should just be seperate rules.
 // README! The order here matters for determining whether a type is obsolete, most recent should be first.
 // These are the current and historical types for each type of rule which were used while MSC2313 was being developed
 // and were left as an artifact for some time afterwards.
@@ -133,14 +135,14 @@ export const PolicyContent = Type.Object({
   }),
 });
 
-export type GeneircPolicyRuleEvent = Static<typeof PolicyRuleEvent>;
+export type GeneircPolicyRuleEvent = StaticDecode<typeof PolicyRuleEvent>;
 export const GeneircPolicyRuleEvent = StateEvent(PolicyContent);
 
-export type PolicyRuleUser = Static<typeof PolicyRuleUser>;
-export const PolicyRuleUser = Type.Intersect([
+export type PolicyRuleUser = StaticDecode<typeof PolicyRuleUser>;
+export const PolicyRuleUser = Type.Composite([
   GeneircPolicyRuleEvent,
   Type.Object({
-    content: PolicyContent,
+    content: Type.Optional(PolicyContent),
     state_key: Type.Optional(
       Type.String({
         description: 'An arbitrary string decided upon by the sender.',
@@ -150,11 +152,11 @@ export const PolicyRuleUser = Type.Intersect([
   }),
 ]);
 
-export type PolicyRuleServer = Static<typeof PolicyRuleServer>;
-export const PolicyRuleServer = Type.Intersect([
+export type PolicyRuleServer = StaticDecode<typeof PolicyRuleServer>;
+export const PolicyRuleServer = Type.Composite([
   GeneircPolicyRuleEvent,
   Type.Object({
-    content: PolicyContent,
+    content: Type.Optional(PolicyContent),
     state_key: Type.Optional(
       Type.String({
         description: 'An arbitrary string decided upon by the sender.',
@@ -164,11 +166,11 @@ export const PolicyRuleServer = Type.Intersect([
   }),
 ]);
 
-export type PolicyRuleRoom = Static<typeof PolicyRuleRoom>;
-export const PolicyRuleRoom = Type.Intersect([
+export type PolicyRuleRoom = StaticDecode<typeof PolicyRuleRoom>;
+export const PolicyRuleRoom = Type.Composite([
   GeneircPolicyRuleEvent,
   Type.Object({
-    content: PolicyContent,
+    content: Type.Optional(PolicyContent),
     state_key: Type.Optional(
       Type.String({
         description: 'An arbitrary string decided upon by the sender.',
@@ -178,14 +180,14 @@ export const PolicyRuleRoom = Type.Intersect([
   }),
 ]);
 
-export type PolicyRuleEvent = Static<typeof PolicyRuleEvent>;
+export type PolicyRuleEvent = StaticDecode<typeof PolicyRuleEvent>;
 export const PolicyRuleEvent = Type.Union([
   PolicyRuleUser,
   PolicyRuleServer,
   PolicyRuleRoom,
 ]);
-const CPolicyRuleEvent = TypeCompiler.Compile(PolicyRuleEvent);
+Value.Compile(PolicyRuleEvent);
 
 export function isPolicyRuleEvent(value: unknown): value is PolicyRuleEvent {
-  return CPolicyRuleEvent.Check(value);
+  return Value.Check(PolicyRuleEvent, value);
 }

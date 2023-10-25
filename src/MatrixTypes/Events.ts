@@ -24,7 +24,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { Static, TSchema, Type } from '@sinclair/typebox';
+import { Static, StaticDecode, TSchema, Type } from '@sinclair/typebox';
 import {
   StringEventID,
   StringRoomID,
@@ -83,7 +83,7 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
     }),
   ]);
 
-export type RoomEvent<Content extends TSchema = typeof TContent> = Static<
+export type RoomEvent<Content extends TSchema = typeof TContent> = StaticDecode<
   ReturnType<typeof RoomEvent<Content>>
 >;
 export const RoomEvent = <Content extends TSchema>(Content: Content) =>
@@ -94,9 +94,8 @@ export const RoomEvent = <Content extends TSchema>(Content: Content) =>
     }),
   ]);
 
-export type SyncStateEvent<Content extends TSchema = typeof TContent> = Static<
-  ReturnType<typeof SyncStateEvent<Content>>
->;
+export type SyncStateEvent<Content extends TSchema = typeof TContent> =
+  StaticDecode<ReturnType<typeof SyncStateEvent<Content>>>;
 export const SyncStateEvent = <Content extends TSchema>(Content: Content) =>
   Type.Composite([
     SyncRoomEvent(Content),
@@ -108,13 +107,12 @@ export const SyncStateEvent = <Content extends TSchema>(Content: Content) =>
     }),
   ]);
 
-export type StateEvent<Content extends TSchema = typeof TContent> = Static<
-  ReturnType<typeof StateEvent<Content>>
->;
+export type StateEvent<Content extends TSchema = typeof TContent> =
+  StaticDecode<ReturnType<typeof StateEvent<Content>>>;
 export const StateEvent = <Content extends TSchema>(Content: Content) =>
   Type.Composite([RoomEvent(Content), SyncStateEvent(Content)]);
 
-export type StrippedStateEvent = Static<typeof StrippedStateEvent>;
+export type StrippedStateEvent = StaticDecode<typeof StrippedStateEvent>;
 export const StrippedStateEvent = Type.Object({
   content: Type.Unknown(),
   state_key: Type.String({ description: 'The `state_key` for the event.' }),
