@@ -3,7 +3,10 @@
  * All rights reserved.
  */
 
+import { Type } from '@sinclair/typebox';
 import { ActionResult } from '../Interface/Action';
+import { Value } from '../Interface/Value';
+import { StateEvent } from '../MatrixTypes/Events';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { Map as PersistentMap, Set as PersistentSet } from 'immutable';
 
@@ -19,6 +22,7 @@ export interface StateTrackingMeta {
     decoder: StateEventDecoder
   ): StateTrackingMeta;
   getDecoderForStateType(type: string): StateEventDecoder | undefined;
+  decodeStateEvent(event: unknown): ActionResult<StateEvent>;
 }
 
 export interface TrackedStateEvent {
@@ -27,7 +31,7 @@ export interface TrackedStateEvent {
   state_key: string;
 }
 
-type StateEventDecoder = (event: unknown) => ActionResult<TrackedStateEvent>;
+type StateEventDecoder = (event: unknown) => ActionResult<StateEvent>;
 
 export class StandardStateTrackingMeta implements StateTrackingMeta {
   public constructor(
@@ -78,4 +82,25 @@ export class StandardStateTrackingMeta implements StateTrackingMeta {
       this.decodersByType.set(type, decoder)
     );
   }
+
+  public decodeStateEvent(event: unknown): ActionResult<StateEvent> {
+    if (
+      event === null ||
+      typeof event !== 'object' ||
+      !('type' in event) ||
+      typeof event['type'] !== 'string'
+    ) {
+      throw new TypeError(
+        `Somehow there's malformed events being given by the homeserver.`
+      );
+    }
+    const decoder = this.decodersByType.get(event.type);
+    if (decoder === undefined) {
+      return Value.Decode(UnknownStateEvent, event);
+    } else {
+      return decoder(event);
+    }
+  }
 }
+
+const UnknownStateEvent = StateEvent(Type.Unknown());
