@@ -26,7 +26,12 @@ limitations under the License.
  */
 
 import { ActionResult } from '../Interface/Action';
-import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
+import { ServerACLContent } from '../MatrixTypes/ServerACL';
+import {
+  StringEventID,
+  StringRoomID,
+  StringUserID,
+} from '../MatrixTypes/StringlyTypedMatrix';
 
 export enum StandardConsequence {
   /**
@@ -56,19 +61,22 @@ export enum StandardConsequence {
  */
 export interface ConsequenceProvider {
   consequenceForUserInRoom(
-    roomId: string,
+    roomID: StringRoomID,
     user: StringUserID,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForServerInRoom(
-    roomId: string,
+    roomID: StringRoomID,
     serverName: string,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForEvent(
-    roomId: string,
-    eventId: string,
+    roomID: StringRoomID,
+    eventID: StringEventID,
     reason: string
+  ): Promise<ActionResult<void>>;
+  consequenceForServerACL(
+    content: ServerACLContent
   ): Promise<ActionResult<void>>;
   readonly requiredPermissions: string[];
   readonly requiredEventPermissions: string[];

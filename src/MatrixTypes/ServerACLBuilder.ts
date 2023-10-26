@@ -98,8 +98,13 @@ export class ServerACLBuilder {
 
   public safeAclContent(): ServerACLContent {
     const allowed = [...this.allowedServers];
-    if (!allowed || allowed.length === 0) {
+    if (allowed.length === 0) {
       allowed.push('*'); // allow everything
+    }
+    if (
+      !allowed.some((server) => new MatrixGlob(server).test(this.homeserver))
+    ) {
+      allowed.push(this.homeserver);
     }
     return {
       allow: allowed,

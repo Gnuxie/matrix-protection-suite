@@ -32,6 +32,10 @@ import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { MembershipChange } from '../StateTracking/MembershipChange';
 import { RoomMembershipRevision } from '../StateTracking/MembershipRevision';
+import {
+  RoomStateRevision,
+  StateChange,
+} from '../StateTracking/StateRevisionIssuer';
 import { ConsequenceProvider } from './Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
 
@@ -65,17 +69,15 @@ export interface Protection {
   readonly requiredPermissions: string[];
 
   /*
-   * Handle a single event from a protected room, to decide if we need to
-   * respond to it
+   * Handle a single timeline event from a protected room, to decide if we need to
+   * respond to it. This should not be used to detect changes to room state,
+   * for that see @see {@link Protection['handleStateChange']}.
    */
-  handleEvent?(
+  handleTimelineEvent?(
     room: MatrixRoomID,
     event: RoomEvent
   ): Promise<ActionResult<void>>;
 
-  /**
-   * I mean for this to work, we need to setup the aggregation data types.
-   */
   handlePolicyChange?(
     revision: PolicyListRevision,
     changes: PolicyRuleChange[]
@@ -84,6 +86,16 @@ export interface Protection {
   handleMembershipChange?(
     revision: RoomMembershipRevision,
     changes: MembershipChange[]
+  ): Promise<ActionResult<void>>;
+
+  /**
+   * Handle a change to the room state within a protected room.
+   * @param revision A RoomStateRevision with the current revision of all the room's state.
+   * @param changes Any changes since the previous revision.
+   */
+  handleStateChange?(
+    revision: RoomStateRevision,
+    changes: StateChange[]
   ): Promise<ActionResult<void>>;
 }
 
