@@ -32,6 +32,7 @@ import { PolicyRoomManager } from './PolicyRoomManger';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
+import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 
 const log = new Logger('StandardPolicyRoomRevisionIssuer');
 
@@ -60,14 +61,14 @@ export class StandardPolicyRoomRevisionIssuer
     this.batcher = new RevisionBatcher(this, policyListManager);
   }
 
-  updateForEvent(eventId: string, _eventType: string): void {
+  updateForEvent(event: { event_id: StringEventID }): void {
     // FIXME: technically, it is possible that we can be informed about a redaction
     // that we already know about, as revisions don't yet keep hold of redactions
     // that make up the current revision.
-    if (this.currentRevision.hasEvent(eventId)) {
+    if (this.currentRevision.hasEvent(event.event_id)) {
       return;
     }
-    this.batcher.addToBatch(eventId);
+    this.batcher.addToBatch(event.event_id);
   }
 
   public unregisterListeners(): void {

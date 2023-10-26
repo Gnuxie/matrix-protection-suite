@@ -25,7 +25,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { Static, Type } from '@sinclair/typebox';
+import { Static, StaticDecode, Type } from '@sinclair/typebox';
 import { StateEvent, StrippedStateEvent, UnsignedData } from './Events';
 import { StringUserID } from './StringlyTypedMatrix';
 
@@ -48,7 +48,9 @@ export const MembershipEventUnsigned = Type.Composite([
   }),
 ]);
 
-export type MembershipEventContent = Static<typeof MembershipEventContent>;
+export type MembershipEventContent = StaticDecode<
+  typeof MembershipEventContent
+>;
 export const MembershipEventContent = Type.Object({
   avatar_url: Type.Optional(
     Type.String({
@@ -105,7 +107,7 @@ export const MembershipEventContent = Type.Object({
   ),
 });
 
-export type MembershipEvent = Static<typeof MembershipEvent>;
+export type MembershipEvent = StaticDecode<typeof MembershipEvent>;
 export const MembershipEvent = Type.Composite([
   StateEvent(MembershipEventContent),
   Type.Object({

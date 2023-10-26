@@ -25,6 +25,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';
 
@@ -72,8 +73,6 @@ export interface PolicyRoomRevisionIssuer extends PolicyListRevisionIssuer {
   currentRevision: PolicyRoomRevision;
   /**
    * Inform the revision issuer of a new event from Matrix.
-   * @param eventId The id of the event.
-   * @param eventType The matrix type of the event.
    */
-  updateForEvent(eventId: string, eventType: string): void;
+  updateForEvent(event: { event_id: StringEventID }): void;
 }

@@ -99,6 +99,7 @@ export interface PolicyListRevision extends PolicyListRevisionView {
  */
 export interface PolicyRoomRevision extends PolicyListRevision {
   readonly room: MatrixRoomID;
+  reviseFromChanges(changes: PolicyRuleChange[]): PolicyRoomRevision;
   /**
    * Create a new revision from the state of the associated Matrix room.
    * @param policyState The state from the matrix room, obtained from `/state`.
