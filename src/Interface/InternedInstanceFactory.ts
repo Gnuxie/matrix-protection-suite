@@ -4,6 +4,12 @@
 
 import { ActionResult, Ok, isError } from './Action';
 
+export type CreateInstanceFromKey<
+  K,
+  V,
+  AdditionalCreationArguments extends unknown[]
+> = (key: K, ...args: AdditionalCreationArguments) => Promise<ActionResult<V>>;
+
 /**
  * This is a utility for any hash table that needs to create new values
  * from a `key`. The value will then be stored in the table and returned
@@ -26,10 +32,11 @@ export class InternedInstanceFactory<
    * from a key if the table doesn't have an entry for that key.
    */
   public constructor(
-    private readonly createInstanceFromKey: (
-      key: K,
-      ...args: AdditionalCreationArguments
-    ) => Promise<ActionResult<V>>
+    private readonly createInstanceFromKey: CreateInstanceFromKey<
+      K,
+      V,
+      AdditionalCreationArguments
+    >
   ) {
     // nothing to do.
   }
