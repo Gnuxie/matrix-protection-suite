@@ -20,7 +20,7 @@ import { ALL_RULE_TYPES, PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
  * An implementation of the {@link RoomMembershipRevisionIssuer} that
  * uses the {@link RoomStateRevisionIssuer}.
  */
-export class RoomStateMembershipRevisionIssuer
+export class RoomStatePolicyRoomRevisionIssuer
   extends EventEmitter
   implements PolicyRoomRevisionIssuer
 {

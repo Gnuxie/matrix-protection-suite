@@ -2,8 +2,10 @@
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
+export * from './Interface/MultipleErrors';
 export * from './Interface/PersistentData';
 export * from './Interface/PersistentMatrixData';
+export * from './Interface/Task';
 export * from './Interface/Value';
 
 export * from './Logging/Logger';
@@ -17,6 +19,8 @@ export * from './MatrixTypes/MembershipEvent';
 export * from './MatrixTypes/Permalinks';
 export * from './MatrixTypes/PolicyEvents';
 export * from './MatrixTypes/PowerLevels';
+export * from './MatrixTypes/ServerACL';
+export * from './MatrixTypes/ServerACLBuilder';
 export * from './MatrixTypes/StringlyTypedMatrix';
 
 export * from './PolicyList/PolicyListRevision';
@@ -26,12 +30,17 @@ export * from './PolicyList/PolicyRoomManger';
 export * from './PolicyList/PolicyRule';
 export * from './PolicyList/PolicyRuleChange';
 export * from './PolicyList/Revision';
+export * from './PolicyList/RoomStatePolicyListRevisionIssuer';
 export * from './PolicyList/StandardPolicyListRevision';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
 export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
+
+export * from './Protection/StandardProtections/MemberBanSynchronisation';
+
+export * from './Protection/AccessControl';
 export * from './Protection/Consequence';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/PolicyListRevisionIssuerConfig';
@@ -44,7 +53,12 @@ export * from './StateTracking/MembershipChange';
 export * from './StateTracking/MembershipRevision';
 export * from './StateTracking/MembershipRevisionIssuer';
 export * from './StateTracking/RoomMembershipManager';
+export * from './StateTracking/RoomStateMembershipRevisionIssuer';
 export * from './StateTracking/SetMembership';
 export * from './StateTracking/StandardRoomMembershipRevision';
 export * from './StateTracking/StandardRoomMembershipRevisionIssuer';
+export * from './StateTracking/StandardRoomStateRevision';
+export * from './StateTracking/StandardRoomStateRevisionIssuer';
 export * from './StateTracking/StandardSetMembershp';
+export * from './StateTracking/StateRevisionIssuer';
+export * from './StateTracking/StateTrackingMeta';

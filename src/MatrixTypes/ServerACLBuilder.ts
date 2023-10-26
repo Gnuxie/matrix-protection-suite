@@ -27,7 +27,7 @@ limitations under the License.
 
 import { MatrixGlob } from './MatrixGlob';
 
-export interface ServerACLContent {
+interface ServerACLContent {
   allow: string[];
   deny: string[];
   allow_ip_literals: boolean;

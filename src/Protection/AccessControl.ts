@@ -27,10 +27,8 @@ limitations under the License.
 
 import { Logger } from '../Logging/Logger';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import {
-  ServerACLBuilder,
-  ServerACLContent,
-} from '../MatrixTypes/ServerACLBuilder';
+import { ServerACLContent } from '../MatrixTypes/ServerACL';
+import { ServerACLBuilder } from '../MatrixTypes/ServerACLBuilder';
 import { StringUserID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
