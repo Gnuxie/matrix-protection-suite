@@ -35,6 +35,9 @@ export * from './PolicyList/StandardPolicyListRevision';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
+export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
+export * from './Protection/PolicyListConfig/PolicyListConfig';
+
 export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 
@@ -43,7 +46,6 @@ export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/AccessControl';
 export * from './Protection/Consequence';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
-export * from './Protection/PolicyListRevisionIssuerConfig';
 export * from './Protection/ProtectedRoomsSet';
 export * from './Protection/Protection';
 export * from './Protection/ProtectionsConfig';
