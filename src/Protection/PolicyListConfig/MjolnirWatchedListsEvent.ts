@@ -36,3 +36,6 @@ export const MjolnirWatchedPolicyRoomsEvent = Type.Object({
   references: Type.Array(Permalink),
 });
 Value.Compile(MjolnirWatchedPolicyRoomsEvent);
+
+export const MJOLNIR_WATCHED_POLICY_ROOMS_EVENT_TYPE =
+  'org.matrix.mjolnir.watched_lists';

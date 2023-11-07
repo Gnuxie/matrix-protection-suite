@@ -25,12 +25,17 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { Static, Type } from '@sinclair/typebox';
+import { StaticDecode, Type } from '@sinclair/typebox';
 import { Permalink } from '../../MatrixTypes/MatrixRoomReference';
+import { Value } from '../../Interface/Value';
 
-export type MjolnirProtectedRoomsEvent = Static<
+export type MjolnirProtectedRoomsEvent = StaticDecode<
   typeof MjolnirProtectedRoomsEvent
 >;
 export const MjolnirProtectedRoomsEvent = Type.Object({
   rooms: Type.Array(Permalink),
 });
+Value.Compile(MjolnirProtectedRoomsEvent);
+
+export const MJOLNIR_PROTECTED_ROOMS_EVENT_TYPE =
+  'org.matrix.mjolnir.protected_rooms';
