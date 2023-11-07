@@ -3,6 +3,7 @@
  * All rights reserved.
  */
 
+import AwaitLock from 'await-lock';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import {
   ActionException,
@@ -40,6 +41,7 @@ export enum PropagationType {
 }
 
 export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
+  private readonly writeLock = new AwaitLock();
   private constructor(
     private readonly store: PersistentMatrixData<
       typeof MjolnirWatchedPolicyRoomsEvent
@@ -117,19 +119,24 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
         `The MjolnirProtectedRoomsConfig does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`
       );
     }
-    const storeUpdateResult = await this.store.storePersistentData({
-      references: [...this.policyListRevisionIssuer.references, list],
-    });
-    if (isError(storeUpdateResult)) {
-      return storeUpdateResult;
+    await this.writeLock.acquireAsync();
+    try {
+      const storeUpdateResult = await this.store.storePersistentData({
+        references: [...this.policyListRevisionIssuer.references, list],
+      });
+      if (isError(storeUpdateResult)) {
+        return storeUpdateResult;
+      }
+      const issuerResult =
+        await this.policyRoomManager.getPolicyRoomRevisionIssuer(list);
+      if (isError(issuerResult)) {
+        return issuerResult;
+      }
+      this.policyListRevisionIssuer.addIssuer(issuerResult.ok);
+      return Ok(undefined);
+    } finally {
+      this.writeLock.release();
     }
-    const issuerResult =
-      await this.policyRoomManager.getPolicyRoomRevisionIssuer(list);
-    if (isError(issuerResult)) {
-      return issuerResult;
-    }
-    this.policyListRevisionIssuer.addIssuer(issuerResult.ok);
-    return Ok(undefined);
   }
   public async unwatchList(
     propagation: string,
@@ -140,20 +147,25 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
         `The MjolnirProtectedRoomsConfigUnable does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`
       );
     }
-    const storeUpdateResult = await this.store.storePersistentData({
-      references: this.policyListRevisionIssuer.references.filter(
-        (roomID) => roomID.toRoomIdOrAlias() === list.toRoomIdOrAlias()
-      ),
-    });
-    if (isError(storeUpdateResult)) {
-      return storeUpdateResult;
+    await this.writeLock.acquireAsync();
+    try {
+      const storeUpdateResult = await this.store.storePersistentData({
+        references: this.policyListRevisionIssuer.references.filter(
+          (roomID) => roomID.toRoomIdOrAlias() === list.toRoomIdOrAlias()
+        ),
+      });
+      if (isError(storeUpdateResult)) {
+        return storeUpdateResult;
+      }
+      const issuerResult =
+        await this.policyRoomManager.getPolicyRoomRevisionIssuer(list);
+      if (isError(issuerResult)) {
+        return issuerResult;
+      }
+      this.policyListRevisionIssuer.removeIssuer(issuerResult.ok);
+      return Ok(undefined);
+    } finally {
+      this.writeLock.release();
     }
-    const issuerResult =
-      await this.policyRoomManager.getPolicyRoomRevisionIssuer(list);
-    if (isError(issuerResult)) {
-      return issuerResult;
-    }
-    this.policyListRevisionIssuer.removeIssuer(issuerResult.ok);
-    return Ok(undefined);
   }
 }

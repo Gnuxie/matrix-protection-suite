@@ -31,6 +31,7 @@ import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { PersistentMatrixData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
 import EventEmitter from 'events';
+import AwaitLock from 'await-lock';
 
 export enum ProtectedRoomChangeType {
   Added = 'added',
@@ -58,6 +59,7 @@ export class StandardProtectedRoomsConfig
   extends EventEmitter
   implements ProtectedRoomsConfig
 {
+  private readonly writeLock = new AwaitLock();
   private constructor(
     private readonly store: PersistentMatrixData<
       typeof MjolnirProtectedRoomsEvent
@@ -85,31 +87,41 @@ export class StandardProtectedRoomsConfig
     return [...this.protectedRooms.values()];
   }
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
-    const result = await this.store.storePersistentData({
-      rooms: [...this.allRooms, room],
-    });
-    if (isError(result)) {
-      return result.addContext(
-        `Failed to add ${room.toPermalink()} to protected rooms set.`
-      );
+    await this.writeLock.acquireAsync();
+    try {
+      const result = await this.store.storePersistentData({
+        rooms: [...this.allRooms, room],
+      });
+      if (isError(result)) {
+        return result.addContext(
+          `Failed to add ${room.toPermalink()} to protected rooms set.`
+        );
+      }
+      this.protectedRooms.set(room.toRoomIdOrAlias(), room);
+      this.emit('change', room, ProtectedRoomChangeType.Added);
+      return Ok(undefined);
+    } finally {
+      this.writeLock.release();
     }
-    this.protectedRooms.set(room.toRoomIdOrAlias(), room);
-    this.emit('change', room, ProtectedRoomChangeType.Added);
-    return Ok(undefined);
   }
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
-    const result = await this.store.storePersistentData({
-      rooms: this.allRooms.filter(
-        (ref) => ref.toRoomIdOrAlias() !== room.toRoomIdOrAlias()
-      ),
-    });
-    if (isError(result)) {
-      return result.addContext(
-        `Failed to remove ${room.toPermalink()} to protected rooms set.`
-      );
+    await this.writeLock.acquireAsync();
+    try {
+      const result = await this.store.storePersistentData({
+        rooms: this.allRooms.filter(
+          (ref) => ref.toRoomIdOrAlias() !== room.toRoomIdOrAlias()
+        ),
+      });
+      if (isError(result)) {
+        return result.addContext(
+          `Failed to remove ${room.toPermalink()} to protected rooms set.`
+        );
+      }
+      this.protectedRooms.delete(room.toRoomIdOrAlias());
+      this.emit('change', room, ProtectedRoomChangeType.Removed);
+      return Ok(undefined);
+    } finally {
+      this.writeLock.release();
     }
-    this.protectedRooms.delete(room.toRoomIdOrAlias());
-    this.emit('change', room, ProtectedRoomChangeType.Removed);
-    return Ok(undefined);
   }
 }
