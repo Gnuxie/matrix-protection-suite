@@ -25,24 +25,37 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+import { ActionResult, Ok } from '../../Interface/Action';
+import { Value } from '../../Interface/Value';
+import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
+import { ServerACLEvent } from '../../MatrixTypes/ServerACL';
+import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
+import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
+import {
+  RoomStateRevision,
+  StateChange,
+} from '../../StateTracking/StateRevisionIssuer';
+import { TrackedStateEvent } from '../../StateTracking/StateTrackingMeta';
+import AccessControl from '../AccessControl';
 import { ConsequenceProvider } from '../Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import {
   AbstractProtection,
   Protection,
   ProtectionDescription,
+  describeProtection,
 } from '../Protection';
-
-// FIXME: how to give the serverName to the protection?
 
 export class ServerBanSynchronisation
   extends AbstractProtection
   implements Protection
 {
+  private readonly serverName: string;
   constructor(
     description: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    { serverName }: { serverName?: string }
   ) {
     super(
       description,
@@ -51,5 +64,70 @@ export class ServerBanSynchronisation
       ['m.room.server_acl'],
       []
     );
+    if (serverName === undefined) {
+      throw new TypeError(
+        `Cannot use the ServerBanSynchronisation protection without providing the name of the server our client is using.`
+      );
+    }
+    this.serverName = serverName;
+  }
+
+  public async handleStateChange(
+    revision: RoomStateRevision,
+    changes: StateChange<TrackedStateEvent>[]
+  ): Promise<ActionResult<void>> {
+    const serverACLEventChanges = changes.filter(
+      (change) => change.eventType === 'm.room.server_acl'
+    );
+    if (serverACLEventChanges.length === 0) {
+      return Ok(undefined);
+    }
+    if (serverACLEventChanges.length !== 1) {
+      throw new TypeError(
+        `How is it possible for there to be more than one server_acl event change in the same revision?`
+      );
+    }
+    const serverACLEvent = serverACLEventChanges.at(1)?.state;
+    if (!Value.Check(ServerACLEvent, serverACLEvent)) {
+      throw new TypeError(`Event decoding is not working`);
+    }
+    const mostRecentACL = AccessControl.compileServerACL(
+      this.serverName,
+      this.protectedRoomsSet.directIssuer.currentRevision
+    );
+    if (serverACLEvent.content !== undefined) {
+      if (mostRecentACL.matches(serverACLEvent.content)) {
+        return Ok(undefined);
+      }
+    }
+    return await this.consequenceProvider.consequenceForServerACLInRoom(
+      revision.room.toRoomIdOrAlias(),
+      mostRecentACL.safeAclContent()
+    );
+  }
+
+  public async handlePolicyChange(
+    _revision: PolicyListRevision,
+    changes: PolicyRuleChange[]
+  ): Promise<ActionResult<void>> {
+    const serverPolicyChanges = changes.filter(
+      (change) => change.rule.kind === PolicyRuleType.Server
+    );
+    if (serverPolicyChanges.length === 0) {
+      return Ok(undefined);
+    }
+    return await this.consequenceProvider.consequenceForServerACL(
+      AccessControl.compileServerACL(
+        this.serverName,
+        this.protectedRoomsSet.directIssuer.currentRevision
+      ).safeAclContent()
+    );
   }
 }
+
+describeProtection({
+  name: 'ServerBanSynchronisation',
+  description:
+    'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
+  factory: ServerBanSynchronisation,
+});

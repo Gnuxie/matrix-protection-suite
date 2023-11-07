@@ -26,12 +26,7 @@ limitations under the License.
  */
 
 import { MatrixGlob } from './MatrixGlob';
-
-interface ServerACLContent {
-  allow: string[];
-  deny: string[];
-  allow_ip_literals: boolean;
-}
+import { ServerACLContent } from './ServerACL';
 
 export class ServerACLBuilder {
   private allowedServers: Set<string> = new Set<string>();
@@ -56,6 +51,19 @@ export class ServerACLBuilder {
       }
     }
     return entries;
+  }
+
+  public safeAllowedServers(): string[] {
+    const allowed = [...this.allowedServers];
+    if (allowed.length === 0) {
+      allowed.push('*'); // allow everything
+    }
+    if (
+      !allowed.some((server) => new MatrixGlob(server).test(this.homeserver))
+    ) {
+      allowed.push(this.homeserver);
+    }
+    return allowed;
   }
 
   public allowIpAddresses(): ServerACLBuilder {
@@ -97,17 +105,8 @@ export class ServerACLBuilder {
   }
 
   public safeAclContent(): ServerACLContent {
-    const allowed = [...this.allowedServers];
-    if (allowed.length === 0) {
-      allowed.push('*'); // allow everything
-    }
-    if (
-      !allowed.some((server) => new MatrixGlob(server).test(this.homeserver))
-    ) {
-      allowed.push(this.homeserver);
-    }
     return {
-      allow: allowed,
+      allow: this.safeAllowedServers(),
       deny: this.safeDeniedServers(),
       allow_ip_literals: this.allowIps,
     };
@@ -124,8 +123,8 @@ export class ServerACLBuilder {
     let denyMatches = true; // until proven false
     const ipsMatch = ips === this.allowIps;
 
-    const currentAllowed = [...this.allowedServers];
-    if (allow.length === currentAllowed.length) {
+    const currentAllowed = this.safeAllowedServers();
+    if (allow?.length === currentAllowed.length) {
       for (const s of allow) {
         if (!currentAllowed.includes(s)) {
           allowMatches = false;
@@ -134,8 +133,8 @@ export class ServerACLBuilder {
       }
     } else allowMatches = false;
 
-    const currentDenied = [...this.deniedServers];
-    if (deny.length === currentDenied.length) {
+    const currentDenied = this.safeDeniedServers();
+    if (deny?.length === currentDenied.length) {
       for (const s of deny) {
         if (!currentDenied.includes(s)) {
           denyMatches = false;

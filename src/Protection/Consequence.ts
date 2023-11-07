@@ -78,6 +78,10 @@ export interface ConsequenceProvider {
   consequenceForServerACL(
     content: ServerACLContent
   ): Promise<ActionResult<void>>;
+  consequenceForServerACLInRoom(
+    roomID: StringRoomID,
+    content: ServerACLContent
+  ): Promise<ActionResult<void>>;
   readonly requiredPermissions: string[];
   readonly requiredEventPermissions: string[];
 }

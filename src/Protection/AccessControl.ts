@@ -27,7 +27,6 @@ limitations under the License.
 
 import { Logger } from '../Logging/Logger';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { ServerACLContent } from '../MatrixTypes/ServerACL';
 import { ServerACLBuilder } from '../MatrixTypes/ServerACLBuilder';
 import { StringUserID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
@@ -149,7 +148,7 @@ export default class AccessControl {
   public static compileServerACL(
     serverName: string,
     revision: PolicyListRevision
-  ): ServerACLContent {
+  ): ServerACLBuilder {
     const builder = new ServerACLBuilder(serverName).denyIpAddresses();
     const allowedServers = revision.allRulesOfType(
       PolicyRuleType.Server,
@@ -188,6 +187,6 @@ export default class AccessControl {
         builder.denyServer(rule.entity);
       }
     }
-    return builder.safeAclContent();
+    return builder;
   }
 }

@@ -43,7 +43,8 @@ export interface ProtectionConstructor {
   new (
     description: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    options: Record<string, unknown>
   ): Protection;
 }
 
