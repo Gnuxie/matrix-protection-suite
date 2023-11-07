@@ -3,7 +3,13 @@
  * All rights reserved.
  */
 
-import { TSchema, StaticDecode, TypeBoxError, Static } from '@sinclair/typebox';
+import {
+  TSchema,
+  StaticDecode,
+  TypeBoxError,
+  Static,
+  StaticEncode,
+} from '@sinclair/typebox';
 import { TypeCheck, TypeCompiler } from '@sinclair/typebox/compiler';
 import { ActionResult, Ok } from './Action';
 import { ActionException, ActionExceptionKind } from './ActionException';
@@ -34,6 +40,14 @@ export class Value {
   ): value is Static<T> {
     const decoder = this.Compile(schema);
     return decoder.Check(value);
+  }
+  public static Encode<T extends TSchema>(
+    schema: T,
+    value: StaticDecode<T>
+  ): ActionResult<StaticEncode<T>> {
+    return this.resultify<T, StaticEncode<T>>(schema, (encoder) =>
+      encoder.Encode(value)
+    );
   }
   private static resultify<T extends TSchema, R>(
     schema: T,
