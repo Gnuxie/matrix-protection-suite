@@ -29,8 +29,12 @@ import { ActionResult } from '../Interface/Action';
 import { Protection } from './Protection';
 
 /**
- * Problem: how would a client produce a protection from this ?
- * i don't think it can :/
+ * The idea needs to be that protections are defined using a state event
+ * that contains their settings. so e.g.
+ * ge.applied-langua.ge.draupnir.protection with state key "TrustedReporters"
+ * would have a `settings` key that would initialize the `TrustedReporters`
+ * protection with `settings` as options. If `settings` doesn't validate
+ * you just give the user the option to use the default settings.
  */
 export interface ProtectionsConfig {
   readonly allProtections: Protection[];

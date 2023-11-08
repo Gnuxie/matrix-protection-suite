@@ -56,6 +56,7 @@ export interface ProtectionDescription {
   readonly name: string;
   readonly description: string;
   readonly factory: ProtectionConstructor;
+  readonly defaultSettings: Record<string, unknown>;
 }
 
 /**
@@ -149,14 +150,17 @@ export function describeProtection({
   name,
   description,
   factory,
+  defaultSettings = {},
 }: {
   name: string;
   description: string;
   factory: ProtectionDescription['factory'];
+  defaultSettings?: Record<string, unknown>;
 }) {
   registerProtection({
     name,
     description,
     factory,
+    defaultSettings,
   });
 }
