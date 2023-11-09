@@ -32,6 +32,9 @@ import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StateEvent } from '../MatrixTypes/Events';
 import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
 import { StateTrackingMeta, TrackedStateEvent } from './StateTrackingMeta';
+import { Logger } from '../Logging/Logger';
+
+const log = new Logger('StandardRoomStateRevision');
 
 /**
  * A map interning rules by their rule type, and then their state key.
@@ -114,43 +117,41 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   public reviseFromChanges(changes: StateChange[]): StandardRoomStateRevision {
     let nextStateEvents = this.stateEvents;
     let nextStateEventsByEventID = this.stateEventsByEventID;
-    const setStateEvent = (event: TrackedStateEvent): void => {
-      const typeTable = nextStateEvents.get(event.type) ?? PersistentMap();
-      nextStateEvents = nextStateEvents.set(
-        event.type,
-        typeTable.set(event.type, event)
+    const setStateEvent = (change: StateChange): void => {
+      const event = change.state;
+      nextStateEvents = nextStateEvents.setIn(
+        [event.type, event.state_key],
+        event
       );
+      if (change.previousState !== undefined) {
+        nextStateEventsByEventID = nextStateEventsByEventID.delete(
+          change.previousState.event_id
+        );
+      }
       nextStateEventsByEventID = nextStateEventsByEventID.set(
         event.event_id,
         event
       );
     };
     const removeStateEvent = (event: TrackedStateEvent): void => {
-      const typeTable = nextStateEvents.get(event.type);
-      if (typeTable === undefined) {
-        throw new TypeError(
-          `Cannot find a rule for ${event.event_id}, this should be impossible`
-        );
-      }
-      const deletedEvent = typeTable.get(event.state_key);
-      nextStateEvents = nextStateEvents.set(
-        event.type,
-        typeTable.delete(event.state_key)
+      nextStateEvents = nextStateEvents.deleteIn([event.type, event.state_key]);
+      nextStateEventsByEventID = nextStateEventsByEventID.delete(
+        event.event_id
       );
-      if (deletedEvent !== undefined) {
-        nextStateEventsByEventID = nextStateEventsByEventID.delete(
-          deletedEvent.event_id
-        );
-      }
     };
     for (const change of changes) {
       if (
         change.changeType === ChangeType.Added ||
         change.changeType === ChangeType.Modified
       ) {
-        setStateEvent(change.state);
+        setStateEvent(change);
       } else if (change.changeType === ChangeType.Removed) {
-        removeStateEvent(change.state);
+        if (change.previousState === undefined) {
+          const message = `There should be previous state for an event that has been removed ${change.state.event_id}`;
+          log.error(message, change);
+          throw new TypeError(message);
+        }
+        removeStateEvent(change.previousState);
       }
     }
     return new StandardRoomStateRevision(
@@ -189,7 +190,7 @@ export class StandardRoomStateRevision implements RoomStateRevision {
         } else {
           // Then the policy has been modified in some other way, possibly 'soft' redacted by a new event with empty content...
           if (
-            event.content !== undefined ||
+            event.content === undefined ||
             event.content === null ||
             (typeof event.content === 'object' &&
               Object.keys(event.content).length === 0)
