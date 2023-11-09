@@ -10,7 +10,11 @@ import {
   Static,
   StaticEncode,
 } from '@sinclair/typebox';
-import { TypeCheck, TypeCompiler } from '@sinclair/typebox/compiler';
+import {
+  TypeCheck,
+  TypeCompiler,
+  ValueErrorIterator,
+} from '@sinclair/typebox/compiler';
 import { ActionResult, Ok } from './Action';
 import { ActionException, ActionExceptionKind } from './ActionException';
 
@@ -48,6 +52,13 @@ export class Value {
     return this.resultify<T, StaticEncode<T>>(schema, (encoder) =>
       encoder.Encode(value)
     );
+  }
+  public static Errors<T extends TSchema>(
+    schema: T,
+    value: unknown
+  ): ValueErrorIterator {
+    const decoder = this.Compile(schema);
+    return decoder.Errors(value);
   }
   private static resultify<T extends TSchema, R>(
     schema: T,
