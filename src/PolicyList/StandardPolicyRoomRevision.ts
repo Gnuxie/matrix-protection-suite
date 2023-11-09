@@ -274,7 +274,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       // If we haven't got any information about what the rule used to be, then it wasn't a valid rule to begin with
       // and so will not have been used. Removing a rule like this therefore results in no change.
       if (changeType === ChangeType.Removed && existingRule) {
-        const redactedBecause = event.unsigned.redacted_because;
+        const redactedBecause = event.unsigned?.redacted_because;
         const sender =
           typeof redactedBecause === 'object' &&
           redactedBecause !== null &&

@@ -79,7 +79,7 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
           'Timestamp in milliseconds on originating homeserver when this event was sent.',
         format: 'int64',
       }),
-      unsigned: UnsignedData,
+      unsigned: Type.Optional(UnsignedData),
     }),
   ]);
 
@@ -94,23 +94,22 @@ export const RoomEvent = <Content extends TSchema>(Content: Content) =>
     }),
   ]);
 
+const StateKey = Type.Object({
+  state_key: Type.String({
+    description:
+      "A unique key which defines the overwriting semantics for this piece of room state. This value is often a zero-length string. The presence of this key makes this event a State Event.\nState keys starting with an `@` are reserved for referencing user IDs, such as room members. With the exception of a few events, state events set with a given user's ID as the state key MUST only be set by that user.",
+  }),
+});
+
 export type SyncStateEvent<Content extends TSchema = typeof TContent> =
   StaticDecode<ReturnType<typeof SyncStateEvent<Content>>>;
 export const SyncStateEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Composite([
-    SyncRoomEvent(Content),
-    Type.Object({
-      state_key: Type.String({
-        description:
-          "A unique key which defines the overwriting semantics for this piece of room state. This value is often a zero-length string. The presence of this key makes this event a State Event.\nState keys starting with an `@` are reserved for referencing user IDs, such as room members. With the exception of a few events, state events set with a given user's ID as the state key MUST only be set by that user.",
-      }),
-    }),
-  ]);
+  Type.Composite([SyncRoomEvent(Content), StateKey]);
 
 export type StateEvent<Content extends TSchema = typeof TContent> =
   StaticDecode<ReturnType<typeof StateEvent<Content>>>;
 export const StateEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Composite([RoomEvent(Content), SyncStateEvent(Content)]);
+  Type.Composite([RoomEvent(Content), StateKey]);
 
 export type StrippedStateEvent = StaticDecode<typeof StrippedStateEvent>;
 export const StrippedStateEvent = Type.Object({
