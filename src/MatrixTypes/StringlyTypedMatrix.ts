@@ -60,7 +60,7 @@ const StringEventIDSecret = Symbol('StringEventID');
 export type StringEventID = string & { [StringEventIDSecret]: true };
 
 export function isStringEventID(string: string): string is StringEventID {
-  return string.startsWith('!');
+  return string.startsWith('$');
 }
 
 export const StringEventID = Type.Transform(
