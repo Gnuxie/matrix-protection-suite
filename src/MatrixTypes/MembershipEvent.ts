@@ -109,7 +109,12 @@ export const MembershipEventContent = Type.Object({
 
 export type MembershipEvent = StaticDecode<typeof MembershipEvent>;
 export const MembershipEvent = Type.Composite([
-  StateEvent(MembershipEventContent),
+  Type.Omit(StateEvent(MembershipEventContent), [
+    'content',
+    'state_key',
+    'unsigned',
+    'type',
+  ]),
   Type.Object({
     content: MembershipEventContent,
     state_key: StringUserID,
