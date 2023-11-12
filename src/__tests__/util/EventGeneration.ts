@@ -17,6 +17,21 @@ import {
   MatrixRoomReference,
 } from '../../MatrixTypes/MatrixRoomReference';
 
+export function randomRawEvent(sender: string, room_id: string): unknown {
+  const rawEventJSON = {
+    room_id,
+    sender,
+    event_id: `$${randomUUID()}:example.com`,
+    origin_server_ts: Date.now(),
+    type: 'm.room.message',
+    content: {
+      body: `${randomUUID}`,
+      type: 'm.text',
+    },
+  };
+  return rawEventJSON;
+}
+
 export function randomPolicyRuleEvent(
   sender: string,
   room_id: string

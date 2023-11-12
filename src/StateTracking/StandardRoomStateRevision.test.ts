@@ -5,7 +5,7 @@ import {
   StandardStateTrackingMeta,
   StateTrackingMeta,
 } from './StateTrackingMeta';
-import { Map as PersistentMap, Set as PersistentSet } from 'immutable';
+import { Set as PersistentSet } from 'immutable';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import {
   randomRoomID,
@@ -13,11 +13,7 @@ import {
 } from '../__tests__/util/EventGeneration';
 
 function testingTrackingMeta(): StateTrackingMeta {
-  return new StandardStateTrackingMeta(
-    PersistentSet(),
-    PersistentSet(),
-    PersistentMap()
-  );
+  return new StandardStateTrackingMeta(PersistentSet(), PersistentSet());
 }
 
 test('New state is detected correctly', function () {

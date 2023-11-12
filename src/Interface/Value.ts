@@ -13,10 +13,24 @@ import {
 import {
   TypeCheck,
   TypeCompiler,
+  ValueError,
   ValueErrorIterator,
 } from '@sinclair/typebox/compiler';
-import { ActionResult, Ok } from './Action';
+import { ActionResult, Ok, ResultError } from './Action';
 import { ActionException, ActionExceptionKind } from './ActionException';
+import { Logger } from '../Logging/Logger';
+
+export class DecodeException extends ActionException {
+  private static log = new Logger('DecodeException');
+  constructor(
+    message: string,
+    exception: unknown,
+    public readonly errors: ValueError[]
+  ) {
+    super(ActionExceptionKind.Unknown, exception, message);
+    DecodeException.log.error(this.uuid, ...this.errors);
+  }
+}
 
 export class Value {
   private static compiledSchema = new Map<TSchema, TypeCheck<TSchema>>();
@@ -32,11 +46,20 @@ export class Value {
   public static Decode<T extends TSchema, D = StaticDecode<T>>(
     schema: T,
     value: unknown
-  ): ActionResult<D> {
-    return this.resultify<T, D>(
-      schema,
-      (decoder) => decoder.Decode(value) as D
-    );
+  ): ActionResult<D, DecodeException> {
+    const decoder = this.Compile(schema);
+    try {
+      return Ok(decoder.Decode(value) as D);
+    } catch (e) {
+      if (e instanceof TypeBoxError) {
+        const errors = [...decoder.Errors(value)];
+        return ResultError(
+          new DecodeException('Unable to decode an event', e, errors)
+        );
+      } else {
+        throw e;
+      }
+    }
   }
   public static Check<T extends TSchema>(
     schema: T,
