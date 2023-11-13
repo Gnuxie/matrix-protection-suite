@@ -4,9 +4,9 @@
  */
 
 import { Type } from '@sinclair/typebox';
-import { ActionResult } from '../Interface/Action';
+import { ActionResult, isError } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
-import { RoomEvent } from './Events';
+import { RoomEvent, StateEvent } from './Events';
 import { Map as PersistentMap } from 'immutable';
 import { MembershipEvent } from './MembershipEvent';
 import { ALL_RULE_TYPES, PolicyRuleEvent } from './PolicyEvents';
@@ -28,6 +28,7 @@ export interface EventDecoder {
   setDecoderForEventType(type: string, decoder: EventDecoderFn): EventDecoder;
   getDecoderForEventType(type: string): EventDecoderFn | undefined;
   decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException>;
+  decodeStateEvent(event: unknown): ActionResult<StateEvent, DecodeException>;
 }
 
 export class StandardEventDecoder implements EventDecoder {
@@ -69,6 +70,20 @@ export class StandardEventDecoder implements EventDecoder {
     } else {
       return decoder(event);
     }
+  }
+  public decodeStateEvent(
+    event: unknown
+  ): ActionResult<StateEvent, DecodeException> {
+    const result = this.decodeEvent(event);
+    if (isError(result)) {
+      return result;
+    } else if (
+      'state_key' in result.ok &&
+      typeof result.ok.state_key === 'string'
+    ) {
+      return result as ActionResult<StateEvent, DecodeException>;
+    }
+    throw new TypeError('Somehow decoded a state event without a state key');
   }
 }
 

@@ -62,8 +62,7 @@ export class StandardRoomStateRevisionIssuer
 
   private async createBatchedRevision(): Promise<void> {
     const currentRoomStateResult = await this.roomStateManager.getRoomState(
-      this.room,
-      this.trackingMeta
+      this.room
     );
     if (isError(currentRoomStateResult)) {
       log.error(

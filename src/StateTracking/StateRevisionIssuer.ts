@@ -105,8 +105,5 @@ export interface RoomStateManager {
     room: MatrixRoomID
   ): Promise<ActionResult<RoomStateRevisionIssuer>>;
 
-  getRoomState(
-    room: MatrixRoomID,
-    trackingMeta: StateTrackingMeta
-  ): Promise<ActionResult<StateEvent[]>>;
+  getRoomState(room: MatrixRoomID): Promise<ActionResult<StateEvent[]>>;
 }
