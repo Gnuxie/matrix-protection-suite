@@ -5,13 +5,15 @@
 
 import { Type } from '@sinclair/typebox';
 import { ActionResult } from '../Interface/Action';
-import { Value } from '../Interface/Value';
+import { DecodeException, Value } from '../Interface/Value';
 import { RoomEvent } from './Events';
 import { Map as PersistentMap } from 'immutable';
 import { MembershipEvent } from './MembershipEvent';
 import { ALL_RULE_TYPES, PolicyRuleEvent } from './PolicyEvents';
 
-type EventDecoderFn = (event: unknown) => ActionResult<RoomEvent>;
+type EventDecoderFn = (
+  event: unknown
+) => ActionResult<RoomEvent, DecodeException>;
 
 /**
  * A compomenet used by clients to parse events.
@@ -25,7 +27,7 @@ export interface EventDecoder {
    */
   setDecoderForEventType(type: string, decoder: EventDecoderFn): EventDecoder;
   getDecoderForEventType(type: string): EventDecoderFn | undefined;
-  decodeEvent(event: unknown): ActionResult<RoomEvent>;
+  decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException>;
 }
 
 export class StandardEventDecoder implements EventDecoder {
@@ -50,7 +52,7 @@ export class StandardEventDecoder implements EventDecoder {
     return new StandardEventDecoder(this.decodersByType.set(type, decoder));
   }
 
-  public decodeEvent(event: unknown): ActionResult<RoomEvent> {
+  public decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException> {
     if (
       event === null ||
       typeof event !== 'object' ||
