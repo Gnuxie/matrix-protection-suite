@@ -72,4 +72,12 @@ export class InternedInstanceFactory<
     this.instances.set(key, initialInstanceResult.ok);
     return Ok(initialInstanceResult.ok);
   }
+
+  public hasInstance(key: K): boolean {
+    return this.instances.has(key);
+  }
+
+  public getStoredInstance(key: K): V | undefined {
+    return this.instances.get(key);
+  }
 }
