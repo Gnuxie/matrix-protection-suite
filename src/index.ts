@@ -5,12 +5,14 @@ export * from './Interface/InternedInstanceFactory';
 export * from './Interface/MultipleErrors';
 export * from './Interface/PersistentData';
 export * from './Interface/PersistentMatrixData';
+export * from './Interface/RoomUpdateError';
 export * from './Interface/Task';
 export * from './Interface/Value';
 
 export * from './Logging/Logger';
 
 export * from './MatrixTypes/CreateRoom';
+export * from './MatrixTypes/EventDecoder';
 export * from './MatrixTypes/Events';
 export * from './MatrixTypes/MatrixEntity';
 export * from './MatrixTypes/MatrixGlob';
@@ -42,6 +44,7 @@ export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 
 export * from './Protection/StandardProtections/MemberBanSynchronisation';
+export * from './Protection/StandardProtections/ServerBanSynchronisation';
 
 export * from './Protection/AccessControl';
 export * from './Protection/Consequence';
