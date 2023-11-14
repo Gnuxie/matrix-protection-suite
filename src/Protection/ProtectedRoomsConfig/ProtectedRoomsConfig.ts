@@ -55,7 +55,7 @@ export interface ProtectedRoomsConfig {
   ): void;
 }
 
-export class StandardProtectedRoomsConfig
+export class MjolnirProtectedRoomsConfig
   extends EventEmitter
   implements ProtectedRoomsConfig
 {
@@ -68,7 +68,7 @@ export class StandardProtectedRoomsConfig
   ) {
     super();
   }
-  public static async create(
+  public static async createFromStore(
     store: PersistentMatrixData<typeof MjolnirProtectedRoomsEvent>
   ): Promise<ActionResult<ProtectedRoomsConfig>> {
     const data = await store.requestPersistentData();
@@ -81,7 +81,7 @@ export class StandardProtectedRoomsConfig
     for (const ref of data.ok.rooms) {
       protectedRooms.set(ref.toRoomIdOrAlias(), ref);
     }
-    return Ok(new StandardProtectedRoomsConfig(store, protectedRooms));
+    return Ok(new MjolnirProtectedRoomsConfig(store, protectedRooms));
   }
   public get allRooms() {
     return [...this.protectedRooms.values()];
