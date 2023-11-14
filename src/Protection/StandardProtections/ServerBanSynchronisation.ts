@@ -29,6 +29,7 @@ import { ActionResult, Ok } from '../../Interface/Action';
 import { Value } from '../../Interface/Value';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { ServerACLEvent } from '../../MatrixTypes/ServerACL';
+import { serverName } from '../../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
 import {
@@ -54,8 +55,7 @@ export class ServerBanSynchronisation
   constructor(
     description: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet,
-    { serverName }: { serverName?: string }
+    protectedRoomsSet: ProtectedRoomsSet
   ) {
     super(
       description,
@@ -64,12 +64,7 @@ export class ServerBanSynchronisation
       ['m.room.server_acl'],
       []
     );
-    if (serverName === undefined) {
-      throw new TypeError(
-        `Cannot use the ServerBanSynchronisation protection without providing the name of the server our client is using.`
-      );
-    }
-    this.serverName = serverName;
+    this.serverName = serverName(this.protectedRoomsSet.userID);
   }
 
   public async handleStateChange(
