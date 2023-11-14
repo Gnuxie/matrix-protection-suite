@@ -48,6 +48,13 @@ export interface ProtectionConstructor {
   ): Protection;
 }
 
+export type ProtectionFactoryMethod = (
+  description: ProtectionDescription,
+  consequenceProvider: ConsequenceProvider,
+  protectedRoomsSet: ProtectedRoomsSet,
+  settings: Record<string, unknown>
+) => ActionResult<Protection>;
+
 /**
  * This is a description of a protection, which is used
  * to create protections in a facory method dynamically.
@@ -55,7 +62,7 @@ export interface ProtectionConstructor {
 export interface ProtectionDescription {
   readonly name: string;
   readonly description: string;
-  readonly factory: ProtectionConstructor;
+  readonly factory: ProtectionFactoryMethod;
   readonly defaultSettings: Record<string, unknown>;
 }
 

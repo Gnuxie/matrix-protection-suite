@@ -126,5 +126,12 @@ describeProtection({
   name: 'ServerBanSynchronisation',
   description:
     'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
-  factory: ServerBanSynchronisation,
+  factory: (description, consequenceProvider, protectedRoomsSet, _settings) =>
+    Ok(
+      new ServerBanSynchronisation(
+        description,
+        consequenceProvider,
+        protectedRoomsSet
+      )
+    ),
 });

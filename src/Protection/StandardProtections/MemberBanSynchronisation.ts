@@ -154,5 +154,12 @@ describeProtection({
   name: 'MemberBanSynchronisationProtection',
   description:
     'Synchronises `m.ban` events from watch policy lists with room level bans.',
-  factory: MemberBanSynchronisationProtection,
+  factory: (decription, consequenceProvider, protectedRoomsSet, _settings) =>
+    Ok(
+      new MemberBanSynchronisationProtection(
+        decription,
+        consequenceProvider,
+        protectedRoomsSet
+      )
+    ),
 });
