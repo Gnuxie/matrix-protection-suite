@@ -63,7 +63,8 @@ class MemberBanSynchronisationProtection
     changes: MembershipChange[]
   ): Promise<ActionResult<void>> {
     // we need access to the policy list issuer from the protected rooms set.
-    const directIssuer = this.protectedRoomsSet.directIssuer;
+    const directIssuer =
+      this.protectedRoomsSet.issuerManager.policyListRevisionIssuer;
     // then check the changes against the policies
     const errors: ActionError[] = [];
     for (const change of changes) {

@@ -93,7 +93,8 @@ export class ServerBanSynchronisation
     }
     const mostRecentACL = AccessControl.compileServerACL(
       this.serverName,
-      this.protectedRoomsSet.directIssuer.currentRevision
+      this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
+        .currentRevision
     );
     if (serverACLEvent.content !== undefined) {
       if (mostRecentACL.matches(serverACLEvent.content)) {
@@ -119,7 +120,8 @@ export class ServerBanSynchronisation
     return await this.consequenceProvider.consequenceForServerACL(
       AccessControl.compileServerACL(
         this.serverName,
-        this.protectedRoomsSet.directIssuer.currentRevision
+        this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
+          .currentRevision
       ).safeAclContent()
     );
   }
