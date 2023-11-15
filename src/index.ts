@@ -44,6 +44,9 @@ export * from './Protection/PolicyListConfig/PolicyListConfig';
 export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 
+export * from './Protection/ProtectionsConfig/MjolnirProtectionsConfig';
+export * from './Protection/ProtectionsConfig/ProtectionsConfig';
+
 export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/StandardProtections/ServerBanSynchronisation';
 
@@ -52,7 +55,6 @@ export * from './Protection/Consequence';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/ProtectedRoomsSet';
 export * from './Protection/Protection';
-export * from './Protection/ProtectionsConfig';
 
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/MembershipChange';

@@ -3,7 +3,7 @@ import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { SetMembership } from '../StateTracking/SetMembership';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
-import { ProtectionsConfig } from './ProtectionsConfig';
+import { ProtectionsConfig } from './ProtectionsConfig/ProtectionsConfig';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
