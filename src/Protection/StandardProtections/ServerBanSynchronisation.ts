@@ -97,6 +97,7 @@ export class ServerBanSynchronisation
       }
     }
     return await this.consequenceProvider.consequenceForServerACLInRoom(
+      this.description,
       revision.room.toRoomIdOrAlias(),
       mostRecentACL.safeAclContent()
     );
@@ -113,6 +114,7 @@ export class ServerBanSynchronisation
       return Ok(undefined);
     }
     return await this.consequenceProvider.consequenceForServerACL(
+      this.description,
       AccessControl.compileServerACL(
         this.serverName,
         this.protectedRoomsSet.issuerManager.policyListRevisionIssuer

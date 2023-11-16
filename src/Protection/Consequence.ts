@@ -32,6 +32,7 @@ import {
   StringRoomID,
   StringUserID,
 } from '../MatrixTypes/StringlyTypedMatrix';
+import { ProtectionDescription } from './Protection';
 
 export enum StandardConsequence {
   /**
@@ -61,24 +62,29 @@ export enum StandardConsequence {
  */
 export interface ConsequenceProvider {
   consequenceForUserInRoom(
+    protectionDescription: ProtectionDescription,
     roomID: StringRoomID,
     user: StringUserID,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForServerInRoom(
+    protectionDescription: ProtectionDescription,
     roomID: StringRoomID,
     serverName: string,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForEvent(
+    protectionDescription: ProtectionDescription,
     roomID: StringRoomID,
     eventID: StringEventID,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForServerACL(
+    protectionDescription: ProtectionDescription,
     content: ServerACLContent
   ): Promise<ActionResult<void>>;
   consequenceForServerACLInRoom(
+    protectionDescription: ProtectionDescription,
     roomID: StringRoomID,
     content: ServerACLContent
   ): Promise<ActionResult<void>>;

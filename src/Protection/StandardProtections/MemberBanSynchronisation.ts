@@ -25,7 +25,13 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
+import {
+  ActionError,
+  ActionResult,
+  Ok,
+  ResultError,
+  isError,
+} from '../../Interface/Action';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
 import { ConsequenceProvider } from '../Consequence';
@@ -86,6 +92,7 @@ class MemberBanSynchronisationProtection
         if (rule.recommendation === Recommendation.Ban) {
           const result =
             await this.consequenceProvider.consequenceForUserInRoom(
+              this.description,
               revision.room.toRoomIdOrAlias(),
               change.userID,
               rule.reason
@@ -122,6 +129,7 @@ class MemberBanSynchronisationProtection
         if (access.outcome === Access.Banned) {
           const consequenceResult =
             await this.consequenceProvider.consequenceForUserInRoom(
+              this.description,
               membership.roomID,
               membership.userID,
               access.rule?.reason ?? '<no reason supplied>'
@@ -137,6 +145,8 @@ class MemberBanSynchronisationProtection
         `There were errors when enacting consequences against members when synchronising with revision`,
         { errors }
       );
+    } else if (errors.length === 1) {
+      return ResultError(errors.at(0) as ActionError);
     } else {
       return Ok(undefined);
     }
