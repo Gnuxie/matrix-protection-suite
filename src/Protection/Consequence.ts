@@ -32,6 +32,8 @@ import {
   StringRoomID,
   StringUserID,
 } from '../MatrixTypes/StringlyTypedMatrix';
+import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
+import { SetMembership } from '../StateTracking/SetMembership';
 import { ProtectionDescription } from './Protection';
 
 export enum StandardConsequence {
@@ -57,34 +59,50 @@ export enum StandardConsequence {
   Custom = 'Custom',
 }
 
+export type ProtectionDescriptionInfo = Pick<
+  ProtectionDescription,
+  'name' | 'description'
+>;
+
 /**
  * This has to be provided to all protections, they can't configure it themselves.
  */
 export interface ConsequenceProvider {
   consequenceForUserInRoom(
-    protectionDescription: ProtectionDescription,
+    protectionDescription: ProtectionDescriptionInfo,
     roomID: StringRoomID,
     user: StringUserID,
     reason: string
   ): Promise<ActionResult<void>>;
+  renderConsequenceForUserInRoom(
+    protectionDescription: ProtectionDescriptionInfo,
+    roomID: StringRoomID,
+    user: StringUserID,
+    reason: string
+  ): Promise<ActionResult<void>>;
+  consequenceForUsersInRevision(
+    protectionDescription: ProtectionDescriptionInfo,
+    membershipSet: SetMembership,
+    revision: PolicyListRevision
+  ): Promise<ActionResult<void>>;
   consequenceForServerInRoom(
-    protectionDescription: ProtectionDescription,
+    protectionDescription: ProtectionDescriptionInfo,
     roomID: StringRoomID,
     serverName: string,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForEvent(
-    protectionDescription: ProtectionDescription,
+    protectionDescription: ProtectionDescriptionInfo,
     roomID: StringRoomID,
     eventID: StringEventID,
     reason: string
   ): Promise<ActionResult<void>>;
   consequenceForServerACL(
-    protectionDescription: ProtectionDescription,
+    protectionDescription: ProtectionDescriptionInfo,
     content: ServerACLContent
   ): Promise<ActionResult<void>>;
   consequenceForServerACLInRoom(
-    protectionDescription: ProtectionDescription,
+    protectionDescription: ProtectionDescriptionInfo,
     roomID: StringRoomID,
     content: ServerACLContent
   ): Promise<ActionResult<void>>;

@@ -25,16 +25,10 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import {
-  ActionError,
-  ActionResult,
-  Ok,
-  ResultError,
-  isError,
-} from '../../Interface/Action';
+import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
-import { ConsequenceProvider } from '../Consequence';
+import { ConsequenceProvider, ProtectionDescriptionInfo } from '../Consequence';
 import {
   AbstractProtection,
   Protection,
@@ -51,6 +45,11 @@ import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
 import AccessControl, { Access } from '../AccessControl';
+import {
+  StringRoomID,
+  StringUserID,
+} from '../../MatrixTypes/StringlyTypedMatrix';
+import { SetMembership } from '../../StateTracking/SetMembership';
 
 class MemberBanSynchronisationProtection
   extends AbstractProtection
@@ -117,39 +116,11 @@ class MemberBanSynchronisationProtection
   public async synchroniseWithRevision(
     revision: PolicyListRevision
   ): Promise<ActionResult<void>> {
-    const errors: ActionError[] = [];
-    for (const membershipRevision of this.protectedRoomsSet.setMembership
-      .allRooms) {
-      for (const membership of membershipRevision.members()) {
-        const access = AccessControl.getAccessForUser(
-          revision,
-          membership.userID,
-          'IGNORE_SERVER'
-        );
-        if (access.outcome === Access.Banned) {
-          const consequenceResult =
-            await this.consequenceProvider.consequenceForUserInRoom(
-              this.description,
-              membership.roomID,
-              membership.userID,
-              access.rule?.reason ?? '<no reason supplied>'
-            );
-          if (isError(consequenceResult)) {
-            errors.push(consequenceResult.error);
-          }
-        }
-      }
-    }
-    if (errors.length > 1) {
-      return MultipleErrors.Result(
-        `There were errors when enacting consequences against members when synchronising with revision`,
-        { errors }
-      );
-    } else if (errors.length === 1) {
-      return ResultError(errors.at(0) as ActionError);
-    } else {
-      return Ok(undefined);
-    }
+    return await this.consequenceProvider.consequenceForUsersInRevision(
+      this.description,
+      this.protectedRoomsSet.setMembership,
+      revision
+    );
   }
 
   public async handlePolicyChange(
@@ -173,3 +144,53 @@ describeProtection({
       )
     ),
 });
+
+export type SetMemberBanResultMap = Map<
+  StringUserID,
+  Map<StringRoomID, ActionResult<void>>
+>;
+
+function setMemberBanResult(
+  map: SetMemberBanResultMap,
+  userID: StringUserID,
+  roomID: StringRoomID,
+  result: ActionResult<void>
+): void {
+  const userEntry =
+    map.get(userID) ??
+    ((roomMap) => (map.set(userID, roomMap), roomMap))(new Map());
+  userEntry.set(roomID, result);
+}
+
+export async function applyPolicyRevisionToSetMembership(
+  description: ProtectionDescriptionInfo,
+  revision: PolicyListRevision,
+  setMembership: SetMembership,
+  consequenceProviderCB: ConsequenceProvider['consequenceForUserInRoom']
+): Promise<SetMemberBanResultMap> {
+  const setMembershipBanResultMap: SetMemberBanResultMap = new Map();
+  for (const membershipRevision of setMembership.allRooms) {
+    for (const membership of membershipRevision.members()) {
+      const access = AccessControl.getAccessForUser(
+        revision,
+        membership.userID,
+        'IGNORE_SERVER'
+      );
+      if (access.outcome === Access.Banned) {
+        const consequenceResult = await consequenceProviderCB(
+          description,
+          membership.roomID,
+          membership.userID,
+          access.rule?.reason ?? '<no reason supplied>'
+        );
+        setMemberBanResult(
+          setMembershipBanResultMap,
+          membership.userID,
+          membership.roomID,
+          consequenceResult
+        );
+      }
+    }
+  }
+  return setMembershipBanResultMap;
+}
