@@ -35,6 +35,14 @@ export function serverName(userID: StringUserID): string {
   return match;
 }
 
+export function userLocalpart(userID: StringUserID): string {
+  const match = /^@([\S^:]*):\S*$/.exec(userID)?.at(1);
+  if (match === undefined) {
+    throw new TypeError('Somehow a MatrixUserID was created that is invalid.');
+  }
+  return match;
+}
+
 const StringRoomIDSecret = Symbol('StringRoomID');
 export type StringRoomID = string & { [StringRoomIDSecret]: true };
 
