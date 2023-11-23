@@ -11,6 +11,7 @@ import { Map as PersistentMap } from 'immutable';
 import { MembershipEvent } from './MembershipEvent';
 import { ALL_RULE_TYPES, PolicyRuleEvent } from './PolicyEvents';
 import { RoomMessage } from './RoomMessage';
+import { ReactionEvent } from './ReactionEvent';
 
 type EventDecoderFn = (
   event: unknown
@@ -96,6 +97,9 @@ export let DefaultEventDecoder = StandardEventDecoder.blankEventDecoder()
   )
   .setDecoderForEventType('m.room.message', (event) =>
     Value.Decode(RoomMessage, event)
+  )
+  .setDecoderForEventType('m.reaction', (event) =>
+    Value.Decode(ReactionEvent, event)
   );
 
 function decodePolicyEvent(event: unknown) {
