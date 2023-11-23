@@ -26,6 +26,7 @@ export * from './MatrixTypes/RoomMessage';
 export * from './MatrixTypes/ServerACL';
 export * from './MatrixTypes/ServerACLBuilder';
 export * from './MatrixTypes/StringlyTypedMatrix';
+export * from './MatrixTypes/SynapseReport';
 
 export * from './PolicyList/PolicyListRevision';
 export * from './PolicyList/PolicyListRevisionIssuer';
