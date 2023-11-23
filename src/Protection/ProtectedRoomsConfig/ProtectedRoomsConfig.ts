@@ -45,6 +45,7 @@ export type ProtectedRoomsChangeListener = (
 
 export interface ProtectedRoomsConfig {
   readonly allRooms: MatrixRoomID[];
+  isProtectedRoom(roomID: StringRoomID): boolean;
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   on(event: 'change', listener: ProtectedRoomsChangeListener): this;
@@ -85,6 +86,9 @@ export class MjolnirProtectedRoomsConfig
   }
   public get allRooms() {
     return [...this.protectedRooms.values()];
+  }
+  public isProtectedRoom(roomID: StringRoomID): boolean {
+    return this.protectedRooms.has(roomID);
   }
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     await this.writeLock.acquireAsync();

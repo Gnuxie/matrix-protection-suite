@@ -12,6 +12,7 @@ export interface ProtectedRoomsSet {
   readonly setMembership: SetMembership;
   readonly userID: StringUserID;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
+  isProtectedRoom(roomID: StringRoomID): boolean;
 }
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
@@ -35,5 +36,9 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     // can depend on the RoomStateManager but i don't suppose it'll matter
     // they both are programmed to de-duplicate repeat events.
     throw new TypeError('unimplemented.');
+  }
+
+  public isProtectedRoom(roomID: StringRoomID): boolean {
+    return this.protectedRoomsConfig.isProtectedRoom(roomID);
   }
 }
