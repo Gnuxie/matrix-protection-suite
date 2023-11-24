@@ -85,7 +85,9 @@ type ProtectionFailedToStartCB = (
   ProtectionDescription?: ProtectionDescription
 ) => Promise<void>;
 
-export class MjolnirProtectionsConfig implements ProtectionsConfig {
+export class MjolnirProtectionsConfig<Context = unknown>
+  implements ProtectionsConfig<Context>
+{
   private readonly enabledProtections = new Map<
     /** protection name */ string,
     Protection
@@ -101,12 +103,14 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
   public async addProtection(
     protectionDescription: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context
   ): Promise<ActionResult<void>> {
     const startResult = this.startProtection(
       protectionDescription,
       consequenceProvider,
-      protectedRoomsSet
+      protectedRoomsSet,
+      context
     );
     if (isError(startResult)) {
       return startResult;
@@ -133,7 +137,8 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
   private startProtection(
     protectionDescription: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context
   ): ActionResult<void> {
     const settings = this.protectionSettingsStore.requestStateContent(
       protectionDescription.name
@@ -142,6 +147,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
       protectionDescription,
       consequenceProvider,
       protectedRoomsSet,
+      context,
       settings ?? protectionDescription.defaultSettings
     );
     if (isError(protectionResult)) {
@@ -155,6 +161,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
   public async loadProtections(
     consequenceProvider: ConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<ActionResult<void>> {
     if (this.enabledProtections.size > 0) {
@@ -178,7 +185,8 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
       const startResult = this.startProtection(
         protectionDescription,
         consequenceProvider,
-        protectedRoomsSet
+        protectedRoomsSet,
+        context
       );
       if (isError(startResult)) {
         await protectionFailedToStart(startResult.error, protectionDescription);

@@ -48,12 +48,13 @@ type ProtectionFailedToStartCB = (
   ProtectionDescription?: ProtectionDescription
 ) => Promise<void>;
 
-export interface ProtectionsConfig {
+export interface ProtectionsConfig<Context = unknown> {
   readonly allProtections: Protection[];
   addProtection(
     protectionDescription: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context
   ): Promise<ActionResult<void>>;
   removeProtection(
     protection: ProtectionDescription
@@ -72,6 +73,7 @@ export interface ProtectionsConfig {
   loadProtections(
     consequenceProvider: ConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<ActionResult<void>>;
 }

@@ -39,19 +39,46 @@ import {
 import { ConsequenceProvider } from './Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
 
-export interface ProtectionConstructor {
+/**
+ * The typical constructor for a protection.
+ * Doesn't have to be used, @see {@link ProtetctionFactoryMethod}.
+ */
+export interface ProtectionConstructor<Context = unknown> {
+  /**
+   * @param description The description for the protection being constructed.
+   * @param consequenceProvider The consequence provider that should be used for this protection.
+   * @param protectedRoomsSet The protected rooms that the constructed protection will reside within
+   * and be informed of events within.
+   * @param context This is a client specified argument, for example the draupnir project
+   * will use the Draupnir instance that the `ProtectedRoomsSet` resides within here.
+   * Not necessary and use should be avoided.
+   * @param options The settings for this protection as fetched from a persistent store or
+   * the description's default settings.
+   */
   new (
     description: ProtectionDescription,
     consequenceProvider: ConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
     options: Record<string, unknown>
   ): Protection;
 }
-
-export type ProtectionFactoryMethod = (
+/**
+ * @param description The description for the protection being constructed.
+ * @param consequenceProvider The consequence provider that should be used for this protection.
+ * @param protectedRoomsSet The protected rooms that the constructed protection will reside within
+ * and be informed of events within.
+ * @param context This is a client specified argument, for example the draupnir project
+ * will use the Draupnir instance that the `ProtectedRoomsSet` resides within here.
+ * Not necessary and use should be avoided.
+ * @param settings The settings for this protection as fetched from a persistent store or
+ * the description's default settings.
+ */
+export type ProtectionFactoryMethod<Context = unknown> = (
   description: ProtectionDescription,
   consequenceProvider: ConsequenceProvider,
   protectedRoomsSet: ProtectedRoomsSet,
+  context: Context,
   settings: Record<string, unknown>
 ) => ActionResult<Protection>;
 
@@ -59,10 +86,10 @@ export type ProtectionFactoryMethod = (
  * This is a description of a protection, which is used
  * to create protections in a facory method dynamically.
  */
-export interface ProtectionDescription {
+export interface ProtectionDescription<Context = unknown> {
   readonly name: string;
   readonly description: string;
-  readonly factory: ProtectionFactoryMethod;
+  readonly factory: ProtectionFactoryMethod<Context>;
   readonly defaultSettings: Record<string, unknown>;
 }
 
@@ -108,9 +135,7 @@ export interface Protection {
   ): Promise<ActionResult<void>>;
 }
 
-export class AbstractProtection
-  implements Omit<Protection, 'handleEvent' | 'handlePolicyChange'>
-{
+export class AbstractProtection implements Protection {
   protected constructor(
     public readonly description: ProtectionDescription,
     protected readonly consequenceProvider: ConsequenceProvider,
@@ -138,13 +163,18 @@ export class AbstractProtection
 
 const PROTECTIONS = new Map<string, ProtectionDescription>();
 
-export function registerProtection(description: ProtectionDescription): void {
+export function registerProtection<Context = unknown>(
+  description: ProtectionDescription<Context>
+): void {
   if (PROTECTIONS.has(description.name)) {
     throw new TypeError(
       `There is already a protection registered with the name ${description.name}`
     );
   }
-  PROTECTIONS.set(description.name, description);
+  PROTECTIONS.set(
+    description.name,
+    description as ProtectionDescription<unknown>
+  );
 }
 
 export function findProtection(
@@ -153,7 +183,7 @@ export function findProtection(
   return PROTECTIONS.get(name);
 }
 
-export function describeProtection({
+export function describeProtection<Context = unknown>({
   name,
   description,
   factory,
@@ -161,7 +191,7 @@ export function describeProtection({
 }: {
   name: string;
   description: string;
-  factory: ProtectionDescription['factory'];
+  factory: ProtectionDescription<Context>['factory'];
   defaultSettings?: Record<string, unknown>;
 }) {
   registerProtection({
