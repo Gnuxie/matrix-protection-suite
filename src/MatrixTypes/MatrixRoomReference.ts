@@ -139,6 +139,11 @@ abstract class AbstractMatrixRoomReference {
   public toRoomIDOrAlias(): StringRoomID | StringRoomAlias {
     return this.reference;
   }
+
+  public getViaServers(): string[] {
+    // don't want them mutating the viaServers in this reference.
+    return [...this.viaServers];
+  }
 }
 
 /**
