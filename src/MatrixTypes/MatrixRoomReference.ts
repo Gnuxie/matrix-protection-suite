@@ -12,18 +12,21 @@ import {
   isStringRoomAlias,
   isStringRoomID,
 } from './StringlyTypedMatrix';
+import { ActionError, ActionResult, Ok, isError } from '../Interface/Action';
 
 /**
  * A function that can be used by the reference to join a room.
  */
 export type JoinRoom = (
-  roomIdOrAlias: string,
+  roomIDOrAlias: StringRoomID | StringRoomAlias,
   viaServers?: string[]
-) => Promise<StringRoomID>;
+) => Promise<ActionResult<StringRoomID>>;
 /**
  * A function that can be used by the reference to resolve an alias to a room id.
  */
-export type ResolveRoom = (roomIdOrAlias: string) => Promise<StringRoomID>;
+export type ResolveRoom = (
+  roomIDOrAlias: StringRoomID | StringRoomAlias
+) => Promise<ActionResult<StringRoomID>>;
 
 export type MatrixRoomReference = MatrixRoomID | MatrixRoomAlias;
 
@@ -33,12 +36,12 @@ export type MatrixRoomReference = MatrixRoomID | MatrixRoomAlias;
 // going to be confused.
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MatrixRoomReference {
-  export function fromAlias(alias: string): MatrixRoomReference {
+  export function fromAlias(alias: StringRoomAlias): MatrixRoomReference {
     return new MatrixRoomAlias(alias);
   }
 
-  export function fromRoomId(
-    roomId: string,
+  export function fromRoomID(
+    roomId: StringRoomID,
     viaServers: string[] = []
   ): MatrixRoomID {
     return new MatrixRoomID(roomId, viaServers);
@@ -46,18 +49,37 @@ export namespace MatrixRoomReference {
 
   /**
    * Create a `MatrixRoomReference` from a room ID or a room alias.
-   * @param roomIdOrAlias The room ID or the room alias.
+   * @param roomIDOrAlias The room ID or the room alias.
    * @param viaServers If a room ID is being provided, then these server names
    * can be used to find the room.
    */
-  export function fromRoomIdOrAlias(
-    roomIdOrAlias: string,
+  export function fromRoomIDOrAlias(
+    roomIDOrAlias: StringRoomID | StringRoomAlias,
     viaServers: string[] = []
   ): MatrixRoomReference {
-    if (roomIdOrAlias.startsWith('!')) {
-      return new MatrixRoomID(roomIdOrAlias, viaServers);
+    if (roomIDOrAlias.startsWith('!')) {
+      return new MatrixRoomID(roomIDOrAlias, viaServers);
     } else {
-      return new MatrixRoomAlias(roomIdOrAlias, viaServers);
+      return new MatrixRoomAlias(roomIDOrAlias, viaServers);
+    }
+  }
+
+  export function fromPermalink(
+    link: string
+  ): ActionResult<MatrixRoomReference> {
+    const partsResult = Permalinks.parseUrl(link);
+    if (isError(partsResult)) {
+      return partsResult;
+    }
+    const parts = partsResult.ok;
+    if (parts.roomID !== undefined) {
+      return Ok(new MatrixRoomID(parts.roomID, parts.viaServers));
+    } else if (parts.roomAlias !== undefined) {
+      return Ok(new MatrixRoomAlias(parts.roomAlias, parts.viaServers));
+    } else {
+      return ActionError.Result(
+        `There isn't a reference to a room in the URL: ${link}`
+      );
     }
   }
 }
@@ -68,30 +90,12 @@ export namespace MatrixRoomReference {
  */
 abstract class AbstractMatrixRoomReference {
   protected constructor(
-    protected readonly reference: string,
+    protected readonly reference: StringRoomID | StringRoomAlias,
     protected readonly viaServers: string[] = []
   ) {}
 
   public toPermalink(): string {
     return Permalinks.forRoom(this.reference, this.viaServers);
-  }
-
-  /**
-   * Create a reference from a permalink.
-   * @param permalink A permalink to a matrix room.
-   * @returns A MatrixRoomReference.
-   */
-  public static fromPermalink(permalink: string): MatrixRoomReference {
-    const parts = Permalinks.parseUrl(permalink);
-    if (parts.roomIdOrAlias === undefined) {
-      throw new TypeError(
-        `There is no room id or alias in the permalink ${permalink}`
-      );
-    }
-    return MatrixRoomReference.fromRoomIdOrAlias(
-      parts.roomIdOrAlias,
-      parts.viaServers
-    );
   }
 
   /**
@@ -103,13 +107,16 @@ abstract class AbstractMatrixRoomReference {
    */
   public async resolve(client: {
     resolveRoom: ResolveRoom;
-  }): Promise<MatrixRoomID> {
+  }): Promise<ActionResult<MatrixRoomID>> {
     if (this instanceof MatrixRoomID) {
-      return this;
+      return Ok(this);
     } else {
       const alias = new RoomAlias(this.reference);
-      const roomId = await client.resolveRoom(this.reference);
-      return new MatrixRoomID(roomId, [alias.domain]);
+      const roomID = await client.resolveRoom(this.reference);
+      if (isError(roomID)) {
+        return roomID;
+      }
+      return Ok(new MatrixRoomID(roomID.ok, [alias.domain]));
     }
   }
 
@@ -120,16 +127,8 @@ abstract class AbstractMatrixRoomReference {
    */
   public async joinClient(client: {
     joinRoom: JoinRoom;
-  }): Promise<MatrixRoomID> {
-    if (this instanceof MatrixRoomID) {
-      await client.joinRoom(this.reference, this.viaServers);
-      return this;
-    } else {
-      const roomId = await client.joinRoom(this.reference);
-      const alias = new RoomAlias(this.reference);
-      // best we can do with the information we have.
-      return new MatrixRoomID(roomId, [alias.domain]);
-    }
+  }): Promise<ActionResult<StringRoomID>> {
+    return await client.joinRoom(this.toRoomIDOrAlias());
   }
 
   /**
@@ -137,7 +136,7 @@ abstract class AbstractMatrixRoomReference {
    * which will be necessary to use if our homeserver hasn't joined the room yet.
    * @returns A string representing a room id or alias.
    */
-  public toRoomIdOrAlias(): string {
+  public toRoomIDOrAlias(): StringRoomID | StringRoomAlias {
     return this.reference;
   }
 }
@@ -154,7 +153,7 @@ export class MatrixRoomID extends AbstractMatrixRoomReference {
     super(reference, viaServers);
   }
 
-  public toRoomIdOrAlias(): StringRoomID {
+  public toRoomIDOrAlias(): StringRoomID {
     return this.reference as StringRoomID;
   }
 }
@@ -171,13 +170,20 @@ export class MatrixRoomAlias extends AbstractMatrixRoomReference {
     super(reference, viaServers);
   }
 
-  public toRoomIdOrAlias(): StringRoomAlias {
+  public toRoomIDOrAlias(): StringRoomAlias {
     return this.reference as StringRoomAlias;
   }
 }
 
 export const Permalink = Type.Transform(Type.String())
-  .Decode((value) => AbstractMatrixRoomReference.fromPermalink(value))
+  .Decode((value) => {
+    const permalinkResult = MatrixRoomReference.fromPermalink(value);
+    if (isError(permalinkResult)) {
+      throw new TypeError(permalinkResult.error.message);
+    } else {
+      return permalinkResult.ok;
+    }
+  })
   .Encode((value) => value.toPermalink());
 
 export type Permalink = StaticDecode<typeof Permalink>;

@@ -15,7 +15,7 @@ test('Raw events are parsed correctly', function () {
   const room = randomRoomID(['example.org']);
   const nRules = 25;
   const rawEvents = [...Array(nRules)].map((_) =>
-    randomRawEvent('@test:example.com', room.toRoomIdOrAlias())
+    randomRawEvent('@test:example.com', room.toRoomIDOrAlias())
   );
   const parsedEventsResult = rawEvents.map(
     DefaultEventDecoder.decodeEvent.bind(DefaultEventDecoder)

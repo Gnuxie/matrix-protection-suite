@@ -71,16 +71,16 @@ export class StandardSetMembership
     if (isError(issuerResult)) {
       return issuerResult;
     }
-    this.issuers.set(room.toRoomIdOrAlias(), issuerResult.ok);
+    this.issuers.set(room.toRoomIDOrAlias(), issuerResult.ok);
     issuerResult.ok.on('revision', this.revisionListener);
     return Ok(undefined);
   }
   public removeRoom(room: MatrixRoomID): void {
-    const issuer = this.issuers.get(room.toRoomIdOrAlias());
+    const issuer = this.issuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       return;
     }
-    this.issuers.delete(room.toRoomIdOrAlias());
+    this.issuers.delete(room.toRoomIDOrAlias());
     issuer.off('revision', this.revisionListener);
   }
   public unregisterListeners(): void {
@@ -100,7 +100,7 @@ export class StandardSetMembership
   ) {
     this.emit(
       'membership',
-      nextRevision.room.toRoomIdOrAlias(),
+      nextRevision.room.toRoomIDOrAlias(),
       nextRevision,
       changes,
       previousRevision

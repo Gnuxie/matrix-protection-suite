@@ -65,5 +65,5 @@ export function randomRoomID(viaServers: string[]): MatrixRoomID {
   if (!isStringRoomID(roomID)) {
     throw new TypeError(`RoomID generator is wrong`);
   }
-  return MatrixRoomReference.fromRoomId(roomID, viaServers);
+  return MatrixRoomReference.fromRoomID(roomID, viaServers);
 }

@@ -80,7 +80,7 @@ export class MjolnirProtectedRoomsConfig
     }
     const protectedRooms = new Map();
     for (const ref of data.ok.rooms) {
-      protectedRooms.set(ref.toRoomIdOrAlias(), ref);
+      protectedRooms.set(ref.toRoomIDOrAlias(), ref);
     }
     return Ok(new MjolnirProtectedRoomsConfig(store, protectedRooms));
   }
@@ -101,7 +101,7 @@ export class MjolnirProtectedRoomsConfig
           `Failed to add ${room.toPermalink()} to protected rooms set.`
         );
       }
-      this.protectedRooms.set(room.toRoomIdOrAlias(), room);
+      this.protectedRooms.set(room.toRoomIDOrAlias(), room);
       this.emit('change', room, ProtectedRoomChangeType.Added);
       return Ok(undefined);
     } finally {
@@ -113,7 +113,7 @@ export class MjolnirProtectedRoomsConfig
     try {
       const result = await this.store.storePersistentData({
         rooms: this.allRooms.filter(
-          (ref) => ref.toRoomIdOrAlias() !== room.toRoomIdOrAlias()
+          (ref) => ref.toRoomIDOrAlias() !== room.toRoomIDOrAlias()
         ),
       });
       if (isError(result)) {
@@ -121,7 +121,7 @@ export class MjolnirProtectedRoomsConfig
           `Failed to remove ${room.toPermalink()} to protected rooms set.`
         );
       }
-      this.protectedRooms.delete(room.toRoomIdOrAlias());
+      this.protectedRooms.delete(room.toRoomIDOrAlias());
       this.emit('change', room, ProtectedRoomChangeType.Removed);
       return Ok(undefined);
     } finally {

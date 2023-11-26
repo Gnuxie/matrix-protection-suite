@@ -92,7 +92,7 @@ class MemberBanSynchronisationProtection
           const result =
             await this.consequenceProvider.consequenceForUserInRoom(
               this.description,
-              revision.room.toRoomIdOrAlias(),
+              revision.room.toRoomIDOrAlias(),
               change.userID,
               rule.reason
             );

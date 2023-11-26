@@ -63,8 +63,13 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
     }
     const issuers = await Promise.all(
       watchedListsResult.ok.references.map(async (room) => {
-        const resolvedRoom = await room.resolve(resolveRoomClient);
-        return policyRoomManager.getPolicyRoomRevisionIssuer(resolvedRoom);
+        const resolvedRoomResult = await room.resolve(resolveRoomClient);
+        if (isError(resolvedRoomResult)) {
+          return resolvedRoomResult;
+        }
+        return policyRoomManager.getPolicyRoomRevisionIssuer(
+          resolvedRoomResult.ok
+        );
       })
     ).then(
       (results) =>
@@ -151,7 +156,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
     try {
       const storeUpdateResult = await this.store.storePersistentData({
         references: this.policyListRevisionIssuer.references.filter(
-          (roomID) => roomID.toRoomIdOrAlias() === list.toRoomIdOrAlias()
+          (roomID) => roomID.toRoomIDOrAlias() === list.toRoomIDOrAlias()
         ),
       });
       if (isError(storeUpdateResult)) {

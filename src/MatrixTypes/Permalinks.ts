@@ -28,7 +28,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
-import { StringUserID, isStringUserID } from './StringlyTypedMatrix';
+import { ActionError, ActionResult, Ok } from '../Interface/Action';
+import {
+  StringEventID,
+  StringRoomAlias,
+  StringRoomID,
+  StringUserID,
+  isStringEventID,
+  isStringRoomAlias,
+  isStringRoomID,
+  isStringUserID,
+} from './StringlyTypedMatrix';
 
 /**
  * The parts of a permalink.
@@ -37,19 +47,24 @@ import { StringUserID, isStringUserID } from './StringlyTypedMatrix';
  */
 export interface PermalinkParts {
   /**
-   * The room ID or alias the permalink references. May be undefined.
+   * The roomID that the Permalink references.
    */
-  roomIdOrAlias?: string;
+  roomID?: StringRoomID;
+
+  /**
+   * The roomAlias that the Permalink references.
+   */
+  roomAlias?: StringRoomAlias;
 
   /**
    * The user ID the permalink references. May be undefined.
    */
-  userId?: StringUserID;
+  userID?: StringUserID;
 
   /**
    * The event ID the permalink references. May be undefined.
    */
-  eventId?: string;
+  eventID?: StringEventID;
 
   /**
    * The servers the permalink is routed through.
@@ -74,16 +89,16 @@ export class Permalinks {
 
   /**
    * Creates a room permalink.
-   * @param {string} roomIdOrAlias The room ID or alias to create a permalink for.
+   * @param {string} roomIDOrAlias The room ID or alias to create a permalink for.
    * @param {string[]} viaServers The servers to route the permalink through.
    * @returns {string} A room permalink.
    */
   public static forRoom(
-    roomIdOrAlias: string,
+    roomIDOrAlias: StringRoomID | StringRoomAlias,
     viaServers: string[] = []
   ): string {
     return `https://matrix.to/#/${encodeURIComponent(
-      roomIdOrAlias
+      roomIDOrAlias
     )}${Permalinks.encodeViaArgs(viaServers)}`;
   }
 
@@ -92,25 +107,25 @@ export class Permalinks {
    * @param {string} userId The user ID to create a permalink for.
    * @returns {string} A user permalink.
    */
-  public static forUser(userId: string): string {
+  public static forUser(userId: StringUserID): string {
     return `https://matrix.to/#/${encodeURIComponent(userId)}`;
   }
 
   /**
    * Creates an event permalink.
-   * @param {string} roomIdOrAlias The room ID or alias to create a permalink in.
-   * @param {string} eventId The event ID to reference in the permalink.
+   * @param {string} roomIDOrAlias The room ID or alias to create a permalink in.
+   * @param {string} eventID The event ID to reference in the permalink.
    * @param {string[]} viaServers The servers to route the permalink through.
    * @returns {string} An event permalink.
    */
   public static forEvent(
-    roomIdOrAlias: string,
-    eventId: string,
+    roomIDOrAlias: StringRoomID | StringRoomAlias,
+    eventID: StringEventID,
     viaServers: string[] = []
   ): string {
     return `https://matrix.to/#/${encodeURIComponent(
-      roomIdOrAlias
-    )}/${encodeURIComponent(eventId)}${Permalinks.encodeViaArgs(viaServers)}`;
+      roomIDOrAlias
+    )}/${encodeURIComponent(eventID)}${Permalinks.encodeViaArgs(viaServers)}`;
   }
 
   /**
@@ -118,35 +133,51 @@ export class Permalinks {
    * @param {string} matrixTo The matrix.to URL to parse.
    * @returns {PermalinkParts} The parts of the permalink.
    */
-  public static parseUrl(matrixTo: string): PermalinkParts {
+  public static parseUrl(matrixTo: string): ActionResult<PermalinkParts> {
     const matrixToRegexp =
       /^https:\/\/matrix\.to\/#\/(?<entity>[^/?]+)\/?(?<eventId>[^?]+)?(?<query>\?[^]*)?$/;
 
     const url = matrixToRegexp.exec(matrixTo)?.groups;
     if (!url) {
-      throw new Error('Not a valid matrix.to URL');
+      return ActionError.Result(`Not a valid matrix.to URL: ${matrixTo}`);
     }
-
+    const eventID = url.eventId && decodeURIComponent(url.eventId);
+    if (eventID !== undefined && !isStringEventID(eventID)) {
+      return ActionError.Result(`Invalid EventID in matrix.to URL ${eventID}`);
+    }
     const entity = decodeURIComponent(url.entity);
     if (entity[0] === '@') {
       if (!isStringUserID(entity)) {
-        throw new TypeError(`Invalid User ID in matrix.to URL: ${entity}`);
+        return ActionError.Result(
+          `Invalid User ID in matrix.to URL: ${entity}`
+        );
       }
-      return {
-        userId: entity,
-        roomIdOrAlias: undefined,
-        eventId: undefined,
+      return Ok({
+        userID: entity,
         viaServers: [],
-      };
-    } else if (entity[0] === '#' || entity[0] === '!') {
-      return {
-        userId: undefined,
-        roomIdOrAlias: entity,
-        eventId: url.eventId && decodeURIComponent(url.eventId),
+      });
+    } else if (entity[0] === '!') {
+      if (!isStringRoomID(entity)) {
+        return ActionError.Result(`Invalid RoomID in matrix.to URL ${entity}`);
+      }
+      return Ok({
+        roomID: entity,
+        eventID,
         viaServers: new URLSearchParams(url.query).getAll('via'),
-      };
+      });
+    } else if (entity[0] === '#') {
+      if (!isStringRoomAlias(entity)) {
+        return ActionError.Result(
+          `Invalid RoomAlias in matrix.to URL ${entity}`
+        );
+      }
+      return Ok({
+        roomAlias: entity,
+        eventID,
+        viaServers: new URLSearchParams(url.query).getAll('via'),
+      });
     } else {
-      throw new Error('Unexpected entity');
+      return ActionError.Result(`Unexpected entity in matrix.to URL ${entity}`);
     }
   }
 }

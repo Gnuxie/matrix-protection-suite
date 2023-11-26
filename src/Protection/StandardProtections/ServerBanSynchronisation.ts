@@ -98,7 +98,7 @@ export class ServerBanSynchronisation
     }
     return await this.consequenceProvider.consequenceForServerACLInRoom(
       this.description,
-      revision.room.toRoomIdOrAlias(),
+      revision.room.toRoomIDOrAlias(),
       mostRecentACL.safeAclContent()
     );
   }
