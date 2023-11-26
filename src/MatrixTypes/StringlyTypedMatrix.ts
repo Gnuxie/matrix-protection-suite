@@ -64,6 +64,37 @@ export function isStringRoomID(string: string): string is StringRoomID {
   return /^![^:]*:(\S)*/.test(string);
 }
 
+const StringRoomAliasSecret = Symbol('StringRoomAlias');
+export type StringRoomAlias = string & { [StringRoomAliasSecret]: true };
+
+export const StringRoomAlias = Type.Transform(
+  Type.String({
+    description: 'An alias for the room.',
+  })
+)
+  .Decode((value) => {
+    if (isStringRoomAlias(value)) {
+      return value;
+    } else {
+      throw new TypeError(`Couldn't decode ${value} as StringRoomAlias`);
+    }
+  })
+  .Encode((value) => value);
+
+export function isStringRoomAlias(string: string): string is StringRoomAlias {
+  return /^#[^:]*:(\S)*/.test(string);
+}
+
+export function roomAliasLocalpart(alias: StringRoomAlias): string {
+  const match = /^#([\S^:]*):\S*$/.exec(alias)?.at(1);
+  if (match === undefined) {
+    throw new TypeError(
+      'Somehow a StringRoomAlias was created that is invalid.'
+    );
+  }
+  return match;
+}
+
 const StringEventIDSecret = Symbol('StringEventID');
 export type StringEventID = string & { [StringEventIDSecret]: true };
 

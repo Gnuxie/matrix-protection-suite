@@ -6,7 +6,12 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { RoomAlias } from './MatrixEntity';
 import { Permalinks } from './Permalinks';
-import { StringRoomID, isStringRoomID } from './StringlyTypedMatrix';
+import {
+  StringRoomAlias,
+  StringRoomID,
+  isStringRoomAlias,
+  isStringRoomID,
+} from './StringlyTypedMatrix';
 
 /**
  * A function that can be used by the reference to join a room.
@@ -160,7 +165,14 @@ export class MatrixRoomID extends AbstractMatrixRoomReference {
  */
 export class MatrixRoomAlias extends AbstractMatrixRoomReference {
   public constructor(reference: string, viaServers: string[] = []) {
+    if (!isStringRoomAlias(reference)) {
+      throw new TypeError(`invalid reference for RoomAlias ${reference}`);
+    }
     super(reference, viaServers);
+  }
+
+  public toRoomIdOrAlias(): StringRoomAlias {
+    return this.reference as StringRoomAlias;
   }
 }
 
