@@ -27,6 +27,8 @@ limitations under the License.
 
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
+import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
+import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
@@ -119,4 +121,11 @@ export interface PolicyRoomRevision extends PolicyListRevision {
    * @returns true if the revision contains a rule associated with the event.
    */
   hasEvent(eventId: string): boolean;
+  /**
+   * Check whether a user can edit a policy.
+   * @param who Who is wanting to edit a policy.
+   * @param policy The `PolicyRuleType` that is going to be modified.
+   */
+  isAbleToEdit(who: StringUserID, policy: PolicyRuleType): boolean;
+  reviseFromPowerLevels(powerLevels: PowerLevelsEvent): PolicyRoomRevision;
 }

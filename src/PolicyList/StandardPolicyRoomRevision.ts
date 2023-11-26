@@ -38,6 +38,8 @@ import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Logger } from '../Logging/Logger';
+import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
+import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
@@ -75,7 +77,8 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     /**
      * Allow us to detect whether we have updated the state for this event.
      */
-    private readonly policyRuleByEventId: PolicyRuleByEventIDMap
+    private readonly policyRuleByEventId: PolicyRuleByEventIDMap,
+    private readonly powerLevelsEvent: PowerLevelsEvent | undefined
   ) {}
 
   /**
@@ -86,7 +89,8 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       room,
       new Revision(),
       PersistentMap(),
-      PersistentMap()
+      PersistentMap(),
+      undefined
     );
   }
 
@@ -211,11 +215,14 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       this.room,
       new Revision(),
       nextPolicyRules,
-      nextPolicyRulesByEventID
+      nextPolicyRulesByEventID,
+      this.powerLevelsEvent
     );
   }
   hasEvent(eventId: string): boolean {
-    return this.policyRuleByEventId.has(eventId);
+    return this.policyRuleByEventId.has(eventId)
+      ? true
+      : this.powerLevelsEvent?.event_id === eventId;
   }
 
   /**
@@ -309,5 +316,30 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   public reviseFromState(policyState: PolicyRuleEvent[]): PolicyRoomRevision {
     const changes = this.changesFromState(policyState);
     return this.reviseFromChanges(changes);
+  }
+
+  public isAbleToEdit(who: StringUserID, policy: PolicyRuleType): boolean {
+    const powerLevelsContent = this.powerLevelsEvent?.content;
+    const userPowerLevel =
+      powerLevelsContent?.users?.[who] ??
+      powerLevelsContent?.users_default ??
+      0;
+    const rulePowerLevel =
+      powerLevelsContent?.events?.[policy] ??
+      powerLevelsContent?.state_default ??
+      50;
+    return userPowerLevel >= rulePowerLevel;
+  }
+
+  public reviseFromPowerLevels(
+    powerLevels: PowerLevelsEvent
+  ): PolicyRoomRevision {
+    return new StandardPolicyRoomRevision(
+      this.room,
+      new Revision(),
+      this.policyRules,
+      this.policyRuleByEventId,
+      powerLevels
+    );
   }
 }

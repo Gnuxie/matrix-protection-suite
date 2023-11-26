@@ -66,9 +66,9 @@ export class InternedInstanceFactory<
     }
     // FIXME: there is potential for race if the same list is asked for in two places
     // very bad please fix with an await lock.
-    // could also be fixed by populating with the blank revision first and then
-    // revising it asynchrnously, but that would be bad too.
-    // actually forget that, i don't think it'd work either because of event loop scheduling.
+    // Problem is that i don't want to stunt startup by locking all the keys.
+    // We need some kind of lock per key :skull:.
+    // Surely there's something else that fixes this it's probably a common problem.
     this.instances.set(key, initialInstanceResult.ok);
     return Ok(initialInstanceResult.ok);
   }
@@ -79,5 +79,9 @@ export class InternedInstanceFactory<
 
   public getStoredInstance(key: K): V | undefined {
     return this.instances.get(key);
+  }
+
+  public allInstances(): V[] {
+    return [...this.instances.values()];
   }
 }

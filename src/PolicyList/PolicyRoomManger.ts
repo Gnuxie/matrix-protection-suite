@@ -9,9 +9,10 @@ import {
 } from '../MatrixTypes/MatrixRoomReference';
 import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
 import { ActionResult } from '../Interface/Action';
-import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
+import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
 import { PolicyRoomEditor } from './PolicyRoomEditor';
+import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 
 /**
  * An interface to access models of a `PolicyRoom` (a PolicyList which is a direct
@@ -59,4 +60,9 @@ export interface PolicyRoomManager {
   getPolicyRuleEvents(
     room: MatrixRoomReference
   ): Promise<ActionResult<PolicyRuleEvent[]>>;
+
+  getEditablePolicyRoomIDs(
+    editor: StringUserID,
+    ruleType: PolicyRuleType
+  ): MatrixRoomID[];
 }

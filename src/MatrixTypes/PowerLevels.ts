@@ -37,9 +37,7 @@ export const PowerLevelsEventContent = Type.Optional(
           'The level required to ban a user. Defaults to 50 if unspecified.',
       })
     ),
-    events: Type.Optional(
-      Type.Object({}, { additionalProperties: Type.Number() })
-    ),
+    events: Type.Optional(Type.Record(Type.String(), Type.Number())),
     events_default: Type.Optional(
       Type.Number({
         description:
@@ -70,9 +68,7 @@ export const PowerLevelsEventContent = Type.Optional(
           'The default level required to send state events. Can be overridden\nby the `events` key. Defaults to 50 if unspecified.',
       })
     ),
-    users: Type.Optional(
-      Type.Object({}, { additionalProperties: Type.Number() })
-    ),
+    users: Type.Optional(Type.Record(Type.String(), Type.Number())),
     users_default: Type.Optional(
       Type.Number({
         description:
