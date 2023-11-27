@@ -34,6 +34,7 @@ import {
 } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { SetMembership } from '../StateTracking/SetMembership';
+import { ProtectedRoomsSet } from './ProtectedRoomsSet';
 import { ProtectionDescription } from './Protection';
 
 export enum StandardConsequence {
@@ -105,6 +106,11 @@ export interface ConsequenceProvider {
     protectionDescription: ProtectionDescriptionInfo,
     roomID: StringRoomID,
     content: ServerACLContent
+  ): Promise<ActionResult<void>>;
+  unbanUserFromRoomsInSet(
+    protectionDescription: ProtectionDescriptionInfo,
+    userID: StringUserID,
+    set: ProtectedRoomsSet
   ): Promise<ActionResult<void>>;
   readonly requiredPermissions: string[];
   readonly requiredEventPermissions: string[];
