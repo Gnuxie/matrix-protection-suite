@@ -36,15 +36,27 @@ export enum ActionExceptionKind {
  * You will want to create these using {@link ActionException.Result}.
  */
 export class ActionException extends ActionError {
-  public readonly uuid = randomUUID();
+  public readonly uuid: ReturnType<typeof randomUUID>;
 
   constructor(
     public readonly exceptionKind: ActionExceptionKind,
     public readonly exception: Error | unknown,
-    message: string
+    message: string,
+    {
+      uuid = randomUUID(),
+      suppressLog = false,
+      context = [],
+    }: {
+      uuid?: ReturnType<typeof randomUUID>;
+      suppressLog?: boolean;
+      context?: string[];
+    } = {}
   ) {
-    super(message);
-    this.log();
+    super(message, context);
+    this.uuid = uuid;
+    if (!suppressLog) {
+      this.log();
+    }
   }
 
   /**

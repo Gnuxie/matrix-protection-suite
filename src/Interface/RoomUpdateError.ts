@@ -25,18 +25,49 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { ActionError, ActionResult, ResultError } from './Action';
 import { ActionException, ActionExceptionKind } from './ActionException';
 
 // might be best also to have a version of result with a room id that
 // explains what we were trying to do ? not sure.
 export interface RoomUpdateError extends ActionError {
-  readonly roomId: string;
+  readonly room: MatrixRoomID;
 }
 
-export class PermissionError extends ActionError implements RoomUpdateError {
-  constructor(public readonly roomId: string, message: string) {
-    super(message);
+export class RoomActionError extends ActionError implements RoomUpdateError {
+  constructor(
+    public readonly room: MatrixRoomID,
+    message: string,
+    context: string[] = []
+  ) {
+    super(message, context);
+  }
+
+  public static Result(
+    message: string,
+    { room }: { room: MatrixRoomID }
+  ): ActionResult<never, PermissionError> {
+    return ResultError(new PermissionError(room, message));
+  }
+
+  public static fromActionError(
+    room: MatrixRoomID,
+    error: ActionError
+  ): RoomUpdateError {
+    if (error instanceof ActionException) {
+      return RoomUpdateException.fromActionException(room, error);
+    } else if (error instanceof RoomActionError) {
+      return error;
+    } else {
+      return new RoomActionError(room, error.message, error.getContext());
+    }
+  }
+}
+
+export class PermissionError extends RoomActionError {
+  constructor(room: MatrixRoomID, message: string) {
+    super(room, message);
   }
 }
 
@@ -45,7 +76,7 @@ export class RoomUpdateException
   implements RoomUpdateError
 {
   constructor(
-    public readonly roomId: string,
+    public readonly room: MatrixRoomID,
     ...args: ConstructorParameters<typeof ActionException>
   ) {
     super(...args);
@@ -56,16 +87,33 @@ export class RoomUpdateException
     options: {
       exception: Error;
       exceptionKind: ActionExceptionKind;
-      roomId: string;
+      room: MatrixRoomID;
     }
   ): ActionResult<Ok, RoomUpdateException> {
     return ResultError(
       new RoomUpdateException(
-        options.roomId,
+        options.room,
         options.exceptionKind,
         options.exception,
         message
       )
+    );
+  }
+
+  public static fromActionException(
+    room: MatrixRoomID,
+    error: ActionException
+  ): RoomUpdateException {
+    return new RoomUpdateException(
+      room,
+      error.exceptionKind,
+      error.exception,
+      error.message,
+      {
+        uuid: error.uuid,
+        suppressLog: true,
+        context: error.getContext(),
+      }
     );
   }
 }

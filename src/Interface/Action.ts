@@ -132,8 +132,10 @@ function match<T, Ok, Error = ActionError>(
  * @see {@link ActionException}
  */
 export class ActionError {
-  private readonly context: string[] = new Array(0);
-  public constructor(public readonly message: string) {
+  public constructor(
+    public readonly message: string,
+    private readonly context: string[] = []
+  ) {
     // nothing to do.
   }
 
