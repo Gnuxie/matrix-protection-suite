@@ -53,15 +53,16 @@ export function setGlobalTaskReporter(reporter: TaskErrorReporter): void {
  * we believe that the ability for a consumer of the library to configure
  * what happens to these errors is important.
  */
-export async function Task(task: Promise<ActionResult<void>>): Promise<void> {
+export async function Task(
+  task: Promise<ActionResult<void> | void>
+): Promise<void> {
   try {
     const result = await task;
-    if (isError(result)) {
+    if (result !== undefined && isError(result)) {
       globalTaskReporter(result.error);
       return;
-    } else {
-      return;
     }
+    return;
   } catch (exception) {
     const actionException = new ActionException(
       ActionExceptionKind.Unknown,
