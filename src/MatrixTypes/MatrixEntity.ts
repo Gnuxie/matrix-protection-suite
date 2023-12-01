@@ -28,6 +28,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
 
+import { StringUserID, isStringUserID } from './StringlyTypedMatrix';
+
 /**
  * Represents a Matrix entity
  * @category Utilities
@@ -40,7 +42,7 @@ class MatrixEntity {
    * Creates a new Matrix entity
    * @param {string} fullId The full ID of the entity
    */
-  constructor(private fullId: string) {
+  constructor(protected fullId: string) {
     if (!fullId) throw new Error('No entity ID provided');
     if (fullId.length < 2) throw new Error('ID too short');
     const parts = fullId.split(/:/g);
@@ -75,9 +77,13 @@ class MatrixEntity {
 export class UserID extends MatrixEntity {
   constructor(userId: string) {
     super(userId);
-    if (!userId.startsWith('@')) {
+    if (!isStringUserID(userId)) {
       throw new Error('Not a valid user ID');
     }
+  }
+
+  public toString(): StringUserID {
+    return this.fullId as StringUserID;
   }
 }
 
