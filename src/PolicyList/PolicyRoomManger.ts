@@ -30,7 +30,7 @@ export interface PolicyRoomManager {
     shortcode: string,
     invite: string[],
     createRoomOptions: RoomCreateOptions
-  ): Promise<ActionResult<MatrixRoomReference>>;
+  ): Promise<ActionResult<MatrixRoomID>>;
 
   /**
    * Get a `PolicyRoomRevisionIssuer` for a Matrix room, that will issue updates
