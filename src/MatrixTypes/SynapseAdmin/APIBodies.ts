@@ -39,7 +39,7 @@ export type SynapseAdminPostUserDeactivateRequest = StaticDecode<
   typeof SynapseAdminPostUserDeactivateRequest
 >;
 export const SynapseAdminPostUserDeactivateRequest = Type.Object({
-  erase: Type.Boolean({ default: false }),
+  erase: Type.Optional(Type.Boolean({ default: false })),
 });
 
 export type SynapseAdminDeleteRoomRequest = StaticDecode<
