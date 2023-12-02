@@ -7,6 +7,7 @@ import { StaticDecode, Type } from '@sinclair/typebox';
 import { RoomAlias } from './MatrixEntity';
 import { Permalinks } from './Permalinks';
 import {
+  StringEventID,
   StringRoomAlias,
   StringRoomID,
   isStringRoomAlias,
@@ -192,3 +193,67 @@ export const Permalink = Type.Transform(Type.String())
   .Encode((value) => value.toPermalink());
 
 export type Permalink = StaticDecode<typeof Permalink>;
+
+export type MatrixEventReference = MatrixEventViaRoomID | MatrixEventViaAlias;
+
+// we disable this warning because it's not relevant, we're not making a module
+// we're trying to add generic functions to a type.
+// Comes at a cost that anyone actually using this from JS and not TS is
+// going to be confused.
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MatrixEventReference {
+  export function fromPermalink(
+    link: string
+  ): ActionResult<MatrixEventReference> {
+    const partsResult = Permalinks.parseUrl(link);
+    if (isError(partsResult)) {
+      return partsResult;
+    }
+    const parts = partsResult.ok;
+    if (parts.roomID !== undefined && parts.eventID !== undefined) {
+      return Ok(
+        new MatrixEventViaRoomID(
+          new MatrixRoomID(parts.roomID, parts.viaServers),
+          parts.eventID
+        )
+      );
+    } else if (parts.roomAlias !== undefined && parts.eventID !== undefined) {
+      return Ok(
+        new MatrixEventViaAlias(
+          new MatrixRoomAlias(parts.roomAlias, parts.viaServers),
+          parts.eventID
+        )
+      );
+    } else {
+      return ActionError.Result(
+        `There isn't a reference to an event in the URL: ${link}`
+      );
+    }
+  }
+}
+
+export class MatrixEventViaRoomID {
+  public constructor(
+    public readonly room: MatrixRoomID,
+    public readonly eventID: StringEventID
+  ) {
+    // nothing to do.
+  }
+
+  public get reference() {
+    return this.room;
+  }
+}
+
+export class MatrixEventViaAlias {
+  public constructor(
+    public readonly alias: MatrixRoomAlias,
+    public readonly eventID: StringEventID
+  ) {
+    // nothing to do.
+  }
+
+  public get reference() {
+    return this.alias;
+  }
+}
