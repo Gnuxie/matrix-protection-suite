@@ -42,6 +42,9 @@ export class StandardSetMembership
     this.protectedRoomsChangeListener = this.protectedRoomsListener.bind(this);
     this.protectedRoomsConfig.on('change', this.protectedRoomsChangeListener);
   }
+  getRevision(room: StringRoomID): RoomMembershipRevision | undefined {
+    return this.issuers.get(room)?.currentRevision;
+  }
 
   public static async create(
     roomMembershipManager: RoomMembershipManager,

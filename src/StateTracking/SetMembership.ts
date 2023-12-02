@@ -27,4 +27,5 @@ export declare interface SetMembership {
   ): boolean;
   unregisterListeners(): void;
   allRooms: RoomMembershipRevision[];
+  getRevision(room: StringRoomID): RoomMembershipRevision | undefined;
 }
