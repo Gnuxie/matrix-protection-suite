@@ -23,6 +23,12 @@ import {
 } from '../DirectPropagationPolicyListRevisionIssuer';
 import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
 
+export interface PolicyRoomWatchProfile<T = unknown> {
+  room: MatrixRoomID;
+  propagation: string;
+  options?: T;
+}
+
 export interface PolicyListConfig {
   readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
   watchList<T>(
@@ -34,6 +40,7 @@ export interface PolicyListConfig {
     propagation: string,
     list: MatrixRoomID
   ): Promise<ActionResult<void>>;
+  allWatchedLists: PolicyRoomWatchProfile[];
 }
 
 export enum PropagationType {
@@ -47,9 +54,17 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
       typeof MjolnirWatchedPolicyRoomsEvent
     >,
     public readonly policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
-    private readonly policyRoomManager: PolicyRoomManager
+    private readonly policyRoomManager: PolicyRoomManager,
+    private readonly watchedLists: Set<MatrixRoomID>
   ) {
     // nothing to do.
+  }
+
+  public get allWatchedLists() {
+    return [...this.watchedLists].map((room) => ({
+      room,
+      propagation: PropagationType.Direct,
+    }));
   }
 
   public static async createFromStore(
@@ -109,7 +124,8 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
       new MjolnirPolicyRoomsConfig(
         store,
         new StandardDirectPropagationPolicyListRevisionIssuer(issuers.ok),
-        policyRoomManager
+        policyRoomManager,
+        new Set(issuers.ok.map((revision) => revision.currentRevision.room))
       )
     );
   }
@@ -138,6 +154,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
         return issuerResult;
       }
       this.policyListRevisionIssuer.addIssuer(issuerResult.ok);
+      this.watchedLists.add(issuerResult.ok.currentRevision.room);
       return Ok(undefined);
     } finally {
       this.writeLock.release();
@@ -168,6 +185,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
         return issuerResult;
       }
       this.policyListRevisionIssuer.removeIssuer(issuerResult.ok);
+      this.watchedLists.delete(issuerResult.ok.currentRevision.room);
       return Ok(undefined);
     } finally {
       this.writeLock.release();
