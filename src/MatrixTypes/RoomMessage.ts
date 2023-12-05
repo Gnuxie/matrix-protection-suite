@@ -146,13 +146,64 @@ export const ImageMessageContent = Type.Object({
   file: Type.Optional(Type.Unknown()),
 });
 
+export type VideoMessageContent = Static<typeof VideoMessageContent>;
+export const VideoMessageContent = Type.Object({
+  body: Type.String({
+    description:
+      "A description of the video e.g. 'Gangnam style', or some kind of content description for accessibility e.g. 'video attachment'.",
+  }),
+  info: Type.Optional(
+    Type.Object({
+      duration: Type.Optional(
+        Type.Number({
+          description: 'The duration of the video in milliseconds.',
+        })
+      ),
+      h: Type.Optional(
+        Type.Number({ description: 'The height of the video in pixels.' })
+      ),
+      w: Type.Optional(
+        Type.Number({ description: 'The width of the video in pixels.' })
+      ),
+      mimetype: Type.Optional(
+        Type.String({
+          description: 'The mimetype of the video e.g. `video/mp4`.',
+        })
+      ),
+      size: Type.Optional(
+        Type.Number({ description: 'The size of the video in bytes.' })
+      ),
+      thumbnail_url: Type.Optional(
+        Type.String({
+          description:
+            'The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris)) to an image thumbnail of\nthe video clip. Only present if the thumbnail is unencrypted.',
+        })
+      ),
+      thumbnail_file: Type.Optional(Type.Unknown()),
+      thumbnail_info: Type.Optional(ThumbnailInfo),
+    })
+  ),
+  msgtype: Type.Literal('m.video'),
+  url: Type.Optional(
+    Type.String({
+      description:
+        'Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the video clip.',
+    })
+  ),
+  file: Type.Optional(Type.Unknown()),
+});
+
 // TODO:
 // Somewhat annoyed. This isn't going to cut it and I don't know if parsing messages
 // this way will make sense in the long run.
 // Instead we need for each event a way of listing all event fields that contain
 // text that should be scanned. And probably split by format in the case of
 // org.matrix.custom.html.
-// Well, at least that is the case for any component that needs to scan.
+// So basically a wrapper class, whose instances are made by extracting
+// extensible event fields from every event
+// and makes them available to the consumer.
+// and it'll have to do the same for m.room.message.
+// Thanks guys.
 export type RoomMessage = StaticDecode<typeof RoomMessage>;
 export const RoomMessage = Type.Composite([
   Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
@@ -162,7 +213,7 @@ export const RoomMessage = Type.Composite([
         TextMessageContent,
         NoticeMessageContent,
         ImageMessageContent,
-        Type.Unknown(),
+        VideoMessageContent,
       ])
     ),
     type: Type.Literal('m.room.message'),
