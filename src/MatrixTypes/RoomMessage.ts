@@ -73,6 +73,79 @@ export const NoticeMessageContent = Type.Object({
   ),
 });
 
+export type ThumbnailInfo = Static<typeof ThumbnailInfo>;
+export const ThumbnailInfo = Type.Object({
+  h: Type.Optional(
+    Type.Number({
+      description:
+        'The intended display height of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+    })
+  ),
+  w: Type.Optional(
+    Type.Number({
+      description:
+        'The intended display width of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+    })
+  ),
+  mimetype: Type.Optional(
+    Type.String({
+      description: 'The mimetype of the image, e.g. `image/jpeg`.',
+    })
+  ),
+  size: Type.Optional(
+    Type.Number({ description: 'Size of the image in bytes.' })
+  ),
+});
+
+export type ImageInfo = Static<typeof ImageInfo>;
+export const ImageInfo = Type.Object({
+  h: Type.Optional(
+    Type.Number({
+      description:
+        'The intended display height of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+    })
+  ),
+  w: Type.Optional(
+    Type.Number({
+      description:
+        'The intended display width of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+    })
+  ),
+  mimetype: Type.Optional(
+    Type.String({
+      description: 'The mimetype of the image, e.g. `image/jpeg`.',
+    })
+  ),
+  size: Type.Optional(
+    Type.Number({ description: 'Size of the image in bytes.' })
+  ),
+  thumbnail_url: Type.Optional(
+    Type.String({
+      description:
+        'The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris)) to a thumbnail of the image.\nOnly present if the thumbnail is unencrypted.',
+    })
+  ),
+  thumbnail_file: Type.Optional(Type.Unknown()),
+  thumbnail_info: Type.Optional(ThumbnailInfo),
+});
+
+export type ImageMessageContent = Static<typeof ImageMessageContent>;
+export const ImageMessageContent = Type.Object({
+  body: Type.String({
+    description:
+      "A textual representation of the image. This could be the alt text of the image, the filename of the image, or some kind of content description for accessibility e.g. 'image attachment'.",
+  }),
+  info: Type.Optional(ImageInfo),
+  msgtype: Type.Literal('m.image'),
+  url: Type.Optional(
+    Type.String({
+      description:
+        'Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the image.',
+    })
+  ),
+  file: Type.Optional(Type.Unknown()),
+});
+
 // TODO:
 // Somewhat annoyed. This isn't going to cut it and I don't know if parsing messages
 // this way will make sense in the long run.
@@ -85,7 +158,12 @@ export const RoomMessage = Type.Composite([
   Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
   Type.Object({
     content: Type.Optional(
-      Type.Union([TextMessageContent, NoticeMessageContent, Type.Unknown()])
+      Type.Union([
+        TextMessageContent,
+        NoticeMessageContent,
+        ImageMessageContent,
+        Type.Unknown(),
+      ])
     ),
     type: Type.Literal('m.room.message'),
   }),
