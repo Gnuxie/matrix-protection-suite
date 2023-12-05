@@ -148,7 +148,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
       consequenceProvider,
       protectedRoomsSet,
       context,
-      settings ?? protectionDescription.defaultSettings
+      settings ?? protectionDescription.protectionSettings.defaultSettings
     );
     if (isError(protectionResult)) {
       return protectionResult;

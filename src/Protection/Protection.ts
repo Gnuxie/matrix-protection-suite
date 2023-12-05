@@ -38,12 +38,20 @@ import {
 } from '../StateTracking/StateRevisionIssuer';
 import { ConsequenceProvider } from './Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
+import { ProtectionSetting } from './ProtectionSetting';
+import {
+  ProtectionSettings,
+  StandardProtectionSettings,
+} from './ProtectionSettings';
 
 /**
  * The typical constructor for a protection.
  * Doesn't have to be used, @see {@link ProtetctionFactoryMethod}.
  */
-export interface ProtectionConstructor<Context = unknown> {
+export interface ProtectionConstructor<
+  Context = unknown,
+  TSettings = Record<string, unknown>
+> {
   /**
    * @param description The description for the protection being constructed.
    * @param consequenceProvider The consequence provider that should be used for this protection.
@@ -60,7 +68,7 @@ export interface ProtectionConstructor<Context = unknown> {
     consequenceProvider: ConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
-    options: Record<string, unknown>
+    options: TSettings
   ): Protection;
 }
 /**
@@ -74,23 +82,29 @@ export interface ProtectionConstructor<Context = unknown> {
  * @param settings The settings for this protection as fetched from a persistent store or
  * the description's default settings.
  */
-export type ProtectionFactoryMethod<Context = unknown> = (
-  description: ProtectionDescription,
+export type ProtectionFactoryMethod<
+  Context = unknown,
+  TSettings extends Record<string, unknown> = Record<string, unknown>
+> = (
+  description: ProtectionDescription<Context, TSettings>,
   consequenceProvider: ConsequenceProvider,
   protectedRoomsSet: ProtectedRoomsSet,
   context: Context,
-  settings: Record<string, unknown>
+  settings: TSettings
 ) => ActionResult<Protection>;
 
 /**
  * This is a description of a protection, which is used
  * to create protections in a facory method dynamically.
  */
-export interface ProtectionDescription<Context = unknown> {
+export interface ProtectionDescription<
+  Context = unknown,
+  TSettings extends Record<string, unknown> = Record<string, unknown>
+> {
   readonly name: string;
   readonly description: string;
-  readonly factory: ProtectionFactoryMethod<Context>;
-  readonly defaultSettings: Record<string, unknown>;
+  readonly factory: ProtectionFactoryMethod<Context, TSettings>;
+  readonly protectionSettings: ProtectionSettings<TSettings>;
 }
 
 /**
@@ -163,9 +177,10 @@ export class AbstractProtection implements Protection {
 
 const PROTECTIONS = new Map<string, ProtectionDescription>();
 
-export function registerProtection<Context = unknown>(
-  description: ProtectionDescription<Context>
-): void {
+export function registerProtection<
+  Context = unknown,
+  TSettings extends Record<string, unknown> = Record<string, unknown>
+>(description: ProtectionDescription<Context, TSettings>): void {
   if (PROTECTIONS.has(description.name)) {
     throw new TypeError(
       `There is already a protection registered with the name ${description.name}`
@@ -183,21 +198,27 @@ export function findProtection(
   return PROTECTIONS.get(name);
 }
 
-export function describeProtection<Context = unknown>({
+export function describeProtection<
+  Context = unknown,
+  TSettings extends Record<string, unknown> = Record<string, unknown>
+>({
   name,
   description,
   factory,
-  defaultSettings = {},
+  protectionSettings = new StandardProtectionSettings<TSettings>(
+    {} as Record<keyof TSettings, ProtectionSetting<TSettings>>,
+    {} as TSettings
+  ),
 }: {
   name: string;
   description: string;
-  factory: ProtectionDescription<Context>['factory'];
-  defaultSettings?: Record<string, unknown>;
+  factory: ProtectionDescription<Context, TSettings>['factory'];
+  protectionSettings?: ProtectionSettings<TSettings>;
 }) {
   registerProtection({
     name,
     description,
     factory,
-    defaultSettings,
+    protectionSettings,
   });
 }
