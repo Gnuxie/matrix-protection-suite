@@ -30,6 +30,7 @@ import { RoomEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import { EventReport } from '../Reporting/EventReport';
 import { MembershipChange } from '../StateTracking/MembershipChange';
 import { RoomMembershipRevision } from '../StateTracking/MembershipRevision';
 import {
@@ -147,6 +148,8 @@ export interface Protection {
     revision: RoomStateRevision,
     changes: StateChange[]
   ): Promise<ActionResult<void>>;
+
+  handleEventReport?(report: EventReport): Promise<ActionResult<void>>;
 }
 
 export class AbstractProtection implements Protection {

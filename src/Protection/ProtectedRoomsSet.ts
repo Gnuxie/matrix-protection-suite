@@ -1,5 +1,6 @@
 import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
+import { EventReport } from '../Reporting/EventReport';
 import { SetMembership } from '../StateTracking/SetMembership';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
@@ -12,6 +13,7 @@ export interface ProtectedRoomsSet {
   readonly setMembership: SetMembership;
   readonly userID: StringUserID;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
+  handleEventReport(report: EventReport): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
 }
 
@@ -35,6 +37,10 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     // The only slightly dodgy thing about that is the PolicyListManager
     // can depend on the RoomStateManager but i don't suppose it'll matter
     // they both are programmed to de-duplicate repeat events.
+    throw new TypeError('unimplemented.');
+  }
+
+  public handleEventReport(_report: EventReport): void {
     throw new TypeError('unimplemented.');
   }
 

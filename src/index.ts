@@ -64,6 +64,8 @@ export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/ProtectedRoomsSet';
 export * from './Protection/Protection';
 
+export * from './Reporting/EventReport';
+
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/MembershipChange';
 export * from './StateTracking/MembershipRevision';
