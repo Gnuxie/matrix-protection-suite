@@ -71,4 +71,8 @@ export class SafeIntegerProtectionSetting<
       return this.setParsedValue(settings, value as TSettings[keyof TSettings]);
     }
   }
+
+  public toJSON(settings: TSettings): unknown {
+    return settings[this.key];
+  }
 }

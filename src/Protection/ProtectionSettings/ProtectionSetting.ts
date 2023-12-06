@@ -32,6 +32,7 @@ export interface ProtectionSetting<
 > {
   readonly key: keyof TSettings;
   setValue(settings: TSettings, value: unknown): ActionResult<TSettings>;
+  toJSON(settings: TSettings): unknown;
 }
 
 export class AbstractProtectionSetting<
@@ -48,4 +49,11 @@ export class AbstractProtectionSetting<
     clone[this.key] = value;
     return Ok(clone);
   }
+}
+
+export interface CollectionProtectionSetting<
+  TSettings extends Record<string, unknown> = Record<string, unknown>
+> extends ProtectionSetting<TSettings> {
+  addItem(settings: TSettings, value: unknown): ActionResult<TSettings>;
+  removeItem(settings: TSettings, value: unknown): ActionResult<TSettings>;
 }
