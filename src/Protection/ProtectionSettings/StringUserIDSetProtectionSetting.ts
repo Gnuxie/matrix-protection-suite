@@ -25,46 +25,41 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { DecodeType, Type } from '@sinclair/typebox';
+import { StaticDecode, Type } from '@sinclair/typebox';
 import { ActionError, ActionResult, isError } from '../../Interface/Action';
-import { CollectionProtectionSetting } from './ProtectionSetting';
-import { Value } from '../../Interface/Value';
+import {
+  StringUserID,
+  isStringUserID,
+} from '../../MatrixTypes/StringlyTypedMatrix';
 import { SetProtectionSetting } from './SetProtectionSetting';
+import { Value } from '../../Interface/Value';
 
-type StringArray = DecodeType<typeof StringArray>;
-const StringArray = Type.Array(Type.String());
+type StringUserIDArray = StaticDecode<typeof StringUserIDArray>;
+const StringUserIDArray = Type.Array(StringUserID);
 
-export class StringSetProtectionSetting<
-    TSettings extends Record<string, Set<string>>
-  >
-  extends SetProtectionSetting<TSettings>
-  implements CollectionProtectionSetting<TSettings>
-{
+export class StringUserIDSetProtectionSettings<
+  TSettings extends Record<string, Set<StringUserID>>
+> extends SetProtectionSetting<TSettings> {
   public constructor(key: string) {
     super(key);
   }
-  addItem(settings: TSettings, value: unknown): ActionResult<TSettings> {
-    if (typeof value !== 'string') {
-      return ActionError.Result(
-        `String set was given an unknown value ${value}`
-      );
+
+  public addItem(settings: TSettings, value: unknown): ActionResult<TSettings> {
+    if (typeof value !== 'string' || !isStringUserID(value)) {
+      return ActionError.Result(`${value} is not a valid matrix StringUserID`);
     }
     return super.addItem(settings, value);
   }
-  removeItem(settings: TSettings, value: unknown): ActionResult<TSettings> {
-    if (typeof value !== 'string') {
-      return ActionError.Result(
-        `String set was given an unknown value ${value}`
-      );
-    }
-    return super.removeItem(settings, value);
-  }
-  setValue(settings: TSettings, value: unknown): ActionResult<TSettings> {
-    const result = Value.Decode(StringArray, value);
-    if (isError(result)) {
-      return result;
+
+  public setValue(
+    settings: TSettings,
+    value: unknown[]
+  ): ActionResult<TSettings> {
+    const decodeResult = Value.Decode(StringUserIDArray, value);
+    if (isError(decodeResult)) {
+      return decodeResult;
     } else {
-      return super.setValue(settings, result.ok);
+      return super.setValue(settings, decodeResult.ok);
     }
   }
 }

@@ -54,6 +54,9 @@ export * from './Protection/ProtectionsConfig/ProtectionsConfig';
 export * from './Protection/ProtectionSettings/ProtectionSetting';
 export * from './Protection/ProtectionSettings/ProtectionSettings';
 export * from './Protection/ProtectionSettings/SafeIntegerProtectionSetting';
+export * from './Protection/ProtectionSettings/SetProtectionSetting';
+export * from './Protection/ProtectionSettings/StringSetProtectionSetting';
+export * from './Protection/ProtectionSettings/StringUserIDSetProtectionSetting';
 
 export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/StandardProtections/ServerBanSynchronisation';
