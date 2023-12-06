@@ -193,6 +193,39 @@ export const VideoMessageContent = Type.Object({
   file: Type.Optional(Type.Unknown()),
 });
 
+export type AudioMessageContent = Static<typeof AudioMessageContent>;
+export const AudioMessageContent = Type.Object({
+  body: Type.String({
+    description:
+      "A description of the audio e.g. 'Bee Gees - Stayin' Alive', or some kind of content description for accessibility e.g. 'audio attachment'.",
+  }),
+  info: Type.Optional(
+    Type.Object({
+      duration: Type.Optional(
+        Type.Number({
+          description: 'The duration of the audio in milliseconds.',
+        })
+      ),
+      mimetype: Type.Optional(
+        Type.String({
+          description: 'The mimetype of the audio e.g. `audio/aac`.',
+        })
+      ),
+      size: Type.Optional(
+        Type.Number({ description: 'The size of the audio clip in bytes.' })
+      ),
+    })
+  ),
+  msgtype: Type.Literal('m.audio'),
+  url: Type.Optional(
+    Type.String({
+      description:
+        'Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the audio clip.',
+    })
+  ),
+  file: Type.Optional(Type.Unknown()),
+});
+
 // TODO:
 // Somewhat annoyed. This isn't going to cut it and I don't know if parsing messages
 // this way will make sense in the long run.
@@ -214,6 +247,7 @@ export const RoomMessage = Type.Composite([
         NoticeMessageContent,
         ImageMessageContent,
         VideoMessageContent,
+        AudioMessageContent,
       ])
     ),
     type: Type.Literal('m.room.message'),
