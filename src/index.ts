@@ -51,6 +51,10 @@ export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 export * from './Protection/ProtectionsConfig/MjolnirProtectionsConfig';
 export * from './Protection/ProtectionsConfig/ProtectionsConfig';
 
+export * from './Protection/ProtectionSettings/ProtectionSetting';
+export * from './Protection/ProtectionSettings/ProtectionSettings';
+export * from './Protection/ProtectionSettings/SafeIntegerProtectionSetting';
+
 export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/StandardProtections/ServerBanSynchronisation';
 
@@ -59,8 +63,6 @@ export * from './Protection/Consequence';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/ProtectedRoomsSet';
 export * from './Protection/Protection';
-export * from './Protection/ProtectionSetting';
-export * from './Protection/ProtectionSettings';
 
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/MembershipChange';

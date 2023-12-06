@@ -25,30 +25,11 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { ActionError, ActionResult, Ok } from '../Interface/Action';
-
-export interface ProtectionSetting<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
-> {
-  readonly key: keyof TSettings;
-  setValue(settings: TSettings, value: unknown): ActionResult<TSettings>;
-}
-
-export class AbstractProtectionSetting<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
-> {
-  protected constructor(public readonly key: keyof TSettings) {
-    // nothing to do.
-  }
-  public setParsedValue(
-    settings: TSettings,
-    value: TSettings[keyof TSettings]
-  ) {
-    const clone = structuredClone(settings);
-    clone[this.key] = value;
-    return Ok(clone);
-  }
-}
+import { ActionError, ActionResult } from '../../Interface/Action';
+import {
+  AbstractProtectionSetting,
+  ProtectionSetting,
+} from './ProtectionSetting';
 
 export class SafeIntegerProtectionSetting<
     TSettings extends Record<string, number> = Record<string, number>

@@ -38,11 +38,11 @@ import {
 } from '../StateTracking/StateRevisionIssuer';
 import { ConsequenceProvider } from './Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
-import { ProtectionSetting } from './ProtectionSetting';
+import { ProtectionSetting } from './ProtectionSettings/ProtectionSetting';
 import {
   ProtectionSettings,
   StandardProtectionSettings,
-} from './ProtectionSettings';
+} from './ProtectionSettings/ProtectionSettings';
 
 /**
  * The typical constructor for a protection.

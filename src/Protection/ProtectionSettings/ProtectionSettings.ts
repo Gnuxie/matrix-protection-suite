@@ -25,7 +25,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { ActionError, ActionResult, Ok, isError } from '../Interface/Action';
+import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { ProtectionSetting } from './ProtectionSetting';
 
 export interface ProtectionSettings<
