@@ -26,10 +26,10 @@ limitations under the License.
  */
 
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
-import { ProtectionSetting } from './ProtectionSetting';
+import { ProtectionSetting, UnknownSettings } from './ProtectionSetting';
 
 export interface ProtectionSettings<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  TSettings extends UnknownSettings<string> = UnknownSettings<string>
 > {
   defaultSettings: TSettings;
   setValue(
@@ -42,13 +42,13 @@ export interface ProtectionSettings<
 }
 
 export class StandardProtectionSettings<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  TSettings extends UnknownSettings<string> = UnknownSettings<string>
 > implements ProtectionSettings<TSettings>
 {
   public constructor(
     public readonly settingDescriptions: Record<
       keyof TSettings,
-      ProtectionSetting<TSettings>
+      ProtectionSetting<string, TSettings>
     >,
     public readonly defaultSettings: TSettings
   ) {

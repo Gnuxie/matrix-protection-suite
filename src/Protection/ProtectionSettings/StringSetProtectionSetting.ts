@@ -35,12 +35,13 @@ type StringArray = DecodeType<typeof StringArray>;
 const StringArray = Type.Array(Type.String());
 
 export class StringSetProtectionSetting<
-    TSettings extends Record<string, Set<string>>
+    Key extends string,
+    TSettings extends Record<string | Key, unknown> & Record<Key, Set<string>>
   >
-  extends SetProtectionSetting<TSettings>
-  implements CollectionProtectionSetting<TSettings>
+  extends SetProtectionSetting<Key, TSettings>
+  implements CollectionProtectionSetting<Key, TSettings>
 {
-  public constructor(key: string) {
+  public constructor(key: Key) {
     super(key);
   }
   addItem(settings: TSettings, value: unknown): ActionResult<TSettings> {

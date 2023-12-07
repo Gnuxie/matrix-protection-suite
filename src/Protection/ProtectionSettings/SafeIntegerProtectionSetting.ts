@@ -29,16 +29,18 @@ import { ActionError, ActionResult } from '../../Interface/Action';
 import {
   AbstractProtectionSetting,
   ProtectionSetting,
+  UnknownSettings,
 } from './ProtectionSetting';
 
 export class SafeIntegerProtectionSetting<
-    TSettings extends Record<string, number> = Record<string, number>
+    Key extends string,
+    TSettings extends UnknownSettings<Key> & Record<Key, number>
   >
-  extends AbstractProtectionSetting<TSettings>
-  implements ProtectionSetting<TSettings>
+  extends AbstractProtectionSetting<Key, TSettings>
+  implements ProtectionSetting<Key, TSettings>
 {
   public constructor(
-    key: keyof TSettings,
+    key: Key,
     public readonly min?: number,
     public readonly max?: number
   ) {
@@ -68,7 +70,7 @@ export class SafeIntegerProtectionSetting<
         )} is greater than the maximum ${this.max}`
       );
     } else {
-      return this.setParsedValue(settings, value as TSettings[keyof TSettings]);
+      return this.setParsedValue(settings, value as TSettings[Key]);
     }
   }
 

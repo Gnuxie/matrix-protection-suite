@@ -209,7 +209,7 @@ export function describeProtection<
   description,
   factory,
   protectionSettings = new StandardProtectionSettings<TSettings>(
-    {} as Record<keyof TSettings, ProtectionSetting<TSettings>>,
+    {} as Record<keyof TSettings, ProtectionSetting<string, TSettings>>,
     {} as TSettings
   ),
 }: {

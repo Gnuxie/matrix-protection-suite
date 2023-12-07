@@ -27,24 +27,25 @@ limitations under the License.
 
 import { ActionResult, Ok } from '../../Interface/Action';
 
+export type UnknownSettings<Key extends string> = Record<string | Key, unknown>;
+
 export interface ProtectionSetting<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  Key extends string,
+  TSettings extends UnknownSettings<Key>
 > {
-  readonly key: keyof TSettings;
+  readonly key: Key;
   setValue(settings: TSettings, value: unknown): ActionResult<TSettings>;
   toJSON(settings: TSettings): unknown;
 }
 
 export class AbstractProtectionSetting<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  Key extends string,
+  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>
 > {
-  protected constructor(public readonly key: keyof TSettings) {
+  protected constructor(public readonly key: keyof TSettings & Key) {
     // nothing to do.
   }
-  public setParsedValue(
-    settings: TSettings,
-    value: TSettings[keyof TSettings]
-  ) {
+  public setParsedValue(settings: TSettings, value: TSettings[Key]) {
     const clone = structuredClone(settings);
     clone[this.key] = value;
     return Ok(clone);
@@ -52,8 +53,9 @@ export class AbstractProtectionSetting<
 }
 
 export interface CollectionProtectionSetting<
-  TSettings extends Record<string, unknown> = Record<string, unknown>
-> extends ProtectionSetting<TSettings> {
+  Key extends string,
+  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>
+> extends ProtectionSetting<Key, TSettings> {
   addItem(settings: TSettings, value: unknown): ActionResult<TSettings>;
   removeItem(settings: TSettings, value: unknown): ActionResult<TSettings>;
 }

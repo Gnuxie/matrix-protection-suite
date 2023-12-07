@@ -38,9 +38,10 @@ type StringUserIDArray = StaticDecode<typeof StringUserIDArray>;
 const StringUserIDArray = Type.Array(StringUserID);
 
 export class StringUserIDSetProtectionSettings<
-  TSettings extends Record<string, Set<StringUserID>>
-> extends SetProtectionSetting<TSettings> {
-  public constructor(key: string) {
+  Key extends string,
+  TSettings extends Record<string, unknown> & Record<Key, Set<StringUserID>>
+> extends SetProtectionSetting<Key, TSettings> {
+  public constructor(key: Key) {
     super(key);
   }
 
