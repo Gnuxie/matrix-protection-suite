@@ -28,7 +28,10 @@ limitations under the License.
 import { StaticDecode } from '@sinclair/typebox';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
+import {
+  StringEventID,
+  StringUserID,
+} from '../MatrixTypes/StringlyTypedMatrix';
 import { MembershipChange } from './MembershipChange';
 
 /**
@@ -69,4 +72,5 @@ export interface RoomMembershipRevision extends MembershipRevision {
   ): MembershipChange[];
   hasEvent(eventID: StringEventID): boolean;
   members(): IterableIterator<MembershipChange>;
+  membershipForUser(userID: StringUserID): MembershipChange | undefined;
 }
