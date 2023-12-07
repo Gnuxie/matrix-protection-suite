@@ -1,7 +1,16 @@
+import { Task } from '../Interface/Task';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
+import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
+import { RevisionListener } from '../PolicyList/PolicyListRevisionIssuer';
+import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { EventReport } from '../Reporting/EventReport';
-import { SetMembership } from '../StateTracking/SetMembership';
+import { MembershipChange } from '../StateTracking/MembershipChange';
+import { RoomMembershipRevision } from '../StateTracking/MembershipRevision';
+import {
+  SetMembership,
+  SetMembershipListener,
+} from '../StateTracking/SetMembership';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
 import { ProtectionsConfig } from './ProtectionsConfig/ProtectionsConfig';
@@ -18,6 +27,11 @@ export interface ProtectedRoomsSet {
 }
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
+  private readonly membershipChangeListener: SetMembershipListener =
+    this.setMembershipChangeListener.bind(this);
+  private readonly policyChangeListener: RevisionListener =
+    this.policyRevisionChangeListener.bind(this);
+
   constructor(
     public readonly issuerManager: PolicyListConfig,
     public readonly protectedRoomsConfig: ProtectedRoomsConfig,
@@ -25,9 +39,13 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     public readonly setMembership: SetMembership,
     public readonly userID: StringUserID
   ) {
-    // nothing to do.
+    setMembership.on('membership', this.membershipChangeListener);
+    issuerManager.policyListRevisionIssuer.on(
+      'revision',
+      this.policyChangeListener
+    );
   }
-  public handleTimelineEvent(_roomID: StringRoomID, _event: RoomEvent): void {
+  public handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void {
     // this should only be responsible for passing through to protections.
     // The RoomMembershipManage (and its dependants)
     // The PolicyListManager (and its dependents)
@@ -37,14 +55,57 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     // The only slightly dodgy thing about that is the PolicyListManager
     // can depend on the RoomStateManager but i don't suppose it'll matter
     // they both are programmed to de-duplicate repeat events.
-    throw new TypeError('unimplemented.');
+    const room = this.protectedRoomsConfig.getProtectedRoom(roomID);
+    if (room === undefined) {
+      throw new TypeError(
+        `The protected rooms set should not be being informed about events that it is not protecting`
+      );
+    }
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleTimelineEvent === undefined) {
+        continue;
+      }
+      Task(protection.handleTimelineEvent(room, event));
+    }
   }
 
-  public handleEventReport(_report: EventReport): void {
-    throw new TypeError('unimplemented.');
+  public handleEventReport(report: EventReport): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleEventReport === undefined) {
+        continue;
+      }
+      Task(protection.handleEventReport(report));
+    }
   }
 
   public isProtectedRoom(roomID: StringRoomID): boolean {
     return this.protectedRoomsConfig.isProtectedRoom(roomID);
+  }
+
+  private setMembershipChangeListener(
+    _roomID: StringRoomID,
+    nextRevision: RoomMembershipRevision,
+    changes: MembershipChange[],
+    _previousRevision: RoomMembershipRevision
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleMembershipChange === undefined) {
+        continue;
+      }
+      Task(protection.handleMembershipChange(nextRevision, changes));
+    }
+  }
+
+  private policyRevisionChangeListener(
+    nextRevision: PolicyListRevision,
+    changes: PolicyRuleChange[],
+    _previousRevision: PolicyListRevision
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handlePolicyChange === undefined) {
+        continue;
+      }
+      Task(protection.handlePolicyChange(nextRevision, changes));
+    }
   }
 }

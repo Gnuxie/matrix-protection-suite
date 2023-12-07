@@ -46,6 +46,7 @@ export type ProtectedRoomsChangeListener = (
 export interface ProtectedRoomsConfig {
   readonly allRooms: MatrixRoomID[];
   isProtectedRoom(roomID: StringRoomID): boolean;
+  getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined;
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   on(event: 'change', listener: ProtectedRoomsChangeListener): this;
@@ -83,6 +84,9 @@ export class MjolnirProtectedRoomsConfig
       protectedRooms.set(ref.toRoomIDOrAlias(), ref);
     }
     return Ok(new MjolnirProtectedRoomsConfig(store, protectedRooms));
+  }
+  public getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined {
+    return this.protectedRooms.get(roomID);
   }
   public get allRooms() {
     return [...this.protectedRooms.values()];
