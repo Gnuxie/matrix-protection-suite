@@ -1,6 +1,6 @@
 {
   "name": "matrix-protection-suite",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "main": "dist/index.min.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
