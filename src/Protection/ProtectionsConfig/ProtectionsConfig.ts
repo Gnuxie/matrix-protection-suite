@@ -29,6 +29,7 @@ import { ActionError, ActionResult } from '../../Interface/Action';
 import { ConsequenceProviderDescription } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
+import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 
 /**
  * The idea needs to be that protections are defined using a state event
@@ -75,4 +76,36 @@ export interface ProtectionsConfig<Context = unknown> {
     context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<ActionResult<void>>;
+
+  /**
+   * Change the protection settings.
+   * If the protection is currently enabled, then the protection will be stopped,
+   * removed recreated from the description and restarted.
+   * @param protectionDescription The protection whose settings need to change.
+   * @param settings The parsed settings for the protection. If these are wrong,
+   * then this method will fail.
+   */
+  changeProtectionSettings<
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
+    TProtectionDescription extends ProtectionDescription<
+      Context,
+      TSettings
+    > = ProtectionDescription<Context, TSettings>
+  >(
+    protectionDescription: TProtectionDescription,
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
+    settings: TSettings
+  ): Promise<ActionResult<void>>;
+
+  /**
+   * Return the consequence provider description that has been set for a protection.
+   * @param protectionDescription The protection description to find the configured
+   * consequence provider description for.
+   */
+  getConsequenceProviderDescriptionForProtection<
+    TProtectionDescription extends ProtectionDescription = ProtectionDescription
+  >(
+    protectionDescription: TProtectionDescription
+  ): Promise<ActionResult<ConsequenceProviderDescription>>;
 }

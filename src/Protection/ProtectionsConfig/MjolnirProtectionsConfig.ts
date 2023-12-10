@@ -47,6 +47,7 @@ import {
   findConsequenceProvider,
 } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
 // A boring way is by naming them like protections and just matching the provider name to the protection name.
@@ -104,6 +105,12 @@ export class MjolnirProtectionsConfig<Context = unknown>
     // nothing to do;
   }
 
+  private stopProtectionWithoutPersisting(
+    protectionDescription: ProtectionDescription
+  ): void {
+    this.enabledProtections.delete(protectionDescription.name);
+  }
+
   public async addProtection(
     protectionDescription: ProtectionDescription,
     consequenceProvider: ConsequenceProviderDescription,
@@ -127,7 +134,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
   public async removeProtection(
     protection: ProtectionDescription
   ): Promise<ActionResult<void>> {
-    this.enabledProtections.delete(protection.name);
+    this.stopProtectionWithoutPersisting(protection);
     const storeResult = await this.enabledProtectionsStore.storeAccountData({
       enabled: [...this.enabledProtections.keys()],
     });
@@ -170,12 +177,6 @@ export class MjolnirProtectionsConfig<Context = unknown>
     if (this.enabledProtections.size > 0) {
       throw new TypeError('This can only be used at startup');
     }
-    const defaultConsequenceProvider = findConsequenceProvider(
-      DEFAULT_CONSEQUENCE_PROVIDER
-    );
-    if (defaultConsequenceProvider === undefined) {
-      throw new TypeError(`Cannot find the ${DEFAULT_CONSEQUENCE_PROVIDER}`);
-    }
     const enabledProtectionsResult =
       await this.enabledProtectionsStore.requestAccountData();
     if (isError(enabledProtectionsResult)) {
@@ -191,9 +192,21 @@ export class MjolnirProtectionsConfig<Context = unknown>
         );
         continue;
       }
+      const consequenceProvider =
+        await this.getConsequenceProviderDescriptionForProtection(
+          protectionDescription
+        );
+      if (isError(consequenceProvider)) {
+        await protectionFailedToStart(
+          new ActionError(
+            `Couldn't find the consequence provider for ${protectionDescription.name}`
+          )
+        );
+        continue;
+      }
       const startResult = this.startProtection(
         protectionDescription,
-        defaultConsequenceProvider.factory(context),
+        consequenceProvider.ok.factory(context),
         protectedRoomsSet,
         context
       );
@@ -203,5 +216,72 @@ export class MjolnirProtectionsConfig<Context = unknown>
       }
     }
     return Ok(undefined);
+  }
+
+  public async getConsequenceProviderDescriptionForProtection<
+    TProtectionDescription extends ProtectionDescription<Context> = ProtectionDescription<Context>
+  >(
+    _protectionDescription: TProtectionDescription
+  ): Promise<ActionResult<ConsequenceProviderDescription>> {
+    const defaultConsequenceProvider = findConsequenceProvider(
+      DEFAULT_CONSEQUENCE_PROVIDER
+    );
+    if (defaultConsequenceProvider === undefined) {
+      throw new TypeError(`Cannot find the ${DEFAULT_CONSEQUENCE_PROVIDER}`);
+    }
+    return Ok(defaultConsequenceProvider);
+  }
+
+  public async changeProtectionSettings<
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
+    TProtectionDescription extends ProtectionDescription<
+      Context,
+      TSettings
+    > = ProtectionDescription<Context, TSettings>
+  >(
+    protectionDescription: TProtectionDescription,
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
+    settings: TSettings
+  ): Promise<ActionResult<void>> {
+    const consequenceProviderDescription =
+      await this.getConsequenceProviderDescriptionForProtection(
+        protectionDescription as ProtectionDescription
+      );
+    if (isError(consequenceProviderDescription)) {
+      return consequenceProviderDescription.addContext(
+        `Couldn't find a consequence provider for the protection ${protectionDescription.name}`
+      );
+    }
+    const newProtection = protectionDescription.factory(
+      protectionDescription,
+      consequenceProviderDescription.ok.factory(
+        context
+      ) as BasicConsequenceProvider,
+      protectedRoomsSet,
+      context,
+      settings
+    );
+    if (isError(newProtection)) {
+      return newProtection.addContext(
+        `Couldn't create the protection from these settings, are they correct?`
+      );
+    }
+    const enabledProtection = this.enabledProtections.get(
+      protectionDescription.name
+    );
+    if (enabledProtection !== undefined) {
+      this.stopProtectionWithoutPersisting(
+        protectionDescription as ProtectionDescription
+      );
+      this.enabledProtections.set(
+        newProtection.ok.description.name,
+        newProtection.ok
+      );
+    }
+    return await this.protectionSettingsStore.storeStateContent(
+      protectionDescription.name,
+      protectionDescription.protectionSettings.toJSON(settings)
+    );
   }
 }

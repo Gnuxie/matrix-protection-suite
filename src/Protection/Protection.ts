@@ -42,7 +42,10 @@ import {
   ConsequenceProvider,
 } from './Consequence/Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
-import { ProtectionSetting } from './ProtectionSettings/ProtectionSetting';
+import {
+  ProtectionSetting,
+  UnknownSettings,
+} from './ProtectionSettings/ProtectionSetting';
 import {
   ProtectionSettings,
   StandardProtectionSettings,
@@ -104,7 +107,7 @@ export type ProtectionFactoryMethod<
  */
 export interface ProtectionDescription<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  TSettings extends UnknownSettings<string> = UnknownSettings<string>,
   ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
 > {
   readonly name: string;

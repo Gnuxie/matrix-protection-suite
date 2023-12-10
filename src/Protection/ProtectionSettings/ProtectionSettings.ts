@@ -39,6 +39,7 @@ export interface ProtectionSettings<
   ): ActionResult<TSettings>;
 
   parseSettings(settings: unknown): ActionResult<TSettings>;
+  toJSON(settings: TSettings): Record<string, unknown>;
 }
 
 export class StandardProtectionSettings<
@@ -88,5 +89,12 @@ export class StandardProtectionSettings<
       }
     }
     return Ok(parsedSettings);
+  }
+
+  toJSON(settings: TSettings): Record<string, unknown> {
+    return Object.entries(this.settingDescriptions).reduce(
+      (acc, [key, setting]) => ({ [key]: setting.toJSON(settings), ...acc }),
+      {}
+    );
   }
 }
