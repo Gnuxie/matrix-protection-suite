@@ -32,6 +32,7 @@ export interface ProtectionSettings<
   TSettings extends UnknownSettings<string> = UnknownSettings<string>
 > {
   defaultSettings: TSettings;
+  descriptions: Record<keyof TSettings, ProtectionSetting<string, TSettings>>;
   setValue(
     settings: TSettings,
     key: keyof TSettings,
@@ -47,7 +48,7 @@ export class StandardProtectionSettings<
 > implements ProtectionSettings<TSettings>
 {
   public constructor(
-    public readonly settingDescriptions: Record<
+    public readonly descriptions: Record<
       keyof TSettings,
       ProtectionSetting<string, TSettings>
     >,
@@ -61,7 +62,7 @@ export class StandardProtectionSettings<
     key: keyof TSettings,
     value: unknown
   ): ActionResult<TSettings> {
-    const protectionSetting = this.settingDescriptions[key];
+    const protectionSetting = this.descriptions[key];
     if (protectionSetting === undefined) {
       return ActionError.Result(
         `There is no setting available to set with the key ${String(key)}`
@@ -75,7 +76,7 @@ export class StandardProtectionSettings<
       return ActionError.Result(`The settings are corrupted.`);
     }
     let parsedSettings = this.defaultSettings;
-    for (const setting of Object.values(this.settingDescriptions)) {
+    for (const setting of Object.values(this.descriptions)) {
       if (setting.key in settings) {
         const result = setting.setValue(
           parsedSettings,
@@ -92,7 +93,7 @@ export class StandardProtectionSettings<
   }
 
   toJSON(settings: TSettings): Record<string, unknown> {
-    return Object.entries(this.settingDescriptions).reduce(
+    return Object.entries(this.descriptions).reduce(
       (acc, [key, setting]) => ({ [key]: setting.toJSON(settings), ...acc }),
       {}
     );
