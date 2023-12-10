@@ -36,6 +36,7 @@ export interface ProtectionSetting<
   readonly key: Key;
   setValue(settings: TSettings, value: unknown): ActionResult<TSettings>;
   toJSON(settings: TSettings): unknown;
+  isCollectionSetting(): this is CollectionProtectionSetting<Key, TSettings>;
 }
 
 export class AbstractProtectionSetting<
@@ -49,6 +50,9 @@ export class AbstractProtectionSetting<
     const clone = structuredClone(settings);
     clone[this.key] = value;
     return Ok(clone);
+  }
+  public isCollectionSetting() {
+    return false;
   }
 }
 

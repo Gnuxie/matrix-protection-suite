@@ -284,4 +284,28 @@ export class MjolnirProtectionsConfig<Context = unknown>
       protectionDescription.protectionSettings.toJSON(settings)
     );
   }
+
+  public async getProtectionSettings<
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>
+  >(
+    protectionDescription: ProtectionDescription<Context, TSettings>
+  ): Promise<ActionResult<TSettings>> {
+    const rawSettings = this.protectionSettingsStore.requestStateContent(
+      protectionDescription.name
+    );
+    const parsedSettings =
+      protectionDescription.protectionSettings.parseSettings(rawSettings);
+    if (isError(parsedSettings)) {
+      return parsedSettings.addContext(
+        `The protection settings currently stored for the protection named ${protectionDescription.name} are invalid.`
+      );
+    }
+    return Ok(parsedSettings.ok);
+  }
+
+  public isEnabledProtection(
+    protectionDescription: ProtectionDescription
+  ): boolean {
+    return this.enabledProtections.has(protectionDescription.name);
+  }
 }

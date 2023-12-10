@@ -108,4 +108,12 @@ export interface ProtectionsConfig<Context = unknown> {
   >(
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<ConsequenceProviderDescription>>;
+
+  getProtectionSettings<
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>
+  >(
+    protectionDescription: ProtectionDescription<Context, TSettings>
+  ): Promise<ActionResult<TSettings>>;
+
+  isEnabledProtection(protectionDescription: ProtectionDescription): boolean;
 }
