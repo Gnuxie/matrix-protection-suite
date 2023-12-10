@@ -38,7 +38,7 @@ import {
 } from '../../StateTracking/StateRevisionIssuer';
 import { TrackedStateEvent } from '../../StateTracking/StateTrackingMeta';
 import AccessControl from '../AccessControl';
-import { ConsequenceProvider } from '../Consequence';
+import { BasicConsequenceProvider } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import {
   AbstractProtection,
@@ -54,7 +54,7 @@ export class ServerBanSynchronisation
   private readonly serverName: string;
   constructor(
     description: ProtectionDescription,
-    consequenceProvider: ConsequenceProvider,
+    consequenceProvider: BasicConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
     super(

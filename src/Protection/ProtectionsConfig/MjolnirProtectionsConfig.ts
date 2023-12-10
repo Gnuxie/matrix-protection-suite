@@ -39,7 +39,13 @@ import {
   MatrixAccountData,
   MatrixStateData,
 } from '../../Interface/PersistentMatrixData';
-import { ConsequenceProvider } from '../Consequence';
+import {
+  BasicConsequenceProvider,
+  ConsequenceProvider,
+  ConsequenceProviderDescription,
+  DEFAULT_CONSEQUENCE_PROVIDER,
+  findConsequenceProvider,
+} from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
@@ -78,8 +84,6 @@ export const MjolnirProtectionSettingsEvent = Type.Composite([
   }),
 ]);
 
-// FIXME: Informing the protections should happen within the set, not here.
-
 type ProtectionFailedToStartCB = (
   Error: ActionError,
   ProtectionDescription?: ProtectionDescription
@@ -102,13 +106,13 @@ export class MjolnirProtectionsConfig<Context = unknown>
 
   public async addProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProvider: ConsequenceProvider,
+    consequenceProvider: ConsequenceProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>> {
     const startResult = this.startProtection(
       protectionDescription,
-      consequenceProvider,
+      consequenceProvider.factory(context),
       protectedRoomsSet,
       context
     );
@@ -145,7 +149,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
     );
     const protectionResult = protectionDescription.factory(
       protectionDescription,
-      consequenceProvider,
+      consequenceProvider as BasicConsequenceProvider,
       protectedRoomsSet,
       context,
       settings ?? protectionDescription.protectionSettings.defaultSettings
@@ -159,13 +163,18 @@ export class MjolnirProtectionsConfig<Context = unknown>
   }
 
   public async loadProtections(
-    consequenceProvider: ConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<ActionResult<void>> {
     if (this.enabledProtections.size > 0) {
       throw new TypeError('This can only be used at startup');
+    }
+    const defaultConsequenceProvider = findConsequenceProvider(
+      DEFAULT_CONSEQUENCE_PROVIDER
+    );
+    if (defaultConsequenceProvider === undefined) {
+      throw new TypeError(`Cannot find the ${DEFAULT_CONSEQUENCE_PROVIDER}`);
     }
     const enabledProtectionsResult =
       await this.enabledProtectionsStore.requestAccountData();
@@ -184,7 +193,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
       }
       const startResult = this.startProtection(
         protectionDescription,
-        consequenceProvider,
+        defaultConsequenceProvider.factory(context),
         protectedRoomsSet,
         context
       );

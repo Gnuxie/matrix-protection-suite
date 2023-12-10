@@ -37,7 +37,10 @@ import {
   RoomStateRevision,
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
-import { ConsequenceProvider } from './Consequence';
+import {
+  BasicConsequenceProvider,
+  ConsequenceProvider,
+} from './Consequence/Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
 import { ProtectionSetting } from './ProtectionSettings/ProtectionSetting';
 import {
@@ -66,7 +69,7 @@ export interface ProtectionConstructor<
    */
   new (
     description: ProtectionDescription,
-    consequenceProvider: ConsequenceProvider,
+    consequenceProvider: BasicConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     options: TSettings
@@ -85,10 +88,11 @@ export interface ProtectionConstructor<
  */
 export type ProtectionFactoryMethod<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
 > = (
   description: ProtectionDescription<Context, TSettings>,
-  consequenceProvider: ConsequenceProvider,
+  consequenceProvider: ConsequenceProviderInterface,
   protectedRoomsSet: ProtectedRoomsSet,
   context: Context,
   settings: TSettings
@@ -100,11 +104,16 @@ export type ProtectionFactoryMethod<
  */
 export interface ProtectionDescription<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
 > {
   readonly name: string;
   readonly description: string;
-  readonly factory: ProtectionFactoryMethod<Context, TSettings>;
+  readonly factory: ProtectionFactoryMethod<
+    Context,
+    TSettings,
+    ConsequenceProviderInterface
+  >;
   readonly protectionSettings: ProtectionSettings<TSettings>;
 }
 
@@ -155,7 +164,7 @@ export interface Protection {
 export class AbstractProtection implements Protection {
   protected constructor(
     public readonly description: ProtectionDescription,
-    protected readonly consequenceProvider: ConsequenceProvider,
+    protected readonly consequenceProvider: BasicConsequenceProvider,
     protected readonly protectedRoomsSet: ProtectedRoomsSet,
     private readonly clientEventPermissions: string[],
     private readonly clientPermissions: string[]
@@ -182,8 +191,15 @@ const PROTECTIONS = new Map<string, ProtectionDescription>();
 
 export function registerProtection<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>
->(description: ProtectionDescription<Context, TSettings>): void {
+  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
+>(
+  description: ProtectionDescription<
+    Context,
+    TSettings,
+    ConsequenceProviderInterface
+  >
+): void {
   if (PROTECTIONS.has(description.name)) {
     throw new TypeError(
       `There is already a protection registered with the name ${description.name}`
@@ -191,7 +207,11 @@ export function registerProtection<
   }
   PROTECTIONS.set(
     description.name,
-    description as ProtectionDescription<unknown>
+    description as ProtectionDescription<
+      unknown,
+      Record<string, unknown>,
+      ConsequenceProvider
+    >
   );
 }
 
@@ -203,7 +223,8 @@ export function findProtection(
 
 export function describeProtection<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
 >({
   name,
   description,
@@ -215,7 +236,11 @@ export function describeProtection<
 }: {
   name: string;
   description: string;
-  factory: ProtectionDescription<Context, TSettings>['factory'];
+  factory: ProtectionDescription<
+    Context,
+    TSettings,
+    ConsequenceProviderInterface
+  >['factory'];
   protectionSettings?: ProtectionSettings<TSettings>;
 }) {
   registerProtection({

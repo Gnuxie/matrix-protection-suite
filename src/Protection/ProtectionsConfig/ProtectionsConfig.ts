@@ -26,7 +26,7 @@ limitations under the License.
  */
 
 import { ActionError, ActionResult } from '../../Interface/Action';
-import { ConsequenceProvider } from '../Consequence';
+import { ConsequenceProviderDescription } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 
@@ -52,7 +52,7 @@ export interface ProtectionsConfig<Context = unknown> {
   readonly allProtections: Protection[];
   addProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProvider: ConsequenceProvider,
+    consequenceProviderDescription: ConsequenceProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>>;
@@ -71,7 +71,6 @@ export interface ProtectionsConfig<Context = unknown> {
    * @param protectionFailedToStart A callback to be called should one of the protections fail to start.
    */
   loadProtections(
-    consequenceProvider: ConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB

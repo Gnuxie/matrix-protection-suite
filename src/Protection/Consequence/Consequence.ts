@@ -25,40 +25,19 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { ActionResult } from '../Interface/Action';
-import { ServerACLContent } from '../MatrixTypes/ServerACL';
+import { ActionResult } from '../../Interface/Action';
+import { ServerACLContent } from '../../MatrixTypes/ServerACL';
 import {
   StringEventID,
   StringRoomID,
   StringUserID,
-} from '../MatrixTypes/StringlyTypedMatrix';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { SetMembership } from '../StateTracking/SetMembership';
-import { ProtectedRoomsSet } from './ProtectedRoomsSet';
-import { ProtectionDescription } from './Protection';
+} from '../../MatrixTypes/StringlyTypedMatrix';
+import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
+import { SetMembership } from '../../StateTracking/SetMembership';
+import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+import { ProtectionDescription } from '../Protection';
 
-export enum StandardConsequence {
-  /**
-   * Request a ban after detected abuse.
-   */
-  Ban = 'ban',
-  /**
-   * Request a kick after detected abuse.
-   */
-  Kick = 'kick',
-  /**
-   * Request a message redaction after detected abuse.
-   */
-  Redact = 'redact',
-  /**
-   * Request an alert to be created after detected abuse.
-   */
-  Alert = 'alert',
-  /**
-   * Another consequence.
-   */
-  Custom = 'Custom',
-}
+export const DEFAULT_CONSEQUENCE_PROVIDER = 'DefaultConsequenceProvider';
 
 export type ProtectionDescriptionInfo = Pick<
   ProtectionDescription,
@@ -66,9 +45,72 @@ export type ProtectionDescriptionInfo = Pick<
 >;
 
 /**
+ * We don't want to give protections access to the consequence provider
+ * description, just in case they do something silly.
+ */
+export interface ConsequenceProviderDescription<Context = unknown> {
+  /** Used by the user to identify the description */
+  name: string;
+  description: string;
+  /** These aren't checked, just a way of tagging the provider. */
+  interfaces: string[];
+  /** Returns an instance of the provider. */
+  factory(context: Context): ConsequenceProvider;
+}
+
+export interface ConsequenceProvider {
+  readonly requiredPermissions: string[];
+  readonly requiredEventPermissions: string[];
+}
+
+const PROVIDER_DESCRIPTIONS = new Map<string, ConsequenceProviderDescription>();
+
+export function registerConsequenceProvider(
+  description: ConsequenceProviderDescription
+): void {
+  if (PROVIDER_DESCRIPTIONS.has(description.name)) {
+    throw new TypeError(
+      `There is already a consequence provider named ${description.name}`
+    );
+  }
+  PROVIDER_DESCRIPTIONS.set(description.name, description);
+}
+
+export function findConsequenceProvider<Context = unknown>(
+  name: string
+): ConsequenceProviderDescription<Context> | undefined {
+  return PROVIDER_DESCRIPTIONS.get(name);
+}
+
+export function describeConsequenceProvider<Context = unknown>({
+  name,
+  description,
+  interfaces = [],
+  factory,
+}: {
+  name: string;
+  description: string;
+  interfaces?: string[];
+  factory(context: Context): ConsequenceProvider;
+}): void {
+  registerConsequenceProvider({
+    name,
+    description,
+    interfaces,
+    factory,
+  });
+}
+
+/**
+ * We are string to draft out the consequence provider detail that will
+ * put names to providers and then we can implement the draupnir
+ * commands for adding configs with a little more ease.
+ */
+
+/**
  * This has to be provided to all protections, they can't configure it themselves.
  */
-export interface ConsequenceProvider {
+export interface BasicConsequenceProvider extends ConsequenceProvider {
   consequenceForUserInRoom(
     protectionDescription: ProtectionDescriptionInfo,
     roomID: StringRoomID,
@@ -112,6 +154,4 @@ export interface ConsequenceProvider {
     userID: StringUserID,
     set: ProtectedRoomsSet
   ): Promise<ActionResult<void>>;
-  readonly requiredPermissions: string[];
-  readonly requiredEventPermissions: string[];
 }

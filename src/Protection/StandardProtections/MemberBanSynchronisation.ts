@@ -28,7 +28,10 @@ limitations under the License.
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
-import { ConsequenceProvider, ProtectionDescriptionInfo } from '../Consequence';
+import {
+  BasicConsequenceProvider,
+  ProtectionDescriptionInfo,
+} from '../Consequence/Consequence';
 import {
   AbstractProtection,
   Protection,
@@ -57,7 +60,7 @@ class MemberBanSynchronisationProtection
 {
   constructor(
     description: ProtectionDescription,
-    consequenceProvider: ConsequenceProvider,
+    consequenceProvider: BasicConsequenceProvider,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
     super(description, consequenceProvider, protectedRoomsSet, [], []);
@@ -166,7 +169,7 @@ export async function applyPolicyRevisionToSetMembership(
   description: ProtectionDescriptionInfo,
   revision: PolicyListRevision,
   setMembership: SetMembership,
-  consequenceProviderCB: ConsequenceProvider['consequenceForUserInRoom']
+  consequenceProviderCB: BasicConsequenceProvider['consequenceForUserInRoom']
 ): Promise<SetMemberBanResultMap> {
   const setMembershipBanResultMap: SetMemberBanResultMap = new Map();
   for (const membershipRevision of setMembership.allRooms) {
