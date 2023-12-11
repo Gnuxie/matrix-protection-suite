@@ -253,3 +253,7 @@ export function describeProtection<
     protectionSettings,
   });
 }
+
+export function getAllProtections(): IterableIterator<ProtectionDescription> {
+  return PROTECTIONS.values();
+}
