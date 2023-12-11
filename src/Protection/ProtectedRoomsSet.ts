@@ -11,6 +11,14 @@ import {
   SetMembership,
   SetMembershipListener,
 } from '../StateTracking/SetMembership';
+import {
+  SetRoomState,
+  SetRoomStateListener,
+} from '../StateTracking/SetRoomState';
+import {
+  RoomStateRevision,
+  StateChange,
+} from '../StateTracking/StateRevisionIssuer';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
 import { ProtectionsConfig } from './ProtectionsConfig/ProtectionsConfig';
@@ -20,6 +28,7 @@ export interface ProtectedRoomsSet {
   readonly protectedRoomsConfig: ProtectedRoomsConfig;
   readonly protections: ProtectionsConfig;
   readonly setMembership: SetMembership;
+  readonly setRoomState: SetRoomState;
   readonly userID: StringUserID;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
@@ -31,15 +40,19 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.setMembershipChangeListener.bind(this);
   private readonly policyChangeListener: RevisionListener =
     this.policyRevisionChangeListener.bind(this);
+  private readonly stateChangeListener: SetRoomStateListener =
+    this.stateRevisionChangeListener.bind(this);
 
   constructor(
     public readonly issuerManager: PolicyListConfig,
     public readonly protectedRoomsConfig: ProtectedRoomsConfig,
     public readonly protections: ProtectionsConfig,
     public readonly setMembership: SetMembership,
+    public readonly setRoomState: SetRoomState,
     public readonly userID: StringUserID
   ) {
     setMembership.on('membership', this.membershipChangeListener);
+    setRoomState.on('revision', this.stateChangeListener);
     issuerManager.policyListRevisionIssuer.on(
       'revision',
       this.policyChangeListener
@@ -106,6 +119,20 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         continue;
       }
       Task(protection.handlePolicyChange(nextRevision, changes));
+    }
+  }
+
+  private stateRevisionChangeListener(
+    _roomID: StringRoomID,
+    nextRevision: RoomStateRevision,
+    changes: StateChange[],
+    _previousRevision: RoomStateRevision
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleStateChange === undefined) {
+        continue;
+      }
+      Task(protection.handleStateChange(nextRevision, changes));
     }
   }
 }
