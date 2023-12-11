@@ -3,19 +3,16 @@
  * All rights reserved.
  */
 
-import {
-  PolicyRuleEvent,
-  PolicyRuleType,
-} from '../../MatrixTypes/PolicyEvents';
-import { Value } from '../../Interface/Value';
 import { randomUUID } from 'crypto';
-import { Recommendation } from '../../PolicyList/PolicyRule';
-import { isError } from '../../Interface/Action';
-import { isStringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
+import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
+import { Recommendation } from '../PolicyList/PolicyRule';
+import { Value } from '../Interface/Value';
+import { isError } from '../Interface/Action';
 import {
   MatrixRoomID,
   MatrixRoomReference,
-} from '../../MatrixTypes/MatrixRoomReference';
+} from '../MatrixTypes/MatrixRoomReference';
+import { isStringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 
 export function randomRawEvent(sender: string, room_id: string): unknown {
   const rawEventJSON = {
@@ -25,8 +22,8 @@ export function randomRawEvent(sender: string, room_id: string): unknown {
     origin_server_ts: Date.now(),
     type: 'm.room.message',
     content: {
-      body: `${randomUUID}`,
-      type: 'm.text',
+      body: `${randomUUID()}`,
+      msgtype: 'm.text',
     },
   };
   return rawEventJSON;

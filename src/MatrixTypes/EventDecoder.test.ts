@@ -5,10 +5,7 @@
 
 import { isError, isOk } from '../Interface/Action';
 import { DecodeException } from '../Interface/Value';
-import {
-  randomRawEvent,
-  randomRoomID,
-} from '../__tests__/util/EventGeneration';
+import { randomRawEvent, randomRoomID } from '../TestUtilities/EventGeneration';
 import { DefaultEventDecoder } from './EventDecoder';
 
 test('Raw events are parsed correctly', function () {

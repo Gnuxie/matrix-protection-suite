@@ -8,9 +8,9 @@ import {
 import { Set as PersistentSet } from 'immutable';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import {
-  randomRoomID,
   randomPolicyRuleEvent,
-} from '../__tests__/util/EventGeneration';
+  randomRoomID,
+} from '../TestUtilities/EventGeneration';
 
 function testingTrackingMeta(): StateTrackingMeta {
   return new StandardStateTrackingMeta(PersistentSet(), PersistentSet());
