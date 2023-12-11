@@ -56,7 +56,7 @@ export interface EntityAccess {
 /**
  * This allows us to work out the access an entity has to some thing based on a set of watched/unwatched lists.
  */
-export default class AccessControl {
+export class AccessControl {
   /**
    * Test whether the server is allowed by the ACL unit.
    * @param domain The server name to test.

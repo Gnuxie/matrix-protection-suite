@@ -47,7 +47,7 @@ import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
-import AccessControl, { Access } from '../AccessControl';
+import { Access, AccessControl } from '../AccessControl';
 import {
   StringRoomID,
   StringUserID,

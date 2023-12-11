@@ -37,7 +37,7 @@ import {
   StateChange,
 } from '../../StateTracking/StateRevisionIssuer';
 import { TrackedStateEvent } from '../../StateTracking/StateTrackingMeta';
-import AccessControl from '../AccessControl';
+import { AccessControl } from '../AccessControl';
 import { BasicConsequenceProvider } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import {
