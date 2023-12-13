@@ -3,6 +3,7 @@
  * All rights reserved.
  */
 
+import EventEmitter from 'events';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
@@ -10,7 +11,13 @@ import { ProtectedRoomsSet } from '../Protection/ProtectedRoomsSet';
 import { EventReport } from '../Reporting/EventReport';
 import { RoomMembershipManager } from '../StateTracking/RoomMembershipManager';
 import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
-import { JoinedRoomsRevision } from './JoinedRoomsRevision';
+import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
+
+export type UserRoomsRevisionListener = (
+  revision: JoinedRoomsRevision,
+  changes: JoinedRoomsChange,
+  previousRevision: JoinedRoomsRevision
+) => void;
 
 /**
  * This is a utility to aid clients using the protection suite.
@@ -19,8 +26,10 @@ import { JoinedRoomsRevision } from './JoinedRoomsRevision';
  * `UserRooms` of events. Everything else will be handled for them.
  * In other words `UserRooms` can be used to inform all protectedRoomSets,
  * and all room state manager deriratives of new events.
+ *
+ * Alternatively can be thought of as the "UserRoomsRevisionIssuer".
  */
-export interface UserRooms {
+export declare interface UserRooms {
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
   /**
@@ -35,9 +44,19 @@ export interface UserRooms {
   readonly roomMemberManager: RoomMembershipManager;
   readonly protectedRoomsSets: ProtectedRoomsSet[];
   readonly clientUserID: StringUserID;
+  readonly currentRevision: JoinedRoomsRevision;
+  on(event: 'revision', listener: UserRoomsRevisionListener): this;
+  off(...args: Parameters<UserRooms['on']>): this;
+  emit(
+    event: 'revision',
+    ...args: Parameters<UserRoomsRevisionListener>
+  ): boolean;
 }
 
-export abstract class AbstractUserRooms implements UserRooms {
+export abstract class AbstractUserRooms
+  extends EventEmitter
+  implements UserRooms
+{
   constructor(
     public readonly clientUserID: StringUserID,
     public readonly roomStateManager: RoomStateManager,
@@ -46,7 +65,11 @@ export abstract class AbstractUserRooms implements UserRooms {
     public readonly protectedRoomsSets: ProtectedRoomsSet[] = [],
     protected joinedRoomsRevision: JoinedRoomsRevision
   ) {
-    // nothing to do.
+    super();
+  }
+
+  public get currentRevision() {
+    return this.joinedRoomsRevision;
   }
 
   public isJoinedRoom(roomID: StringRoomID): boolean {

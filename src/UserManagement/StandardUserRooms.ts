@@ -87,10 +87,17 @@ export class StandardUserRooms extends AbstractUserRooms implements UserRooms {
         // We have to mark the room as joined before asking for the room state
         // otherwise appservices will not be able to find an intent to use
         // to fetch the sate with.
+        const previousRevision = this.joinedRoomsRevision;
         this.joinedRoomsRevision =
           this.joinedRoomsRevision.reviseFromJoinedRooms(joinedRooms);
         const changes =
           this.joinedRoomsRevision.changesFromJoinedRooms(joinedRooms);
+        this.emit(
+          'revision',
+          this.joinedRoomsRevision,
+          changes,
+          previousRevision
+        );
         for (const join of changes.joined) {
           const roomStateRevisionIssuer =
             await this.roomStateManager.getRoomStateRevisionIssuer(

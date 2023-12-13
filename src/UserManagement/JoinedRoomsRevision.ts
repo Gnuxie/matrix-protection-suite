@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
+import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { Set as PersistentSet } from 'immutable';
 
 export interface JoinedRoomsChange {
@@ -13,6 +13,7 @@ export interface JoinedRoomsChange {
 
 export interface JoinedRoomsRevision {
   readonly allJoinedRooms: StringRoomID[];
+  readonly clientUserID: StringUserID;
   isEmpty(): boolean;
   changesFromJoinedRooms(roomIDs: StringRoomID[]): JoinedRoomsChange;
   reviseFromJoinedRooms(roomIDs: StringRoomID[]): JoinedRoomsRevision;
@@ -21,6 +22,7 @@ export interface JoinedRoomsRevision {
 
 export class StandardJoinedRoomsRevision {
   private constructor(
+    public readonly clientUserID: StringUserID,
     private readonly joinedRooms: PersistentSet<StringRoomID>
   ) {
     // nothing to do.
@@ -49,10 +51,13 @@ export class StandardJoinedRoomsRevision {
   }
 
   public reviseFromJoinedRooms(roomIDs: StringRoomID[]): JoinedRoomsRevision {
-    return new StandardJoinedRoomsRevision(PersistentSet(roomIDs));
+    return new StandardJoinedRoomsRevision(
+      this.clientUserID,
+      PersistentSet(roomIDs)
+    );
   }
 
-  public static blankRevision(): JoinedRoomsRevision {
-    return new StandardJoinedRoomsRevision(PersistentSet());
+  public static blankRevision(clientUserID: StringUserID): JoinedRoomsRevision {
+    return new StandardJoinedRoomsRevision(clientUserID, PersistentSet());
   }
 }
