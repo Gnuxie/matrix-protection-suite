@@ -87,3 +87,8 @@ export * from './StateTracking/StandardSetMembershp';
 export * from './StateTracking/StandardSetRoomState';
 export * from './StateTracking/StateRevisionIssuer';
 export * from './StateTracking/StateTrackingMeta';
+
+export * from './UserManagement/JoinedRoomsRevision';
+export * from './UserManagement/RoomPauser';
+export * from './UserManagement/StandardUserRooms';
+export * from './UserManagement/UserRooms';
