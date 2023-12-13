@@ -13,7 +13,7 @@ import { RoomMembershipManager } from '../StateTracking/RoomMembershipManager';
 import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
 
-export type UserRoomsRevisionListener = (
+export type ClientRoomsRevisionListener = (
   revision: JoinedRoomsRevision,
   changes: JoinedRoomsChange,
   previousRevision: JoinedRoomsRevision
@@ -23,13 +23,13 @@ export type UserRoomsRevisionListener = (
  * This is a utility to aid clients using the protection suite.
  * The idea being that if they create this utility, then they
  * only need to be responsible for setting up and informing
- * `UserRooms` of events. Everything else will be handled for them.
- * In other words `UserRooms` can be used to inform all protectedRoomSets,
+ * `ClientRooms` of events. Everything else will be handled for them.
+ * In other words `ClientRooms` can be used to inform all protectedRoomSets,
  * and all room state manager deriratives of new events.
  *
- * Alternatively can be thought of as the "UserRoomsRevisionIssuer".
+ * Alternatively can be thought of as the "ClientRoomsRevisionIssuer".
  */
-export declare interface UserRooms {
+export declare interface ClientRooms {
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
   /**
@@ -45,17 +45,17 @@ export declare interface UserRooms {
   readonly protectedRoomsSets: ProtectedRoomsSet[];
   readonly clientUserID: StringUserID;
   readonly currentRevision: JoinedRoomsRevision;
-  on(event: 'revision', listener: UserRoomsRevisionListener): this;
-  off(...args: Parameters<UserRooms['on']>): this;
+  on(event: 'revision', listener: ClientRoomsRevisionListener): this;
+  off(...args: Parameters<ClientRooms['on']>): this;
   emit(
     event: 'revision',
-    ...args: Parameters<UserRoomsRevisionListener>
+    ...args: Parameters<ClientRoomsRevisionListener>
   ): boolean;
 }
 
-export abstract class AbstractUserRooms
+export abstract class AbstractClientRooms
   extends EventEmitter
-  implements UserRooms
+  implements ClientRooms
 {
   constructor(
     public readonly clientUserID: StringUserID,

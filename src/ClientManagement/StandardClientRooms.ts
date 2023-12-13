@@ -11,19 +11,22 @@ import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../StateTracking/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
-import { AbstractUserRooms, UserRooms } from './UserRooms';
+import { AbstractClientRooms, ClientRooms } from './ClientRooms';
 
 export type JoinedRoomsSafe = () => Promise<ActionResult<StringRoomID[]>>;
 
 /**
- * An implementation of `UserRooms` that will work for both bots and appservice
+ * An implementation of `ClientRooms` that will work for both bots and appservice
  * intents.
  */
-export class StandardUserRooms extends AbstractUserRooms implements UserRooms {
+export class StandardClientRooms
+  extends AbstractClientRooms
+  implements ClientRooms
+{
   private readonly roomPauser: RoomPauser = new StandardRoomPauser();
   private constructor(
     private readonly joinedRoomsThunk: JoinedRoomsSafe,
-    ...rest: ConstructorParameters<typeof AbstractUserRooms>
+    ...rest: ConstructorParameters<typeof AbstractClientRooms>
   ) {
     super(...rest);
   }

@@ -1,4 +1,10 @@
 // For the love of god keep this in alphabetical order please.
+export * from './ClientManagement/ClientRooms';
+export * from './ClientManagement/ClientsInRoomMap';
+export * from './ClientManagement/JoinedRoomsRevision';
+export * from './ClientManagement/RoomPauser';
+export * from './ClientManagement/StandardClientRooms';
+
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
@@ -87,8 +93,3 @@ export * from './StateTracking/StandardSetMembershp';
 export * from './StateTracking/StandardSetRoomState';
 export * from './StateTracking/StateRevisionIssuer';
 export * from './StateTracking/StateTrackingMeta';
-
-export * from './UserManagement/JoinedRoomsRevision';
-export * from './UserManagement/RoomPauser';
-export * from './UserManagement/StandardUserRooms';
-export * from './UserManagement/UserRooms';

@@ -5,22 +5,21 @@
 
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
-import { UserRooms, UserRoomsRevisionListener } from './UserRooms';
+import { ClientRooms, ClientRoomsRevisionListener } from './ClientRooms';
 
-// FIXME: Rename to intent management ASAP.
-export interface UsersInRoomMap {
-  isUserInRoom(userID: StringUserID, roomID: StringRoomID): boolean;
+export interface ClientsInRoomMap {
+  isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean;
   getManagedUsersInRoom(roomID: StringRoomID): StringUserID[];
-  getUserRooms(userID: StringUserID): UserRooms | undefined;
-  addUserRooms(user: UserRooms): void;
-  removeUserRooms(user: UserRooms): void;
+  getClientRooms(userID: StringUserID): ClientRooms | undefined;
+  addClientRooms(client: ClientRooms): void;
+  removeClientRooms(client: ClientRooms): void;
 }
 
-export class StandardUsersInRoomMap implements UsersInRoomMap {
+export class StandardUsersInRoomMap implements ClientsInRoomMap {
   private readonly userIDByRoom = new Map<StringRoomID, StringUserID[]>();
-  private readonly userRoomsByUserID = new Map<StringUserID, UserRooms>();
+  private readonly clientRoomsByUserID = new Map<StringUserID, ClientRooms>();
 
-  private readonly userRevisionListener: UserRoomsRevisionListener;
+  private readonly userRevisionListener: ClientRoomsRevisionListener;
 
   constructor() {
     this.userRevisionListener = this.userRevisionListenerMethod.bind(this);
@@ -59,24 +58,24 @@ export class StandardUsersInRoomMap implements UsersInRoomMap {
       this.removeUserFromRoom(partRoomID, revision.clientUserID);
     }
   }
-  public addUserRooms(user: UserRooms): void {
-    for (const roomID of user.currentRevision.allJoinedRooms) {
-      this.addUserToRoom(roomID, user.clientUserID);
+  public addClientRooms(client: ClientRooms): void {
+    for (const roomID of client.currentRevision.allJoinedRooms) {
+      this.addUserToRoom(roomID, client.clientUserID);
     }
-    this.userRoomsByUserID.set(user.clientUserID, user);
-    user.on('revision', this.userRevisionListener);
+    this.clientRoomsByUserID.set(client.clientUserID, client);
+    client.on('revision', this.userRevisionListener);
   }
 
-  public removeUserRooms(user: UserRooms): void {
-    for (const roomID of user.currentRevision.allJoinedRooms) {
-      this.removeUserFromRoom(roomID, user.clientUserID);
+  public removeClientRooms(client: ClientRooms): void {
+    for (const roomID of client.currentRevision.allJoinedRooms) {
+      this.removeUserFromRoom(roomID, client.clientUserID);
     }
-    this.userRoomsByUserID.delete(user.clientUserID);
-    user.off('revision', this.userRevisionListener);
+    this.clientRoomsByUserID.delete(client.clientUserID);
+    client.off('revision', this.userRevisionListener);
   }
 
-  public isUserInRoom(userID: StringUserID, roomID: StringRoomID): boolean {
-    const entry = this.userRoomsByUserID.get(userID);
+  public isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean {
+    const entry = this.clientRoomsByUserID.get(userID);
     if (entry === undefined) {
       return false;
     } else {
@@ -84,8 +83,8 @@ export class StandardUsersInRoomMap implements UsersInRoomMap {
     }
   }
 
-  public getUserRooms(userID: StringUserID): UserRooms | undefined {
-    return this.userRoomsByUserID.get(userID);
+  public getClientRooms(userID: StringUserID): ClientRooms | undefined {
+    return this.clientRoomsByUserID.get(userID);
   }
 
   public getManagedUsersInRoom(roomID: StringRoomID): StringUserID[] {

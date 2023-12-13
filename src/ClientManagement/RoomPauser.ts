@@ -13,7 +13,7 @@ type RoomPauseTaskCB = () => Promise<unknown>;
 type RoomPauseThenCB = (roomID: StringRoomID, event: RoomEvent) => void;
 
 /**
- * The room pauser allows `UserRooms` to pause the processing of certain
+ * The room pauser allows `ClientRooms` to pause the processing of certain
  * rooms while we ensure a number of conditions about the room:
  * 1. That we are joined to the room.
  * 2. That we have available room state in the room state manager for the room.
