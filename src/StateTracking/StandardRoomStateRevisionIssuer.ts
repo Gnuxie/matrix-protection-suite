@@ -28,7 +28,7 @@ export class StandardRoomStateRevisionIssuer
   private batchCompleteCallback: EventBatch['batchCompleteCallback'];
   constructor(
     public readonly room: MatrixRoomID,
-    private readonly roomStateManager: RoomStateManager,
+    private readonly getRoomState: RoomStateManager['getRoomState'],
     public trackingMeta: StateTrackingMeta
   ) {
     super();
@@ -61,9 +61,7 @@ export class StandardRoomStateRevisionIssuer
   }
 
   private async createBatchedRevision(): Promise<void> {
-    const currentRoomStateResult = await this.roomStateManager.getRoomState(
-      this.room
-    );
+    const currentRoomStateResult = await this.getRoomState(this.room);
     if (isError(currentRoomStateResult)) {
       log.error(
         `Unable to fetch state from the room ${this.room.toPermalink()}.`,
