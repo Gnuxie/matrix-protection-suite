@@ -77,7 +77,6 @@ export abstract class AbstractClientRooms
   }
 
   public handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void {
-    this.roomStateManager.handleTimelineEvent(roomID, event);
     for (const set of this.protectedRoomsSets) {
       set.handleTimelineEvent(roomID, event);
     }

@@ -30,12 +30,9 @@
 //        raw undecoded types.
 
 import { ActionResult } from '../Interface/Action';
-import { RoomEvent, StateEvent } from '../MatrixTypes/Events';
+import { StateEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import {
-  StringEventID,
-  StringRoomID,
-} from '../MatrixTypes/StringlyTypedMatrix';
+import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { ChangeType } from '../PolicyList/PolicyRuleChange';
 import { StateTrackingMeta, TrackedStateEvent } from './StateTrackingMeta';
 
@@ -109,15 +106,12 @@ export interface RoomStateManager {
   ): Promise<ActionResult<RoomStateRevisionIssuer>>;
 
   getRoomState(room: MatrixRoomID): Promise<ActionResult<StateEvent[]>>;
-
-  /**
-   * Handle a timeline event from a client.
-   * Currently there are no reliable ways of informing clients about changes to room state
-   * so we have to refresh our cache every time we see a state event in the timeline.
-   * 1. https://github.com/matrix-org/matrix-spec/issues/262
-   * 2. https://github.com/matrix-org/matrix-spec/issues/1209
-   * @param roomID The room that the timeline event is within.
-   * @param event The event from the client.
-   */
-  handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
 }
+
+/**
+ *    * Handle a timeline event from a client.
+ * Currently there are no reliable ways of informing clients about changes to room state
+ * so we have to refresh our cache every time we see a state event in the timeline.
+ * 1. https://github.com/matrix-org/matrix-spec/issues/262
+ * 2. https://github.com/matrix-org/matrix-spec/issues/1209
+ */
