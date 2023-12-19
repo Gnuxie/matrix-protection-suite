@@ -15,7 +15,7 @@ export interface ClientsInRoomMap {
   removeClientRooms(client: ClientRooms): void;
 }
 
-export class StandardUsersInRoomMap implements ClientsInRoomMap {
+export class StandardClientsInRoomMap implements ClientsInRoomMap {
   private readonly userIDByRoom = new Map<StringRoomID, StringUserID[]>();
   private readonly clientRoomsByUserID = new Map<StringUserID, ClientRooms>();
 
