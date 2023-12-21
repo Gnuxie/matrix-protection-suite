@@ -24,7 +24,7 @@ export class StandardClientRooms
   implements ClientRooms
 {
   private readonly roomPauser: RoomPauser = new StandardRoomPauser();
-  private constructor(
+  protected constructor(
     private readonly joinedRoomsThunk: JoinedRoomsSafe,
     ...rest: ConstructorParameters<typeof AbstractClientRooms>
   ) {
