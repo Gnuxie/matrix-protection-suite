@@ -6,6 +6,9 @@
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
 import { ClientRooms, ClientRoomsRevisionListener } from './ClientRooms';
+import { RoomEvent } from '../MatrixTypes/Events';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { Value } from '../Interface/Value';
 
 export interface ClientsInRoomMap {
   isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean;
@@ -13,6 +16,7 @@ export interface ClientsInRoomMap {
   getClientRooms(userID: StringUserID): ClientRooms | undefined;
   addClientRooms(client: ClientRooms): void;
   removeClientRooms(client: ClientRooms): void;
+  handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
 }
 
 export class StandardClientsInRoomMap implements ClientsInRoomMap {
@@ -89,5 +93,22 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
 
   public getManagedUsersInRoom(roomID: StringRoomID): StringUserID[] {
     return this.userIDByRoom.get(roomID) ?? [];
+  }
+
+  public handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void {
+    const usersInRoom = this.getManagedUsersInRoom(roomID);
+    for (const user of usersInRoom) {
+      const clientRooms = this.getClientRooms(user);
+      clientRooms?.handleTimelineEvent(roomID, event);
+    }
+    if (event.type === 'm.room.member' && Value.Check(MembershipEvent, event)) {
+      // only inform if we already informed the client about this event.
+      if (!usersInRoom.includes(event.state_key as StringUserID)) {
+        const clientRooms = this.getClientRooms(
+          event.state_key as StringUserID
+        );
+        clientRooms?.handleTimelineEvent(roomID, event);
+      }
+    }
   }
 }

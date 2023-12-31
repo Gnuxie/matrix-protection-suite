@@ -6,12 +6,8 @@
 import EventEmitter from 'events';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
-import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
-import { ProtectedRoomsSet } from '../Protection/ProtectedRoomsSet';
-import { EventReport } from '../Reporting/EventReport';
-import { RoomMembershipManager } from '../StateTracking/RoomMembershipManager';
-import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
+import { Client } from './Client';
 
 export type ClientRoomsRevisionListener = (
   revision: JoinedRoomsRevision,
@@ -30,8 +26,6 @@ export type ClientRoomsRevisionListener = (
  * Alternatively can be thought of as the "ClientRoomsRevisionIssuer".
  */
 export declare interface ClientRooms {
-  handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
-  handleEventReport(report: EventReport): void;
   /**
    * A room that is paused or will be parted from shortly will still temporarily report true.
    * Even if, in the case of parting, subsequent events will never be processed.
@@ -39,12 +33,10 @@ export declare interface ClientRooms {
    * @param roomID The room to test whether the user is joined to.
    */
   isJoinedRoom(roomID: StringRoomID): boolean;
-  readonly roomStateManager: RoomStateManager;
-  readonly policyRoomManager: PolicyRoomManager;
-  readonly roomMemberManager: RoomMembershipManager;
-  readonly protectedRoomsSets: ProtectedRoomsSet[];
   readonly clientUserID: StringUserID;
+  readonly client: Client;
   readonly currentRevision: JoinedRoomsRevision;
+  handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   on(event: 'revision', listener: ClientRoomsRevisionListener): this;
   off(...args: Parameters<ClientRooms['on']>): this;
   emit(
@@ -53,16 +45,9 @@ export declare interface ClientRooms {
   ): boolean;
 }
 
-export abstract class AbstractClientRooms
-  extends EventEmitter
-  implements ClientRooms
-{
+export abstract class AbstractClientRooms extends EventEmitter {
   constructor(
     public readonly clientUserID: StringUserID,
-    public readonly roomStateManager: RoomStateManager,
-    public readonly policyRoomManager: PolicyRoomManager,
-    public readonly roomMemberManager: RoomMembershipManager,
-    public readonly protectedRoomsSets: ProtectedRoomsSet[] = [],
     protected joinedRoomsRevision: JoinedRoomsRevision
   ) {
     super();
@@ -74,17 +59,5 @@ export abstract class AbstractClientRooms
 
   public isJoinedRoom(roomID: StringRoomID): boolean {
     return this.joinedRoomsRevision.isJoinedRoom(roomID);
-  }
-
-  public handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void {
-    for (const set of this.protectedRoomsSets) {
-      set.handleTimelineEvent(roomID, event);
-    }
-  }
-
-  public handleEventReport(report: EventReport): void {
-    for (const set of this.protectedRoomsSets) {
-      set.handleEventReport(report);
-    }
   }
 }

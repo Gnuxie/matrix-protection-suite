@@ -12,6 +12,7 @@ import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../StateTracking/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
 import { AbstractClientRooms, ClientRooms } from './ClientRooms';
+import { Client } from './Client';
 
 export type JoinedRoomsSafe = () => Promise<ActionResult<StringRoomID[]>>;
 
@@ -25,6 +26,7 @@ export class StandardClientRooms
 {
   private readonly roomPauser: RoomPauser = new StandardRoomPauser();
   protected constructor(
+    public readonly client: Client,
     private readonly joinedRoomsThunk: JoinedRoomsSafe,
     ...rest: ConstructorParameters<typeof AbstractClientRooms>
   ) {
@@ -39,7 +41,7 @@ export class StandardClientRooms
       switch (event.content.membership) {
         case Membership.Join:
           if (this.isJoinedRoom(roomID)) {
-            super.handleTimelineEvent(roomID, event);
+            this.client.handleTimelineEvent(roomID, event);
           } else {
             this.handleRoomJoin(roomID, event);
           }
@@ -48,13 +50,13 @@ export class StandardClientRooms
           if (this.isJoinedRoom(roomID)) {
             this.handleRoomLeave(roomID, event);
           } else {
-            this.handleTimelineEvent(roomID, event);
+            this.client.handleTimelineEvent(roomID, event);
           }
           break;
       }
       return;
     } else if (this.isJoinedRoom(roomID)) {
-      super.handleTimelineEvent(roomID, event);
+      this.client.handleTimelineEvent(roomID, event);
     }
   }
 
@@ -103,7 +105,7 @@ export class StandardClientRooms
         );
         for (const join of changes.joined) {
           const roomStateRevisionIssuer =
-            await this.roomStateManager.getRoomStateRevisionIssuer(
+            await this.client.roomStateManager.getRoomStateRevisionIssuer(
               MatrixRoomReference.fromRoomID(join, [
                 serverName(this.clientUserID),
               ])

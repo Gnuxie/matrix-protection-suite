@@ -1,4 +1,5 @@
 // For the love of god keep this in alphabetical order please.
+export * from './ClientManagement/Client';
 export * from './ClientManagement/ClientRooms';
 export * from './ClientManagement/ClientsInRoomMap';
 export * from './ClientManagement/JoinedRoomsRevision';
