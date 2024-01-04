@@ -3,34 +3,35 @@
  * All rights reserved.
  */
 
-import { ActionResult, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
 import { RoomEvent } from '../MatrixTypes/Events';
-import { MatrixRoomReference } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
+import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../StateTracking/MembershipChange';
-import { RoomPauser, StandardRoomPauser } from './RoomPauser';
-import { AbstractClientRooms, ClientRooms } from './JoinedRoomsRevisionIssuer';
 import { Client } from './Client';
-
-export type JoinedRoomsSafe = () => Promise<ActionResult<StringRoomID[]>>;
+import { JoinedRoomsRevisionIssuer } from './JoinedRoomsRevisionIssuer';
+import { StandardRoomPauser } from './RoomPauser';
+import { JoinedRoomsSafe } from './StandardClientRooms';
 
 /**
- * An implementation of `ClientRooms` that will work for both bots and appservice
- * intents.
+ * Controls what events are relevant to a client.
  */
-export class StandardClientRooms
-  extends AbstractClientRooms
-  implements ClientRooms
-{
-  private readonly roomPauser: RoomPauser = new StandardRoomPauser();
+export interface RelevantEventWrapper {
+  readonly client: Client;
+  readonly clientUserID: StringUserID;
+  readonly joinedRoomsRevisionIssuer: JoinedRoomsRevisionIssuer;
+  handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
+}
+
+export class StandardRelevantEventWrapper implements RelevantEventWrapper {
+  private readonly roomPauser = new StandardRoomPauser();
   protected constructor(
     public readonly client: Client,
-    private readonly joinedRoomsThunk: JoinedRoomsSafe,
-    ...rest: ConstructorParameters<typeof AbstractClientRooms>
+    public readonly clientUserID: StringUserID,
+    public readonly joinedRoomsRevisionIssuer: JoinedRoomsRevisionIssuer,
+    private readonly joinedRoomsThunk: JoinedRoomsSafe
   ) {
-    super(...rest);
+    // nothing to do.
   }
 
   public handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void {
@@ -40,14 +41,18 @@ export class StandardClientRooms
     ) {
       switch (event.content.membership) {
         case Membership.Join:
-          if (this.isJoinedRoom(roomID)) {
+          if (
+            this.joinedRoomsRevisionIssuer.currentRevision.isJoinedRoom(roomID)
+          ) {
             this.client.handleTimelineEvent(roomID, event);
           } else {
             this.handleRoomJoin(roomID, event);
           }
           break;
         case Membership.Leave:
-          if (this.isJoinedRoom(roomID)) {
+          if (
+            this.joinedRoomsRevisionIssuer.currentRevision.isJoinedRoom(roomID)
+          ) {
             this.handleRoomLeave(roomID, event);
           } else {
             this.client.handleTimelineEvent(roomID, event);
@@ -55,7 +60,9 @@ export class StandardClientRooms
           break;
       }
       return;
-    } else if (this.isJoinedRoom(roomID)) {
+    } else if (
+      this.joinedRoomsRevisionIssuer.currentRevision.isJoinedRoom(roomID)
+    ) {
       this.client.handleTimelineEvent(roomID, event);
     }
   }

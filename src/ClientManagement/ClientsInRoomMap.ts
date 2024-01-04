@@ -5,7 +5,10 @@
 
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
-import { ClientRooms, ClientRoomsRevisionListener } from './ClientRooms';
+import {
+  ClientRooms,
+  ClientRoomsRevisionListener,
+} from './JoinedRoomsRevisionIssuer';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { Value } from '../Interface/Value';
