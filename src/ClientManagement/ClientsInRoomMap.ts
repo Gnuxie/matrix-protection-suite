@@ -5,7 +5,7 @@
 
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
-import { ClientRooms, ClientRoomsRevisionListener } from './ClientRooms';
+import { ClientRooms, ClientRoomsEvents } from './ClientRooms';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { Value } from '../Interface/Value';
@@ -23,7 +23,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
   private readonly userIDByRoom = new Map<StringRoomID, StringUserID[]>();
   private readonly clientRoomsByUserID = new Map<StringUserID, ClientRooms>();
 
-  private readonly userRevisionListener: ClientRoomsRevisionListener;
+  private readonly userRevisionListener: ClientRoomsEvents['revision'];
 
   constructor() {
     this.userRevisionListener = this.userRevisionListenerMethod.bind(this);

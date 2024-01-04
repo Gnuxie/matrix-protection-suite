@@ -12,7 +12,7 @@ import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../StateTracking/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
 import { AbstractClientRooms, ClientRooms } from './ClientRooms';
-import { Client } from './Client';
+import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
 
 export type JoinedRoomsSafe = () => Promise<ActionResult<StringRoomID[]>>;
 
@@ -26,7 +26,7 @@ export class StandardClientRooms
 {
   private readonly roomPauser: RoomPauser = new StandardRoomPauser();
   protected constructor(
-    public readonly client: Client,
+    private readonly roomStateManager: RoomStateManager,
     private readonly joinedRoomsThunk: JoinedRoomsSafe,
     ...rest: ConstructorParameters<typeof AbstractClientRooms>
   ) {
@@ -41,7 +41,7 @@ export class StandardClientRooms
       switch (event.content.membership) {
         case Membership.Join:
           if (this.isJoinedRoom(roomID)) {
-            this.client.handleTimelineEvent(roomID, event);
+            this.emit('timeline', roomID, event);
           } else {
             this.handleRoomJoin(roomID, event);
           }
@@ -50,13 +50,13 @@ export class StandardClientRooms
           if (this.isJoinedRoom(roomID)) {
             this.handleRoomLeave(roomID, event);
           } else {
-            this.client.handleTimelineEvent(roomID, event);
+            this.emit('timeline', roomID, event);
           }
           break;
       }
       return;
     } else if (this.isJoinedRoom(roomID)) {
-      this.client.handleTimelineEvent(roomID, event);
+      this.emit('timeline', roomID, event);
     }
   }
 
@@ -105,7 +105,7 @@ export class StandardClientRooms
         );
         for (const join of changes.joined) {
           const roomStateRevisionIssuer =
-            await this.client.roomStateManager.getRoomStateRevisionIssuer(
+            await this.roomStateManager.getRoomStateRevisionIssuer(
               MatrixRoomReference.fromRoomID(join, [
                 serverName(this.clientUserID),
               ])

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+ * Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
  * All rights reserved.
  */
 
@@ -7,13 +7,18 @@ import EventEmitter from 'events';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
-import { Client } from './Client';
 
-export type ClientRoomsRevisionListener = (
-  revision: JoinedRoomsRevision,
-  changes: JoinedRoomsChange,
-  previousRevision: JoinedRoomsRevision
-) => void;
+// Finally someone found a solution to the interfaces of emitters that is pretty correct.
+// I'm so happy.
+// https://stackoverflow.com/a/61609010
+export interface ClientRoomsEvents {
+  revision: (
+    revision: JoinedRoomsRevision,
+    changes: JoinedRoomsChange,
+    previousRevision: JoinedRoomsRevision
+  ) => void;
+  timeline: (roomID: StringRoomID, event: RoomEvent) => void;
+}
 
 /**
  * This is a utility to aid clients using the protection suite.
@@ -34,14 +39,19 @@ export declare interface ClientRooms {
    */
   isJoinedRoom(roomID: StringRoomID): boolean;
   readonly clientUserID: StringUserID;
-  readonly client: Client;
   readonly currentRevision: JoinedRoomsRevision;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
-  on(event: 'revision', listener: ClientRoomsRevisionListener): this;
-  off(...args: Parameters<ClientRooms['on']>): this;
-  emit(
-    event: 'revision',
-    ...args: Parameters<ClientRoomsRevisionListener>
+  on<U extends keyof ClientRoomsEvents>(
+    event: U,
+    listener: ClientRoomsEvents[U]
+  ): this;
+  off<U extends keyof ClientRoomsEvents>(
+    event: U,
+    listener: ClientRoomsEvents[U]
+  ): this;
+  emit<U extends keyof ClientRoomsEvents>(
+    event: U,
+    ...args: Parameters<ClientRoomsEvents[U]>
   ): boolean;
 }
 
