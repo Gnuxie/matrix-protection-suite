@@ -11,7 +11,7 @@ import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../StateTracking/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
-import { AbstractClientRooms, ClientRooms } from './JoinedRoomsRevisionIssuer';
+import { AbstractClientRooms, ClientRooms } from './ClientRooms';
 import { Client } from './Client';
 
 export type JoinedRoomsSafe = () => Promise<ActionResult<StringRoomID[]>>;

@@ -7,8 +7,9 @@ import EventEmitter from 'events';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
+import { Client } from './Client';
 
-export type JoinedRoomsRevisionListener = (
+export type ClientRoomsRevisionListener = (
   revision: JoinedRoomsRevision,
   changes: JoinedRoomsChange,
   previousRevision: JoinedRoomsRevision
@@ -18,13 +19,13 @@ export type JoinedRoomsRevisionListener = (
  * This is a utility to aid clients using the protection suite.
  * The idea being that if they create this utility, then they
  * only need to be responsible for setting up and informing
- * `JoinedRoomsRevisionIssuer` of events. Everything else will be handled for them.
- * In other words `JoinedRoomsRevisionIssuer` can be used to inform all protectedRoomSets,
+ * `ClientRooms` of events. Everything else will be handled for them.
+ * In other words `ClientRooms` can be used to inform all protectedRoomSets,
  * and all room state manager deriratives of new events.
  *
- * Alternatively can be thought of as the "JoinedRoomsRevisionIssuerRevisionIssuer".
+ * Alternatively can be thought of as the "ClientRoomsRevisionIssuer".
  */
-export declare interface JoinedRoomsRevisionIssuer {
+export declare interface ClientRooms {
   /**
    * A room that is paused or will be parted from shortly will still temporarily report true.
    * Even if, in the case of parting, subsequent events will never be processed.
@@ -33,17 +34,18 @@ export declare interface JoinedRoomsRevisionIssuer {
    */
   isJoinedRoom(roomID: StringRoomID): boolean;
   readonly clientUserID: StringUserID;
+  readonly client: Client;
   readonly currentRevision: JoinedRoomsRevision;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
-  on(event: 'revision', listener: JoinedRoomsRevisionListener): this;
-  off(...args: Parameters<JoinedRoomsRevisionIssuer['on']>): this;
+  on(event: 'revision', listener: ClientRoomsRevisionListener): this;
+  off(...args: Parameters<ClientRooms['on']>): this;
   emit(
     event: 'revision',
-    ...args: Parameters<JoinedRoomsRevisionListener>
+    ...args: Parameters<ClientRoomsRevisionListener>
   ): boolean;
 }
 
-export abstract class AbstractJoinedRoomsRevisionIssuer extends EventEmitter {
+export abstract class AbstractClientRooms extends EventEmitter {
   constructor(
     public readonly clientUserID: StringUserID,
     protected joinedRoomsRevision: JoinedRoomsRevision
