@@ -241,15 +241,14 @@ export type RoomMessage = StaticDecode<typeof RoomMessage>;
 export const RoomMessage = Type.Composite([
   Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
   Type.Object({
-    content: Type.Optional(
-      Type.Union([
-        TextMessageContent,
-        NoticeMessageContent,
-        ImageMessageContent,
-        VideoMessageContent,
-        AudioMessageContent,
-      ])
-    ),
+    content: Type.Union([
+      TextMessageContent,
+      NoticeMessageContent,
+      ImageMessageContent,
+      VideoMessageContent,
+      AudioMessageContent,
+      Type.Object({}),
+    ]),
     type: Type.Literal('m.room.message'),
   }),
 ]);
