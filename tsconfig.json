@@ -22,6 +22,12 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noImplicitAny": true,
+    "plugins": [
+      {
+        "transform": "ts-auto-mock/transformer",
+        "cacheBetweenTests": false
+      }
+    ]
   },
   "exclude": [
     "node_modules",
