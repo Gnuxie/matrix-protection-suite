@@ -6,7 +6,10 @@ import {
   StateTrackingMeta,
 } from './StateTrackingMeta';
 import { Set as PersistentSet } from 'immutable';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
+import {
+  StringEventID,
+  StringUserID,
+} from '../MatrixTypes/StringlyTypedMatrix';
 import {
   randomPolicyRuleEvent,
   randomRoomID,
@@ -20,7 +23,10 @@ test('New state is detected correctly', function () {
   const room = randomRoomID(['example.org']);
   const nRules = 25;
   const rawState = [...Array(nRules)].map((_) =>
-    randomPolicyRuleEvent('@test:example.com', room.toRoomIDOrAlias())
+    randomPolicyRuleEvent(
+      '@test:example.com' as StringUserID,
+      room.toRoomIDOrAlias()
+    )
   );
   const blankRevision = StandardRoomStateRevision.blankRevision(
     room,
@@ -37,7 +43,10 @@ test('New redactions are detected correctly', function () {
   const room = randomRoomID(['example.org']);
   const nRules = 25;
   const rawState = [...Array(nRules)].map((_) =>
-    randomPolicyRuleEvent('@test:example.com', room.toRoomIDOrAlias())
+    randomPolicyRuleEvent(
+      '@test:example.com' as StringUserID,
+      room.toRoomIDOrAlias()
+    )
   );
   const blankRevision = StandardRoomStateRevision.blankRevision(
     room,
@@ -68,7 +77,10 @@ test('Modifications and soft redactions are calculated correctly', function () {
   const room = randomRoomID(['example.org']);
   const nRules = 15;
   const rawState = [...Array(nRules)].map((_) =>
-    randomPolicyRuleEvent('@test:example.com', room.toRoomIDOrAlias())
+    randomPolicyRuleEvent(
+      '@test:example.com' as StringUserID,
+      room.toRoomIDOrAlias()
+    )
   );
   const blankRevision = StandardRoomStateRevision.blankRevision(
     room,
