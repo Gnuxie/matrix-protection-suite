@@ -27,11 +27,7 @@ limitations under the License.
 
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
-import {
-  Protection,
-  ProtectionDescription,
-  findProtection,
-} from '../Protection';
+import { ProtectionDescription, findProtection } from '../Protection';
 import { ProtectionsConfig } from './ProtectionsConfig';
 import { Value } from '../../Interface/Value';
 import { StateEvent } from '../../MatrixTypes/Events';
@@ -39,15 +35,10 @@ import {
   MatrixAccountData,
   MatrixStateData,
 } from '../../Interface/PersistentMatrixData';
-import {
-  BasicConsequenceProvider,
-  ConsequenceProvider,
-  ConsequenceProviderDescription,
-  DEFAULT_CONSEQUENCE_PROVIDER,
-  findConsequenceProvider,
-} from '../Consequence/Consequence';
+import { ConsequenceProviderDescription } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
+import { AbstractProtectionsConfig } from './StubProtectionsConfig';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
 // A boring way is by naming them like protections and just matching the provider name to the protection name.
@@ -91,24 +82,14 @@ type ProtectionFailedToStartCB = (
 ) => Promise<void>;
 
 export class MjolnirProtectionsConfig<Context = unknown>
+  extends AbstractProtectionsConfig<Context>
   implements ProtectionsConfig<Context>
 {
-  private readonly enabledProtections = new Map<
-    /** protection name */ string,
-    Protection
-  >();
-
   public constructor(
     private readonly enabledProtectionsStore: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
     private readonly protectionSettingsStore: MatrixStateData<MjolnirProtectionSettingsEventContent>
   ) {
-    // nothing to do;
-  }
-
-  private stopProtectionWithoutPersisting(
-    protectionDescription: ProtectionDescription
-  ): void {
-    this.enabledProtections.delete(protectionDescription.name);
+    super();
   }
 
   public async addProtection(
@@ -119,7 +100,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
   ): Promise<ActionResult<void>> {
     const startResult = this.startProtection(
       protectionDescription,
-      consequenceProvider.factory(context),
+      consequenceProvider,
       protectedRoomsSet,
       context
     );
@@ -127,36 +108,36 @@ export class MjolnirProtectionsConfig<Context = unknown>
       return startResult;
     }
     const storeResult = await this.enabledProtectionsStore.storeAccountData({
-      enabled: [...this.enabledProtections.keys()],
+      enabled: this.allProtections.map(
+        (protection) => protection.description.name
+      ),
     });
     return storeResult;
   }
   public async removeProtection(
     protection: ProtectionDescription
   ): Promise<ActionResult<void>> {
-    this.stopProtectionWithoutPersisting(protection);
+    super.removeProtectionSync(protection);
     const storeResult = await this.enabledProtectionsStore.storeAccountData({
-      enabled: [...this.enabledProtections.keys()],
+      enabled: this.allProtections.map(
+        (protection) => protection.description.name
+      ),
     });
     return storeResult;
   }
 
-  public get allProtections() {
-    return [...this.enabledProtections.values()];
-  }
-
   private startProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProvider: ConsequenceProvider,
+    consequenceProvider: ConsequenceProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): ActionResult<void> {
     const settings = this.protectionSettingsStore.requestStateContent(
       protectionDescription.name
     );
-    const protectionResult = protectionDescription.factory(
+    const protectionResult = super.addProtectionSync(
       protectionDescription,
-      consequenceProvider as BasicConsequenceProvider,
+      consequenceProvider,
       protectedRoomsSet,
       context,
       settings ?? protectionDescription.protectionSettings.defaultSettings
@@ -164,8 +145,6 @@ export class MjolnirProtectionsConfig<Context = unknown>
     if (isError(protectionResult)) {
       return protectionResult;
     }
-    const protection = protectionResult.ok;
-    this.enabledProtections.set(protection.description.name, protection);
     return Ok(undefined);
   }
 
@@ -174,7 +153,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
     context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<ActionResult<void>> {
-    if (this.enabledProtections.size > 0) {
+    if (this.allProtections.length > 0) {
       throw new TypeError('This can only be used at startup');
     }
     const enabledProtectionsResult =
@@ -206,7 +185,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
       }
       const startResult = this.startProtection(
         protectionDescription,
-        consequenceProvider.ok.factory(context),
+        consequenceProvider.ok,
         protectedRoomsSet,
         context
       );
@@ -216,20 +195,6 @@ export class MjolnirProtectionsConfig<Context = unknown>
       }
     }
     return Ok(undefined);
-  }
-
-  public async getConsequenceProviderDescriptionForProtection<
-    TProtectionDescription extends ProtectionDescription<Context> = ProtectionDescription<Context>
-  >(
-    _protectionDescription: TProtectionDescription
-  ): Promise<ActionResult<ConsequenceProviderDescription>> {
-    const defaultConsequenceProvider = findConsequenceProvider(
-      DEFAULT_CONSEQUENCE_PROVIDER
-    );
-    if (defaultConsequenceProvider === undefined) {
-      throw new TypeError(`Cannot find the ${DEFAULT_CONSEQUENCE_PROVIDER}`);
-    }
-    return Ok(defaultConsequenceProvider);
   }
 
   public async changeProtectionSettings<
@@ -244,40 +209,14 @@ export class MjolnirProtectionsConfig<Context = unknown>
     context: Context,
     settings: TSettings
   ): Promise<ActionResult<void>> {
-    const consequenceProviderDescription =
-      await this.getConsequenceProviderDescriptionForProtection(
-        protectionDescription as ProtectionDescription
-      );
-    if (isError(consequenceProviderDescription)) {
-      return consequenceProviderDescription.addContext(
-        `Couldn't find a consequence provider for the protection ${protectionDescription.name}`
-      );
-    }
-    const newProtection = protectionDescription.factory(
+    const changeResult = await super.changeProtectionSettings(
       protectionDescription,
-      consequenceProviderDescription.ok.factory(
-        context
-      ) as BasicConsequenceProvider,
       protectedRoomsSet,
       context,
       settings
     );
-    if (isError(newProtection)) {
-      return newProtection.addContext(
-        `Couldn't create the protection from these settings, are they correct?`
-      );
-    }
-    const enabledProtection = this.enabledProtections.get(
-      protectionDescription.name
-    );
-    if (enabledProtection !== undefined) {
-      this.stopProtectionWithoutPersisting(
-        protectionDescription as ProtectionDescription
-      );
-      this.enabledProtections.set(
-        newProtection.ok.description.name,
-        newProtection.ok
-      );
+    if (isError(changeResult)) {
+      return changeResult;
     }
     return await this.protectionSettingsStore.storeStateContent(
       protectionDescription.name,
@@ -301,11 +240,5 @@ export class MjolnirProtectionsConfig<Context = unknown>
       );
     }
     return Ok(parsedSettings.ok);
-  }
-
-  public isEnabledProtection(
-    protectionDescription: ProtectionDescription
-  ): boolean {
-    return this.enabledProtections.has(protectionDescription.name);
   }
 }
