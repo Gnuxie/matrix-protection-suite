@@ -22,6 +22,7 @@ import {
   StandardDirectPropagationPolicyListRevisionIssuer,
 } from '../DirectPropagationPolicyListRevisionIssuer';
 import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
+import { AbstractPolicyListConfig } from './StubPolicyListConfig';
 
 export interface PolicyRoomWatchProfile<T = unknown> {
   room: MatrixRoomID;
@@ -47,24 +48,20 @@ export enum PropagationType {
   Direct = 'direct',
 }
 
-export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
+export class MjolnirPolicyRoomsConfig
+  extends AbstractPolicyListConfig
+  implements PolicyListConfig
+{
   private readonly writeLock = new AwaitLock();
   private constructor(
     private readonly store: PersistentMatrixData<
       typeof MjolnirWatchedPolicyRoomsEvent
     >,
-    public readonly policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
-    private readonly policyRoomManager: PolicyRoomManager,
-    private readonly watchedLists: Set<MatrixRoomID>
+    policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
+    policyRoomManager: PolicyRoomManager,
+    watchedLists: Set<MatrixRoomID>
   ) {
-    // nothing to do.
-  }
-
-  public get allWatchedLists() {
-    return [...this.watchedLists].map((room) => ({
-      room,
-      propagation: PropagationType.Direct,
-    }));
+    super(policyListRevisionIssuer, policyRoomManager, watchedLists);
   }
 
   public static async createFromStore(
@@ -133,7 +130,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
   public async watchList<T>(
     propagation: string,
     list: MatrixRoomID,
-    _options: T
+    options: T
   ): Promise<ActionResult<void>> {
     if (propagation !== PropagationType.Direct) {
       return ActionError.Result(
@@ -148,14 +145,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
       if (isError(storeUpdateResult)) {
         return storeUpdateResult;
       }
-      const issuerResult =
-        await this.policyRoomManager.getPolicyRoomRevisionIssuer(list);
-      if (isError(issuerResult)) {
-        return issuerResult;
-      }
-      this.policyListRevisionIssuer.addIssuer(issuerResult.ok);
-      this.watchedLists.add(issuerResult.ok.currentRevision.room);
-      return Ok(undefined);
+      return await super.watchList(propagation, list, options);
     } finally {
       this.writeLock.release();
     }
@@ -179,14 +169,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
       if (isError(storeUpdateResult)) {
         return storeUpdateResult;
       }
-      const issuerResult =
-        await this.policyRoomManager.getPolicyRoomRevisionIssuer(list);
-      if (isError(issuerResult)) {
-        return issuerResult;
-      }
-      this.policyListRevisionIssuer.removeIssuer(issuerResult.ok);
-      this.watchedLists.delete(issuerResult.ok.currentRevision.room);
-      return Ok(undefined);
+      return await super.unwatchList(propagation, list);
     } finally {
       this.writeLock.release();
     }
