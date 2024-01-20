@@ -16,6 +16,7 @@ import {
   StringRoomID,
   StringUserID,
   isStringRoomID,
+  isStringUserID,
 } from '../MatrixTypes/StringlyTypedMatrix';
 
 export function randomRawEvent(sender: string, room_id: string): unknown {
@@ -34,10 +35,10 @@ export function randomRawEvent(sender: string, room_id: string): unknown {
 }
 
 export function makePolicyRuleUserEvent({
-  sender = `@${randomUUID()}example.com` as StringUserID,
+  sender = randomUserID(),
   room_id = `!${randomUUID}:example.com` as StringRoomID,
   reason = '<no reason supplied>',
-  entity = `@${randomUUID()}:example.com`,
+  entity = randomUserID(),
   recommendation = Recommendation.Ban,
 }: {
   sender?: StringUserID;
@@ -86,4 +87,12 @@ export function randomRoomID(viaServers: string[]): MatrixRoomID {
     throw new TypeError(`RoomID generator is wrong`);
   }
   return MatrixRoomReference.fromRoomID(roomID, viaServers);
+}
+
+export function randomUserID(): StringUserID {
+  const userID = `@${randomUUID()}:example.com`;
+  if (!isStringUserID(userID)) {
+    throw new TypeError(`UserID generator is wrong`);
+  }
+  return userID;
 }
