@@ -25,6 +25,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
+import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';
@@ -71,6 +72,7 @@ export declare interface PolicyListRevisionIssuer {
  */
 export interface PolicyRoomRevisionIssuer extends PolicyListRevisionIssuer {
   currentRevision: PolicyRoomRevision;
+  room: MatrixRoomID;
   /**
    * Inform the revision issuer of a new event from Matrix.
    */
