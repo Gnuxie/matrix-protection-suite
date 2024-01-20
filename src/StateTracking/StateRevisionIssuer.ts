@@ -4,21 +4,6 @@
  */
 
 // TODO
-// - We need to be able to inform listenres about changes to state
-//   without necessarily caching the entire state.
-//   This can be done by keeping just the event id and state key/type combo
-//   and comparing as new state comes in.
-// - Not sure whether this or downstream components should decide to cache or not
-//   probably both as an option, with a runtime option to cache state
-//   (for protections) or ignore state of certain types, or simply
-//   inform of changes.
-// - e.g. SetMembership only needs to be informed of changes because it caches
-//   state within RoomMembershipRevisions
-//   this probably means that the room members manager needs to be incorperated
-//   into the room state manager.
-// - so what does that mean for policy list revisions?
-//   i think PolicyRule needs the event anyways so it doesn't matter if it caches
-//   or informs.
 // - IMPORTANT
 //   because we are always lagging behind for up to date state deltas ie
 //   1. https://github.com/matrix-org/matrix-spec/issues/262
@@ -26,8 +11,6 @@
 //   We have to make a distinction for member joins etc between
 //   timeline events and state changes so that we can still give
 //   consumers chance to react in an attack.
-// FIXME: All MatrixTypes should have their StaticDecode type and not their
-//        raw undecoded types.
 
 import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
