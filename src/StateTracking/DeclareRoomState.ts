@@ -12,7 +12,6 @@ import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { DefaultStateTrackingMeta } from './DefaultStateTrackingMeta';
 import { Membership } from './MembershipChange';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
-import { RoomStateRevisionIssuer } from './StateRevisionIssuer';
 import { DefaultEventDecoder } from '../MatrixTypes/EventDecoder';
 import { isError } from '../Interface/Action';
 import { Recommendation } from '../PolicyList/PolicyRule';
@@ -96,7 +95,7 @@ export async function describeProtectedRoomsSet({
 }
 
 export type RoomDescription = {
-  stateRevisionIssuer: RoomStateRevisionIssuer;
+  stateRevisionIssuer: FakeRoomStateRevisionIssuer;
   membershipRevisionIssuer: RoomMembershipRevisionIssuer;
   policyRevisionIssuer: PolicyRoomRevisionIssuer;
 };
@@ -108,19 +107,64 @@ export type DescribeRoomOptions = {
   policyDescriptions?: DescribePolicyRule[];
 };
 
+export type RoomStateDescription = {
+  room: MatrixRoomID;
+  stateEvents: StateEvent[];
+  policyEvents: PolicyRuleEvent[];
+  membershipEvents: MembershipEvent[];
+};
+
+export function describeRoomStateEvents({
+  room,
+  stateDescriptions = [],
+  membershipDescriptions = [],
+  policyDescriptions = [],
+}: Omit<DescribeRoomOptions, 'room'> & {
+  room: MatrixRoomID;
+}): RoomStateDescription {
+  const membershipEvents = membershipDescriptions.map((description) =>
+    describeRoomMember({
+      ...description,
+      room_id: room.toRoomIDOrAlias(),
+    })
+  );
+  const policyEvents = policyDescriptions.map((description) =>
+    describePolicyRule({
+      ...description,
+      room_id: room.toRoomIDOrAlias(),
+    })
+  );
+  const stateEvents = [
+    ...stateDescriptions.map((description) =>
+      describeStateEvent({
+        ...description,
+        room_id: room.toRoomIDOrAlias(),
+      })
+    ),
+    ...membershipEvents,
+    ...policyEvents,
+  ];
+  return {
+    room,
+    stateEvents,
+    membershipEvents,
+    policyEvents,
+  };
+}
+
 export function describeRoom({
   room = randomRoomID([]),
   stateDescriptions = [],
   membershipDescriptions = [],
   policyDescriptions = [],
 }: DescribeRoomOptions): RoomDescription {
-  const membershipEvents = membershipDescriptions.map(describeRoomMember);
-  const policyEvents = policyDescriptions.map(describePolicyRule);
-  const stateEvents = [
-    ...stateDescriptions.map(describeStateEvent),
-    ...membershipEvents,
-    ...policyEvents,
-  ];
+  const { policyEvents, stateEvents, membershipEvents } =
+    describeRoomStateEvents({
+      room,
+      stateDescriptions,
+      membershipDescriptions,
+      policyDescriptions,
+    });
   const stateRevision = StandardRoomStateRevision.blankRevision(
     room,
     DefaultStateTrackingMeta
