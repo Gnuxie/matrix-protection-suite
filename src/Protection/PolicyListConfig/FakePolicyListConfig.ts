@@ -68,7 +68,7 @@ export class AbstractPolicyListConfig implements PolicyListConfig {
   }
 }
 
-export class StubPolicyListConfig extends AbstractPolicyListConfig {
+export class FakePolicyListConfig extends AbstractPolicyListConfig {
   constructor(
     policyRoomManager: PolicyRoomManager,
     watchedListIssuers: PolicyRoomRevisionIssuer[] = []

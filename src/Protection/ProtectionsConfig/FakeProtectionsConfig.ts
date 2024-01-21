@@ -159,7 +159,7 @@ export type StubProtectionSettingsMap = Map<
   UnknownSettings<string>
 >;
 
-export class StubProtectionsConfig<Context = unknown>
+export class FakeProtectionsConfig<Context = unknown>
   extends AbstractProtectionsConfig<Context>
   implements ProtectionsConfig
 {

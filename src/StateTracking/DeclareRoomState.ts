@@ -27,15 +27,21 @@ import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { RoomStateMembershipRevisionIssuer } from './RoomStateMembershipRevisionIssuer';
 import { RoomStatePolicyRoomRevisionIssuer } from '../PolicyList/RoomStatePolicyListRevisionIssuer';
-import { StubProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/StubProtectedRoomsConfig';
-import { StubRoomStateRevisionIssuer } from './StubRoomStateRevisionIssuer';
-import { StubProtectionsConfig } from '../Protection/ProtectionsConfig/StubProtectionsConfig';
-import { StubRoomStateManager } from './StubRoomStateManager';
+import { FakeProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
+import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
+import { FakeProtectionsConfig } from '../Protection/ProtectionsConfig/FakeProtectionsConfig';
+import { FakeRoomStateManager } from './FakeRoomStateManager';
 import { StandardSetMembership } from './StandardSetMembershp';
-import { StubRoomMembershipManager } from './StubRoomMembershipManager';
-import { StubPolicyRoomManager } from './StubPolicyRoomManager';
+import { FakeRoomMembershipManager } from './FakeRoomMembershipManager';
+import { FakePolicyRoomManager } from './FakePolicyRoomManager';
 import { StandardSetRoomState } from './StandardSetRoomState';
-import { StubPolicyListConfig } from '../Protection/PolicyListConfig/StubPolicyListConfig';
+import { FakePolicyListConfig } from '../Protection/PolicyListConfig/FakePolicyListConfig';
+
+// TODO:
+// all describe* methods need to return description objects, not concrete
+// instances
+// then things that return concrete instances need to be define* using
+// the same syntax.
 
 export type DescribeProtectedRoomsSet = {
   rooms?: DescribeRoomOptions[];
@@ -50,16 +56,16 @@ export async function describeProtectedRoomsSet({
 }: DescribeProtectedRoomsSet): Promise<ProtectedRoomsSet> {
   const roomDescriptions = rooms.map(describeRoom);
   const listDescriptions = lists.map(describeRoom);
-  const roomStateManager = new StubRoomStateManager(
+  const roomStateManager = new FakeRoomStateManager(
     roomDescriptions.map((description) => description.stateRevisionIssuer)
   );
-  const roomMembershipManager = new StubRoomMembershipManager(
+  const roomMembershipManager = new FakeRoomMembershipManager(
     roomDescriptions.map((description) => description.membershipRevisionIssuer)
   );
-  const policyRoomManager = new StubPolicyRoomManager(
+  const policyRoomManager = new FakePolicyRoomManager(
     roomDescriptions.map((description) => description.policyRevisionIssuer)
   );
-  const protectedRoomsConfig = new StubProtectedRoomsConfig(
+  const protectedRoomsConfig = new FakeProtectedRoomsConfig(
     roomDescriptions.map((room) => room.stateRevisionIssuer.room)
   );
   const setMembership = await StandardSetMembership.create(
@@ -77,12 +83,12 @@ export async function describeProtectedRoomsSet({
     throw setRoomState;
   }
   return new StandardProtectedRoomsSet(
-    new StubPolicyListConfig(
+    new FakePolicyListConfig(
       policyRoomManager,
       listDescriptions.map((description) => description.policyRevisionIssuer)
     ),
     protectedRoomsConfig,
-    new StubProtectionsConfig(),
+    new FakeProtectionsConfig(),
     setMembership.ok,
     setRoomState.ok,
     clientUserID
@@ -127,7 +133,7 @@ export function describeRoom({
     StandardPolicyRoomRevision.blankRevision(room).reviseFromState(
       policyEvents
     );
-  const stateRevisionIssuer = new StubRoomStateRevisionIssuer(
+  const stateRevisionIssuer = new FakeRoomStateRevisionIssuer(
     stateRevision,
     room,
     DefaultStateTrackingMeta

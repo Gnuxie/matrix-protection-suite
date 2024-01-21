@@ -10,7 +10,7 @@ import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipManager } from './RoomMembershipManager';
 
-export class StubRoomMembershipManager implements RoomMembershipManager {
+export class FakeRoomMembershipManager implements RoomMembershipManager {
   private readonly roomStateRevisionIssuers = new Map<
     StringRoomID,
     RoomMembershipRevisionIssuer
@@ -38,7 +38,7 @@ export class StubRoomMembershipManager implements RoomMembershipManager {
     _room: MatrixRoomID
   ): Promise<ActionResult<MembershipEvent[]>> {
     throw new TypeError(
-      `The StubRoomMembershipManager is not capable of fetching MembershipEvents`
+      `The FakeRoomMembershipManager is not capable of fetching MembershipEvents`
     );
   }
 }

@@ -12,7 +12,7 @@ import {
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StateTrackingMeta } from './StateTrackingMeta';
 
-export class StubRoomStateRevisionIssuer
+export class FakeRoomStateRevisionIssuer
   extends EventEmitter
   implements RoomStateRevisionIssuer
 {

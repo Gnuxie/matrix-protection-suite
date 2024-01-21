@@ -45,7 +45,7 @@ export class AbstractProtectedRoomsConfig
   }
 }
 
-export class StubProtectedRoomsConfig
+export class FakeProtectedRoomsConfig
   extends AbstractProtectedRoomsConfig
   implements ProtectedRoomsConfig
 {

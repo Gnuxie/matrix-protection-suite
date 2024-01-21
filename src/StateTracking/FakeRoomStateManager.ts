@@ -12,7 +12,7 @@ import {
   RoomStateRevisionIssuer,
 } from './StateRevisionIssuer';
 
-export class StubRoomStateManager implements RoomStateManager {
+export class FakeRoomStateManager implements RoomStateManager {
   private readonly roomStateRevisionIssuers = new Map<
     StringRoomID,
     RoomStateRevisionIssuer
@@ -38,7 +38,7 @@ export class StubRoomStateManager implements RoomStateManager {
   }
   getRoomState(_room: MatrixRoomID): Promise<ActionResult<StateEvent[]>> {
     throw new TypeError(
-      `The StubRoomStateManager is not capable of fetching RoomState`
+      `The FakeRoomStateManager is not capable of fetching RoomState`
     );
   }
 }

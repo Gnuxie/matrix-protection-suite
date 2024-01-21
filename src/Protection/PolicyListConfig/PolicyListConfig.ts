@@ -22,7 +22,7 @@ import {
   StandardDirectPropagationPolicyListRevisionIssuer,
 } from '../DirectPropagationPolicyListRevisionIssuer';
 import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
-import { AbstractPolicyListConfig } from './StubPolicyListConfig';
+import { AbstractPolicyListConfig } from './FakePolicyListConfig';
 
 export interface PolicyRoomWatchProfile<T = unknown> {
   room: MatrixRoomID;

@@ -15,7 +15,7 @@ import { PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer
 import { PolicyRoomEditor } from '../PolicyList/PolicyRoomEditor';
 import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
 
-export class StubPolicyRoomManager implements PolicyRoomManager {
+export class FakePolicyRoomManager implements PolicyRoomManager {
   private readonly policyRoomRevisionIssuers = new Map<
     StringRoomID,
     PolicyRoomRevisionIssuer
@@ -36,7 +36,7 @@ export class StubPolicyRoomManager implements PolicyRoomManager {
   ): Promise<ActionResult<MatrixRoomID>> {
     // Strictly, this isn't true, but i don't think we're going to use this.
     throw new TypeError(
-      `The StubPolicyRoomManager is undable to create a policy room`
+      `The FakePolicyRoomManager is undable to create a policy room`
     );
   }
 
@@ -58,7 +58,7 @@ export class StubPolicyRoomManager implements PolicyRoomManager {
     // Strictly this isn't true either, it could do this if we could keep track of the
     // issuers and had access to the room state revision issuer.
     throw new TypeError(
-      `The StubPolicyRoomManager is unable to obtain an editor for a policy room`
+      `The FakePolicyRoomManager is unable to obtain an editor for a policy room`
     );
   }
 
@@ -66,7 +66,7 @@ export class StubPolicyRoomManager implements PolicyRoomManager {
     _room: MatrixRoomReference
   ): Promise<ActionResult<PolicyRuleEvent[]>> {
     throw new TypeError(
-      `The StubPolicyRoomManager is unable to obtain the policy rule events for a policy room`
+      `The FakePolicyRoomManager is unable to obtain the policy rule events for a policy room`
     );
   }
 

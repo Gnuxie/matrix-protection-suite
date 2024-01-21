@@ -38,7 +38,7 @@ import {
 import { ConsequenceProviderDescription } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
-import { AbstractProtectionsConfig } from './StubProtectionsConfig';
+import { AbstractProtectionsConfig } from './FakeProtectionsConfig';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
 // A boring way is by naming them like protections and just matching the provider name to the protection name.
