@@ -1,6 +1,6 @@
 import { BasicConsequenceProvider } from '../Consequence/Consequence';
 import { createMock } from 'ts-auto-mock';
-import { findProtection } from '../Protection';
+import { Protection, findProtection } from '../Protection';
 import './MemberBanSynchronisation';
 import { isError, isOk } from '../../Interface/Action';
 import { randomRoomID } from '../../TestUtilities/EventGeneration';
@@ -9,8 +9,34 @@ import { describeProtectedRoomsSet } from '../../StateTracking/DeclareRoomState'
 import { Membership } from '../../StateTracking/MembershipChange';
 import waitForExpect from 'wait-for-expect';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
+import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 
-test('A policy change banning a user on a directly watched list', async function () {
+function createMemberBanSynchronisationProtection(
+  consequenceProvider: BasicConsequenceProvider,
+  protectedRoomsSet: ProtectedRoomsSet
+): Protection {
+  const description = findProtection('MemberBanSynchronisationProtection');
+  if (description === undefined) {
+    throw new TypeError(
+      'Should be able to find the member ban synchronisation protection'
+    );
+  }
+  const protectionResult = description.factory(
+    description,
+    consequenceProvider,
+    protectedRoomsSet,
+    undefined,
+    {}
+  );
+  if (isError(protectionResult)) {
+    throw new TypeError('Should be able to construct the protection');
+  }
+  return protectionResult.ok;
+}
+
+// handlePolicyRevision
+// We need to test the consequence method itself in another test?
+test('A policy change banning a user on a directly watched list will call the consequence to update for the revision', async function () {
   const spammerToBanUserID = `@spam:example.com` as StringUserID;
   const policyRoom = randomRoomID([]);
   const { protectedRoomsSet, roomStateManager, policyRoomManager } =
@@ -32,28 +58,16 @@ test('A policy change banning a user on a directly watched list', async function
       ],
     });
 
-  const description = findProtection('MemberBanSynchronisationProtection');
-  if (description === undefined) {
-    throw new TypeError(
-      'Should be able to find the member ban synchronisation protection'
-    );
-  }
   const consequenceProvider = createMock<BasicConsequenceProvider>();
   const consequenceSpy = jest.spyOn(
     consequenceProvider,
     'consequenceForUsersInRevision'
   );
-  const protectionResult = description.factory(
-    description,
+
+  const protection = createMemberBanSynchronisationProtection(
     consequenceProvider,
-    protectedRoomsSet,
-    undefined,
-    {}
+    protectedRoomsSet
   );
-  if (isError(protectionResult)) {
-    throw new TypeError('Should be able to construct the protection');
-  }
-  const protection = protectionResult.ok;
 
   const policyRoomRevisionIssuer =
     policyRoomManager.getFakePolicyRoomRevisionIssuer(policyRoom);
