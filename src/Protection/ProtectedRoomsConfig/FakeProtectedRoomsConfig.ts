@@ -20,10 +20,10 @@ export class AbstractProtectedRoomsConfig
 {
   private readonly protectedRooms = new Map<StringRoomID, MatrixRoomID>();
   public constructor(rooms: MatrixRoomID[]) {
+    super();
     rooms.forEach((room) =>
       this.protectedRooms.set(room.toRoomIDOrAlias(), room)
     );
-    super();
   }
   public get allRooms(): MatrixRoomID[] {
     return [...this.protectedRooms.values()];
