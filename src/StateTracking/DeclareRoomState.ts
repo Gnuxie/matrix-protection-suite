@@ -48,11 +48,18 @@ export type DescribeProtectedRoomsSet = {
   clientUserID?: StringUserID;
 };
 
+export type ProtectedRoomsSetDescription = {
+  protectedRoomsSet: ProtectedRoomsSet;
+  roomStateManager: FakeRoomStateManager;
+  policyRoomManager: FakePolicyRoomManager;
+  roomMembershipManager: FakeRoomMembershipManager;
+};
+
 export async function describeProtectedRoomsSet({
   rooms = [],
   lists = [],
   clientUserID = randomUserID(),
-}: DescribeProtectedRoomsSet): Promise<ProtectedRoomsSet> {
+}: DescribeProtectedRoomsSet): Promise<ProtectedRoomsSetDescription> {
   const roomDescriptions = rooms.map(describeRoom);
   const listDescriptions = lists.map(describeRoom);
   const roomStateManager = new FakeRoomStateManager(
@@ -81,7 +88,7 @@ export async function describeProtectedRoomsSet({
   if (isError(setRoomState)) {
     throw setRoomState;
   }
-  return new StandardProtectedRoomsSet(
+  const protectedRoomsSet = new StandardProtectedRoomsSet(
     new FakePolicyListConfig(
       policyRoomManager,
       listDescriptions.map((description) => description.policyRevisionIssuer)
@@ -92,6 +99,12 @@ export async function describeProtectedRoomsSet({
     setRoomState.ok,
     clientUserID
   );
+  return {
+    protectedRoomsSet,
+    roomStateManager,
+    policyRoomManager,
+    roomMembershipManager,
+  };
 }
 
 export type RoomDescription = {
