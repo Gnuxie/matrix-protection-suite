@@ -75,7 +75,7 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
       // previous_content and there was an error in the previous_content,
       // but not the top level. Then there would be a very bad situation.
       const citedPreviousMembership =
-        event.unsigned.prev_content === undefined
+        event.unsigned?.prev_content === undefined
           ? undefined
           : Value.Decode(
               MembershipEventContent,
@@ -87,7 +87,7 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
                   `Unable to decode previous membership for ${
                     event.state_key
                   } within ${this.room.toPermalink()}. This is a serious error and the developers should be notified.`,
-                  JSON.stringify(event.unsigned.prev_content),
+                  JSON.stringify(event.unsigned?.prev_content),
                   error
                 );
                 return undefined;

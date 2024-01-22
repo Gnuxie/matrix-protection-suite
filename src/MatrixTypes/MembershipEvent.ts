@@ -119,6 +119,6 @@ export const MembershipEvent = Type.Composite([
     content: MembershipEventContent,
     state_key: StringUserID,
     type: Type.Literal('m.room.member'),
-    unsigned: MembershipEventUnsigned,
+    unsigned: Type.Optional(MembershipEventUnsigned),
   }),
 ]);
