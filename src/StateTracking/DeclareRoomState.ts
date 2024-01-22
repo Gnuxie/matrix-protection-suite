@@ -23,9 +23,7 @@ import {
   StandardProtectedRoomsSet,
 } from '../Protection/ProtectedRoomsSet';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
-import { PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { RoomStateMembershipRevisionIssuer } from './RoomStateMembershipRevisionIssuer';
-import { RoomStatePolicyRoomRevisionIssuer } from '../PolicyList/RoomStatePolicyListRevisionIssuer';
 import { FakeProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
 import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
 import { FakeProtectionsConfig } from '../Protection/ProtectionsConfig/FakeProtectionsConfig';
@@ -35,6 +33,7 @@ import { FakeRoomMembershipManager } from './FakeRoomMembershipManager';
 import { FakePolicyRoomManager } from './FakePolicyRoomManager';
 import { StandardSetRoomState } from './StandardSetRoomState';
 import { FakePolicyListConfig } from '../Protection/PolicyListConfig/FakePolicyListConfig';
+import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
 
 // TODO:
 // all describe* methods need to return description objects, not concrete
@@ -110,7 +109,7 @@ export async function describeProtectedRoomsSet({
 export type RoomDescription = {
   stateRevisionIssuer: FakeRoomStateRevisionIssuer;
   membershipRevisionIssuer: RoomMembershipRevisionIssuer;
-  policyRevisionIssuer: PolicyRoomRevisionIssuer;
+  policyRevisionIssuer: FakePolicyRoomRevisionIssuer;
 };
 
 export type DescribeRoomOptions = {
@@ -200,7 +199,7 @@ export function describeRoom({
     membershipRevision,
     stateRevisionIssuer
   );
-  const policyRevisionIssuer = new RoomStatePolicyRoomRevisionIssuer(
+  const policyRevisionIssuer = new FakePolicyRoomRevisionIssuer(
     room,
     policyRevision,
     stateRevisionIssuer

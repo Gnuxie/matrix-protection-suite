@@ -11,6 +11,7 @@ import {
 } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
+import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
 import { PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRoomEditor } from '../PolicyList/PolicyRoomEditor';
 import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
@@ -18,11 +19,11 @@ import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
 export class FakePolicyRoomManager implements PolicyRoomManager {
   private readonly policyRoomRevisionIssuers = new Map<
     StringRoomID,
-    PolicyRoomRevisionIssuer
+    FakePolicyRoomRevisionIssuer
   >();
 
   public constructor(
-    policyRoomRevisionIssuers: PolicyRoomRevisionIssuer[] = []
+    policyRoomRevisionIssuers: FakePolicyRoomRevisionIssuer[] = []
   ) {
     for (const issuer of policyRoomRevisionIssuers) {
       this.policyRoomRevisionIssuers.set(issuer.room.toRoomIDOrAlias(), issuer);
@@ -78,5 +79,18 @@ export class FakePolicyRoomManager implements PolicyRoomManager {
     throw new TypeError(
       `The StubPolicyRoomManager is unable to determine which policy rooms are editable`
     );
+  }
+
+  // These methods are on the fake side of the policy room manager.
+  public getFakePolicyRoomRevisionIssuer(
+    room: MatrixRoomID
+  ): FakePolicyRoomRevisionIssuer {
+    const issuer = this.policyRoomRevisionIssuers.get(room.toRoomIDOrAlias());
+    if (issuer === undefined) {
+      throw new TypeError(
+        `You haven't yet given the room ${room.toPermalink} to the FakePolicyRevisionIssuer`
+      );
+    }
+    return issuer;
   }
 }
