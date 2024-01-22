@@ -114,11 +114,11 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
   }
 
   private addIssuers(issuers: PolicyListRevisionIssuer[]): void {
-    const changes: PolicyRuleChange[] = [];
+    let changes: PolicyRuleChange[] = [];
     for (const issuer of issuers) {
       this.policyListRevisionIssuers.add(issuer);
       issuer.on('revision', this.revisionListener);
-      changes.concat(
+      changes = changes.concat(
         this.previewIncorperationOfRevision(issuer.currentRevision)
       );
     }
