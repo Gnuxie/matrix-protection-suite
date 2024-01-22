@@ -17,7 +17,9 @@ export class FakeRoomMembershipRevisionIssuer
   extends RoomStateMembershipRevisionIssuer
   implements RoomMembershipRevisionIssuer
 {
-  private revisionLog: Parameters<MembershipRevisionListener>[] = [];
+  private revisionLog: Parameters<
+    MembershipRevisionListener<RoomMembershipRevision>
+  >[] = [];
   public constructor(
     room: MatrixRoomID,
     currentRevision: RoomMembershipRevision,
@@ -39,7 +41,9 @@ export class FakeRoomMembershipRevisionIssuer
   }
 
   // These methods are on the Fake's reflective side
-  public getLastRevision(): Parameters<MembershipRevisionListener> {
+  public getLastRevision(): Parameters<
+    MembershipRevisionListener<RoomMembershipRevision>
+  > {
     const revisionEntry = this.revisionLog.at(-1);
     if (revisionEntry === undefined) {
       throw new TypeError(`the revision log is empty`);
