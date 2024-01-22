@@ -59,8 +59,8 @@ export async function describeProtectedRoomsSet({
   lists = [],
   clientUserID = randomUserID(),
 }: DescribeProtectedRoomsSet): Promise<ProtectedRoomsSetDescription> {
-  const roomDescriptions = rooms.map(describeRoom);
   const listDescriptions = lists.map(describeRoom);
+  const roomDescriptions = [...listDescriptions, ...rooms.map(describeRoom)];
   const roomStateManager = new FakeRoomStateManager(
     roomDescriptions.map((description) => description.stateRevisionIssuer)
   );
