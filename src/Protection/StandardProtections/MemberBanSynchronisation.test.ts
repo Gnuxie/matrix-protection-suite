@@ -3,10 +3,16 @@ import { createMock } from 'ts-auto-mock';
 import { Protection, findProtection } from '../Protection';
 import './MemberBanSynchronisation';
 import { isError, isOk } from '../../Interface/Action';
-import { randomRoomID } from '../../TestUtilities/EventGeneration';
+import {
+  randomRoomID,
+  randomUserID,
+} from '../../TestUtilities/EventGeneration';
 import { StringUserID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { describeProtectedRoomsSet } from '../../StateTracking/DeclareRoomState';
-import { Membership } from '../../StateTracking/MembershipChange';
+import {
+  Membership,
+  MembershipChangeType,
+} from '../../StateTracking/MembershipChange';
 import waitForExpect from 'wait-for-expect';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
@@ -33,6 +39,95 @@ function createMemberBanSynchronisationProtection(
   }
   return protectionResult.ok;
 }
+
+// handleTimelineEvent
+
+// handleMembershipChange
+test('Membership changes that should result in a ban when matching an existing policy', async function () {
+  const policyRoom = randomRoomID([]);
+  const protectedRoom = randomRoomID([]);
+  const changesToTest = [
+    MembershipChangeType.Invited,
+    MembershipChangeType.Joined,
+    MembershipChangeType.Knocked,
+    MembershipChangeType.Rejoined,
+  ];
+  const usersToTest = changesToTest.map((_change) => randomUserID());
+  const { protectedRoomsSet, roomStateManager, roomMembershipManager } =
+    await describeProtectedRoomsSet({
+      rooms: [
+        {
+          room: protectedRoom,
+          membershipDescriptions: [
+            {
+              // we need this for the user who will rejoin the room.
+              sender: usersToTest[3],
+              membership: Membership.Leave,
+            },
+          ],
+        },
+      ],
+      lists: [
+        {
+          room: policyRoom,
+          policyDescriptions: usersToTest.map((userID) => ({
+            entity: userID,
+            type: PolicyRuleType.User,
+          })),
+        },
+      ],
+    });
+  const consequenceProvider = createMock<BasicConsequenceProvider>();
+  const consequenceSpy = jest.spyOn(
+    consequenceProvider,
+    'consequenceForUserInRoom'
+  );
+  const protection = createMemberBanSynchronisationProtection(
+    consequenceProvider,
+    protectedRoomsSet
+  );
+  const membershipRevisionIssuer =
+    roomMembershipManager.getFakeRoomMembershpRevisionIssuer(protectedRoom);
+  roomStateManager.appendState({
+    room: protectedRoom,
+    membershipDescriptions: changesToTest.map((changeType, index) => {
+      const membership = (() => {
+        switch (changeType) {
+          case MembershipChangeType.Invited:
+            return Membership.Invite;
+          case MembershipChangeType.Joined:
+          case MembershipChangeType.Rejoined:
+            return Membership.Join;
+          case MembershipChangeType.Knocked:
+            return Membership.Knock;
+          default:
+            throw new TypeError(`Unexpected membership change type in test`);
+        }
+      })();
+      return {
+        state_key: usersToTest[index],
+        sender: usersToTest[index],
+        membership: membership,
+      };
+    }),
+  });
+  await waitForExpect(() => {
+    expect(membershipRevisionIssuer.getNumberOfRevisions()).toBe(1);
+  });
+  const revisionEntry = membershipRevisionIssuer.getLastRevision();
+  if (protection.handleMembershipChange === undefined) {
+    throw new TypeError(
+      `Protection should have the method to handle a membership change defined, is this test out of date?`
+    );
+  }
+  const protectionHandlerResult = await protection.handleMembershipChange.call(
+    protection,
+    revisionEntry[0],
+    revisionEntry[1]
+  );
+  expect(isOk(protectionHandlerResult)).toBeTruthy();
+  expect(consequenceSpy).toBeCalledTimes(usersToTest.length);
+});
 
 // handlePolicyRevision
 // We need to test the consequence method itself in another test?
