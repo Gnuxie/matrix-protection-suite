@@ -7,26 +7,32 @@ import { ActionError, ActionResult, Ok } from '../Interface/Action';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
+import { FakeRoomMembershipRevisionIssuer } from './FakeRoomMembershipRevisionIssuer';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipManager } from './RoomMembershipManager';
 
 export class FakeRoomMembershipManager implements RoomMembershipManager {
-  private readonly roomStateRevisionIssuers = new Map<
+  private readonly roomMembershipRevisionIssuers = new Map<
     StringRoomID,
-    RoomMembershipRevisionIssuer
+    FakeRoomMembershipRevisionIssuer
   >();
 
   public constructor(
-    roomMembershipRevisionIssuers: RoomMembershipRevisionIssuer[] = []
+    roomMembershipRevisionIssuers: FakeRoomMembershipRevisionIssuer[] = []
   ) {
     for (const issuer of roomMembershipRevisionIssuers) {
-      this.roomStateRevisionIssuers.set(issuer.room.toRoomIDOrAlias(), issuer);
+      this.roomMembershipRevisionIssuers.set(
+        issuer.room.toRoomIDOrAlias(),
+        issuer
+      );
     }
   }
   public async getRoomMembershipRevisionIssuer(
     room: MatrixRoomID
   ): Promise<ActionResult<RoomMembershipRevisionIssuer>> {
-    const issuer = this.roomStateRevisionIssuers.get(room.toRoomIDOrAlias());
+    const issuer = this.roomMembershipRevisionIssuers.get(
+      room.toRoomIDOrAlias()
+    );
     if (issuer === undefined) {
       return ActionError.Result(
         `Canont find the room ${room.toRoomIDOrAlias()}`
@@ -40,5 +46,20 @@ export class FakeRoomMembershipManager implements RoomMembershipManager {
     throw new TypeError(
       `The FakeRoomMembershipManager is not capable of fetching MembershipEvents`
     );
+  }
+
+  // These methods are for reflecting on the Fake side of the FakeRoomMembershipManager.
+  public getFakeRoomMembershpRevisionIssuer(
+    room: MatrixRoomID
+  ): FakeRoomMembershipRevisionIssuer {
+    const issuer = this.roomMembershipRevisionIssuers.get(
+      room.toRoomIDOrAlias()
+    );
+    if (issuer === undefined) {
+      throw new TypeError(
+        `You haven't yet given the room ${room.toPermalink} to the FakeRoomMembershipManager`
+      );
+    }
+    return issuer;
   }
 }
