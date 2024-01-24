@@ -51,9 +51,12 @@ export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
 export * from './Protection/Consequence/Consequence';
 
+export * from './Protection/PolicyListConfig/FakePolicyListConfig';
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
+export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
 export * from './Protection/PolicyListConfig/PolicyListConfig';
 
+export * from './Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
 export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 
