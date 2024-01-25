@@ -28,6 +28,7 @@
   "devDependencies": {
     "@commitlint/config-conventional": "^17.4.4",
     "@sinclair/typebox": "~0.31.15",
+    "@types/crypto-js": "^4.2.2",
     "@types/glob-to-regexp": "^0.4.1",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.14.0",

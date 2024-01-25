@@ -18,6 +18,7 @@ import {
   isStringRoomID,
   isStringUserID,
 } from '../MatrixTypes/StringlyTypedMatrix';
+import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
 
 export function randomRawEvent(sender: string, room_id: string): unknown {
   const rawEventJSON = {
@@ -40,25 +41,38 @@ export function makePolicyRuleUserEvent({
   reason = '<no reason supplied>',
   entity = randomUserID(),
   recommendation = Recommendation.Ban,
+  state_key,
+  copyFrom,
+  remove,
 }: {
   sender?: StringUserID;
   room_id?: StringRoomID;
   reason?: string;
   entity?: string;
   recommendation?: Recommendation;
+  state_key?: string;
+  copyFrom?: PolicyRuleEvent;
+  remove?: PolicyRuleEvent;
 }): PolicyRuleEvent {
-  const rawEventJSON = {
-    room_id,
-    event_id: `$${randomUUID()}:example.com`,
-    origin_server_ts: Date.now(),
-    state_key: randomUUID(),
+  const description = buildPolicyEvent({
+    state_key,
     type: PolicyRuleType.User,
-    sender,
     content: {
       entity,
       recommendation,
       reason,
     },
+    copyFrom,
+    remove,
+  });
+  const rawEventJSON = {
+    room_id,
+    event_id: `$${randomUUID()}:example.com`,
+    origin_server_ts: Date.now(),
+    state_key: description.state_key,
+    type: description.type,
+    sender,
+    content: description.content ?? {},
   };
   const decodeResult = Value.Decode(PolicyRuleEvent, rawEventJSON);
   if (isError(decodeResult)) {

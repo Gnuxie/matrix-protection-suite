@@ -33,6 +33,7 @@ import { StandardSetRoomState } from './StandardSetRoomState';
 import { FakePolicyListConfig } from '../Protection/PolicyListConfig/FakePolicyListConfig';
 import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
 import { FakeRoomMembershipRevisionIssuer } from './FakeRoomMembershipRevisionIssuer';
+import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
 
 // TODO:
 // all describe* methods need to return description objects, not concrete
@@ -237,10 +238,12 @@ export function describeRoomMember({
 export type DescribePolicyRule = {
   sender?: StringUserID;
   room_id?: StringRoomID;
-  type: PolicyRuleType;
-  entity: string;
+  type?: PolicyRuleType;
+  entity?: string;
   reason?: string;
   recommendation?: Recommendation;
+  copyFrom?: PolicyRuleEvent;
+  remove?: PolicyRuleEvent;
 };
 
 export function describePolicyRule({
@@ -250,17 +253,42 @@ export function describePolicyRule({
   entity,
   reason = '<no reason supplied>',
   recommendation = Recommendation.Ban,
+  copyFrom,
+  remove,
 }: DescribePolicyRule): PolicyRuleEvent {
+  const content = (() => {
+    if (remove !== undefined) {
+      return undefined;
+    } else if (copyFrom !== undefined) {
+      return undefined;
+    } else if (
+      entity === undefined ||
+      reason === undefined ||
+      recommendation === undefined
+    ) {
+      throw new TypeError(
+        `Content fields should be defined when copyFrom and remove aren't being used`
+      );
+    } else {
+      return {
+        entity,
+        reason,
+        recommendation,
+      };
+    }
+  })();
+  const description = buildPolicyEvent({
+    type,
+    content,
+    copyFrom,
+    remove,
+  });
   return describeStateEvent({
     sender,
-    state_key: randomUUID(),
+    state_key: description.state_key,
     room_id,
-    type,
-    content: {
-      entity,
-      reason,
-      recommendation,
-    },
+    type: description.type,
+    content: description.content ?? {},
   }) as PolicyRuleEvent;
 }
 
@@ -277,7 +305,7 @@ export function describeStateEvent({
   state_key = '',
   type,
   content = {},
-  room_id = `!${randomUUID}:example.com` as StringRoomID,
+  room_id = `!${randomUUID()}:example.com` as StringRoomID,
 }: DescribeStateEventOptions): StateEvent {
   const rawEventJSON = {
     room_id,
