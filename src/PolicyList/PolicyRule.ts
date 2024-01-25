@@ -30,6 +30,7 @@ import { MatrixGlob } from '../MatrixTypes/MatrixGlob';
 import {
   PolicyRuleEvent,
   PolicyRuleType,
+  UnredactedPolicyContent,
   normalisePolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
 
@@ -78,7 +79,9 @@ export function normaliseRecommendation(
   }
 }
 
-export function parsePolicyRule(event: PolicyRuleEvent): PolicyRule {
+export function parsePolicyRule(
+  event: Omit<PolicyRuleEvent, 'content'> & { content: UnredactedPolicyContent }
+): PolicyRule {
   return new StandardPolicyRule(
     event.content.entity,
     normaliseRecommendation(event.content.recommendation),

@@ -120,8 +120,8 @@ export function isPolicyTypeObsolete(
   }
 }
 
-export type PolicyContent = Static<typeof PolicyContent>;
-export const PolicyContent = Type.Object({
+export type UnredactedPolicyContent = Static<typeof UnredactedPolicyContent>;
+export const UnredactedPolicyContent = Type.Object({
   entity: Type.String({
     description:
       'The entity affected by this rule. Glob characters `*` and `?` can be used\nto match zero or more characters or exactly one character respectively.',
@@ -135,14 +135,19 @@ export const PolicyContent = Type.Object({
   }),
 });
 
+export type RedactablePolicyContent = Static<typeof RedactablePolicyContent>;
+export const RedactablePolicyContent = Type.Union([
+  UnredactedPolicyContent,
+  Type.Object({}, { description: 'redaction content or dummy content' }),
+]);
+
 export type GeneircPolicyRuleEvent = StaticDecode<typeof PolicyRuleEvent>;
-export const GeneircPolicyRuleEvent = StateEvent(PolicyContent);
+export const GeneircPolicyRuleEvent = StateEvent(RedactablePolicyContent);
 
 export type PolicyRuleUser = StaticDecode<typeof PolicyRuleUser>;
 export const PolicyRuleUser = Type.Composite([
   GeneircPolicyRuleEvent,
   Type.Object({
-    content: Type.Optional(PolicyContent),
     state_key: Type.Optional(
       Type.String({
         description: 'An arbitrary string decided upon by the sender.',
@@ -156,7 +161,6 @@ export type PolicyRuleServer = StaticDecode<typeof PolicyRuleServer>;
 export const PolicyRuleServer = Type.Composite([
   GeneircPolicyRuleEvent,
   Type.Object({
-    content: Type.Optional(PolicyContent),
     state_key: Type.Optional(
       Type.String({
         description: 'An arbitrary string decided upon by the sender.',
@@ -170,7 +174,6 @@ export type PolicyRuleRoom = StaticDecode<typeof PolicyRuleRoom>;
 export const PolicyRuleRoom = Type.Composite([
   GeneircPolicyRuleEvent,
   Type.Object({
-    content: Type.Optional(PolicyContent),
     state_key: Type.Optional(
       Type.String({
         description: 'An arbitrary string decided upon by the sender.',

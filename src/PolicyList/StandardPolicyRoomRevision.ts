@@ -28,6 +28,7 @@ limitations under the License.
 import {
   PolicyRuleEvent,
   PolicyRuleType,
+  UnredactedPolicyContent,
   isPolicyTypeObsolete,
   normalisePolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
@@ -225,6 +226,15 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       : this.powerLevelsEvent?.event_id === eventId;
   }
 
+  // FIXME: Ideally this method wouldn't exist, but it has to for now because
+  // otherwise there would need to be some way to add a isRedacted predicate
+  // to all events added to the decoder.
+  // which tbh probably can just be done by having a table with them and
+  // if there isn't an entry, it just uses the default.
+  // Which is probably safe enough given redaction rules are in the auth rules
+  // But then how do you manage differences between room versions?
+  // It probably really is more reliable to depend upon unsigned.redacted_because.
+  // but i'm not sure. Needs further investigation.
   /**
    * Calculate the changes from this revision with a more recent set of state events.
    * Will only show the difference, if the set is the same then no changes will be returned.
@@ -278,6 +288,11 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         }
       })();
 
+      if (changeType === null) {
+        // nothing has changed.
+        continue;
+      }
+
       // If we haven't got any information about what the rule used to be, then it wasn't a valid rule to begin with
       // and so will not have been used. Removing a rule like this therefore results in no change.
       if (changeType === ChangeType.Removed && existingRule) {
@@ -300,14 +315,26 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         continue;
       }
       if (changeType) {
-        const rule = parsePolicyRule(event);
-        changes.push({
-          rule,
-          changeType,
-          event,
-          sender: event.sender,
-          ...(existingState ? { existingState } : {}),
-        });
+        if ('entity' in event.content) {
+          // This cast is required because for some reason TS won't narrow on the
+          // properties of `event`.
+          // We should really consider making all of the properties in MatrixTypes
+          // readonly.
+          const rule = parsePolicyRule(
+            event as Omit<PolicyRuleEvent, 'content'> & {
+              content: UnredactedPolicyContent;
+            }
+          );
+          changes.push({
+            rule,
+            changeType,
+            event,
+            sender: event.sender,
+            ...(existingState ? { existingState } : {}),
+          });
+        } else {
+          throw new TypeError(`Should have caught a redaction`);
+        }
       }
     }
     return changes;
