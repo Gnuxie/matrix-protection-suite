@@ -16,7 +16,7 @@ import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
-import { ChangeType } from '../PolicyList/PolicyRuleChange';
+import { ChangeType } from './ChangeType';
 import { StateTrackingMeta, TrackedStateEvent } from './StateTrackingMeta';
 
 export interface StateRevision {

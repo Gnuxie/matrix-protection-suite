@@ -81,6 +81,7 @@ export * from './Protection/Protection';
 
 export * from './Reporting/EventReport';
 
+export * from './StateTracking/ChangeType';
 export * from './StateTracking/DefaultStateTrackingMeta';
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/MembershipChange';

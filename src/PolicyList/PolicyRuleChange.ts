@@ -26,13 +26,8 @@ limitations under the License.
  */
 
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
+import { ChangeType } from '../StateTracking/ChangeType';
 import { PolicyRule } from './PolicyRule';
-
-export enum ChangeType {
-  Added = 'ADDED',
-  Removed = 'REMOVED',
-  Modified = 'MODIFIED',
-}
 
 /**
  * A way to guage the diff between two revisions.

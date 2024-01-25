@@ -28,7 +28,8 @@ limitations under the License.
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from './PolicyListRevision';
 import { PolicyRule, Recommendation } from './PolicyRule';
-import { ChangeType, PolicyRuleChange } from './PolicyRuleChange';
+import { PolicyRuleChange } from './PolicyRuleChange';
+import { ChangeType } from '../StateTracking/ChangeType';
 import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';

@@ -25,7 +25,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { ChangeType } from '../PolicyList/PolicyRuleChange';
+import { ChangeType, calculateStateChange } from './ChangeType';
 import { Revision } from '../PolicyList/Revision';
 import { Map as PersistentMap } from 'immutable';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
@@ -177,27 +177,7 @@ export class StandardRoomStateRevision implements RoomStateRevision {
     for (const event of state) {
       const existingState = this.getStateEvent(event.type, event.state_key);
 
-      const changeType: null | ChangeType = (() => {
-        if (event.unsigned?.redacted_because !== undefined) {
-          if (existingState !== undefined) {
-            return ChangeType.Removed;
-          } else {
-            return null; // we weren't tracking anything here, nothing has changed.
-          }
-        } else if (Object.keys(event.content).length === 0) {
-          if (existingState !== undefined) {
-            return ChangeType.Removed;
-          } else {
-            return null; // we weren't tracking anything here, nothing has changed.
-          }
-        } else if (existingState === undefined) {
-          return ChangeType.Added;
-        } else if (existingState.event_id === event.event_id) {
-          return null; // it's the same event, and it is intact.
-        } else {
-          return ChangeType.Modified;
-        }
-      })();
+      const changeType = calculateStateChange(event, existingState);
       if (changeType !== null) {
         changes.push({
           eventType: event.type,

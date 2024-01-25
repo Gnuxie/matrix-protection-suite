@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
-import { ChangeType } from '../PolicyList/PolicyRuleChange';
+import { ChangeType } from './ChangeType';
 import {
   StandardStateTrackingMeta,
   StateTrackingMeta,

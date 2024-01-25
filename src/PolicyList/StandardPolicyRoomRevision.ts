@@ -34,7 +34,8 @@ import {
 } from '../MatrixTypes/PolicyEvents';
 import { PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
-import { ChangeType, PolicyRuleChange } from './PolicyRuleChange';
+import { PolicyRuleChange } from './PolicyRuleChange';
+import { ChangeType, calculateStateChange } from '../StateTracking/ChangeType';
 import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
@@ -267,26 +268,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           continue;
         }
       }
-
-      const changeType: null | ChangeType = (() => {
-        if (!existingState) {
-          return ChangeType.Added;
-        } else if (existingState.event_id === event.event_id) {
-          if (event.unsigned?.redacted_because) {
-            return ChangeType.Removed;
-          } else {
-            // Nothing has changed.
-            return null;
-          }
-        } else {
-          // Then the policy has been modified in some other way, possibly 'soft' redacted by a new event with empty content...
-          if (Object.keys(event['content']).length === 0) {
-            return ChangeType.Removed;
-          } else {
-            return ChangeType.Modified;
-          }
-        }
-      })();
+      const changeType = calculateStateChange(event, existingState);
 
       if (changeType === null) {
         // nothing has changed.

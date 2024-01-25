@@ -29,7 +29,8 @@ import { EventEmitter } from 'events';
 import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
-import { ChangeType, PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import { ChangeType } from '../StateTracking/ChangeType';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 
 export interface DirectPropagationPolicyListRevisionIssuer

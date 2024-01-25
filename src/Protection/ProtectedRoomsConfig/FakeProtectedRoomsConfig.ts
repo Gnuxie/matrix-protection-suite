@@ -8,7 +8,7 @@ import { ProtectedRoomsConfig } from './ProtectedRoomsConfig';
 import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok } from '../../Interface/Action';
-import { ChangeType } from '../../PolicyList/PolicyRuleChange';
+import { ChangeType } from '../../StateTracking/ChangeType';
 
 export class AbstractProtectedRoomsConfig
   extends EventEmitter

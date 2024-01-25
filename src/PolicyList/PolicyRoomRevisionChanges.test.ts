@@ -6,7 +6,7 @@ import { describePolicyRule } from '../StateTracking/DeclareRoomState';
 import { DefaultStateTrackingMeta } from '../StateTracking/DefaultStateTrackingMeta';
 import { StandardRoomStateRevision } from '../StateTracking/StandardRoomStateRevision';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { ChangeType } from './PolicyRuleChange';
+import { ChangeType } from '../StateTracking/ChangeType';
 
 // if events aren't normalized as they are indexed then we really need to make
 // sure that the policy room editor removes them according to their source
