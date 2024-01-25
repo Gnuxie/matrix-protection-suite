@@ -31,7 +31,7 @@ import {
   StringUserID,
 } from './StringlyTypedMatrix';
 
-const TContent = Type.Unknown();
+const TContent = Type.Object({});
 
 export type Event<Content extends TSchema = typeof TContent> = Static<
   ReturnType<typeof Event<Content>>

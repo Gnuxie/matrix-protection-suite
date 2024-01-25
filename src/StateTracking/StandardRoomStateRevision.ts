@@ -178,27 +178,24 @@ export class StandardRoomStateRevision implements RoomStateRevision {
       const existingState = this.getStateEvent(event.type, event.state_key);
 
       const changeType: null | ChangeType = (() => {
-        if (existingState === undefined) {
+        if (event.unsigned?.redacted_because !== undefined) {
+          if (existingState !== undefined) {
+            return ChangeType.Removed;
+          } else {
+            return null; // we weren't tracking anything here, nothing has changed.
+          }
+        } else if (Object.keys(event.content).length === 0) {
+          if (existingState !== undefined) {
+            return ChangeType.Removed;
+          } else {
+            return null; // we weren't tracking anything here, nothing has changed.
+          }
+        } else if (existingState === undefined) {
           return ChangeType.Added;
         } else if (existingState.event_id === event.event_id) {
-          if (event.unsigned?.redacted_because) {
-            return ChangeType.Removed;
-          } else {
-            // Nothing has changed.
-            return null;
-          }
+          return null; // it's the same event, and it is intact.
         } else {
-          // Then the policy has been modified in some other way, possibly 'soft' redacted by a new event with empty content...
-          if (
-            event.content === undefined ||
-            event.content === null ||
-            (typeof event.content === 'object' &&
-              Object.keys(event.content).length === 0)
-          ) {
-            return ChangeType.Removed;
-          } else {
-            return ChangeType.Modified;
-          }
+          return ChangeType.Modified;
         }
       })();
       if (changeType !== null) {
