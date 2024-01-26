@@ -26,7 +26,6 @@ limitations under the License.
  */
 
 import { StateEvent } from '../MatrixTypes/Events';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 
 export enum ChangeType {
   /** A new event was added, with no previous room state for this type-key pair. */
@@ -51,15 +50,9 @@ export enum ChangeType {
  */
 export function calculateStateChange(
   event: StateEvent,
-  existingState?: { event_id: StringEventID }
+  existingState?: StateEvent
 ): ChangeType | null {
-  if (event.unsigned?.redacted_because !== undefined) {
-    if (existingState !== undefined) {
-      return ChangeType.Removed;
-    } else {
-      return null; // we weren't tracking anything here, nothing has changed.
-    }
-  } else if (Object.keys(event.content).length === 0) {
+  if (Object.keys(event.content).length === 0) {
     if (existingState !== undefined) {
       return ChangeType.Removed;
     } else {
@@ -68,7 +61,14 @@ export function calculateStateChange(
   } else if (existingState === undefined) {
     return ChangeType.Added;
   } else if (existingState.event_id === event.event_id) {
-    return null; // it's the same event, and it is intact.
+    if (
+      Object.keys(event.content).length !==
+      Object.keys(existingState.content).length
+    ) {
+      return ChangeType.Modified; // could have been a protected redaction e.g. m.room.member
+    } else {
+      return null; // it's the same event, and it is intact.
+    }
   } else {
     return ChangeType.Modified;
   }

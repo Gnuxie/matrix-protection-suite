@@ -10,7 +10,6 @@ import {
   StateChange,
 } from './StateRevisionIssuer';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StateTrackingMeta } from './StateTrackingMeta';
 import { StateEvent } from '../MatrixTypes/Events';
 
 export class FakeRoomStateRevisionIssuer
@@ -19,8 +18,7 @@ export class FakeRoomStateRevisionIssuer
 {
   public constructor(
     public currentRevision: RoomStateRevision,
-    public readonly room: MatrixRoomID,
-    public trackingMeta: StateTrackingMeta
+    public readonly room: MatrixRoomID
   ) {
     super();
   }
@@ -29,9 +27,6 @@ export class FakeRoomStateRevisionIssuer
     // nothing to do.
   }
 
-  setTrackingMeta(trackingMeta: StateTrackingMeta): void {
-    this.trackingMeta = trackingMeta;
-  }
   unregisterListeners(): void {
     // nothing to unregister
   }
@@ -53,15 +48,6 @@ export class FakeRoomStateRevisionIssuer
 
   // also on the Fake side.
   appendState(state: StateEvent[]): void {
-    // FIXME:
-    // so it's at this moment that we find out that TrackedStateEvent is a bit
-    // weird. And the arguments to StateChange and reviseFromState etc should
-    // accept the tracked version. Ultimatley though I think the tracked
-    // state event is an optimizaiton that costs us more than we gain.
-    // so we should consider removing it entirely.
-    this.reviseFromState([
-      ...(this.currentRevision.allState as StateEvent[]),
-      ...state,
-    ]);
+    this.reviseFromState([...this.currentRevision.allState, ...state]);
   }
 }

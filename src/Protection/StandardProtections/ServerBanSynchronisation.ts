@@ -27,6 +27,7 @@ limitations under the License.
 
 import { ActionResult, Ok } from '../../Interface/Action';
 import { Value } from '../../Interface/Value';
+import { StateEvent } from '../../MatrixTypes/Events';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { ServerACLEvent } from '../../MatrixTypes/ServerACL';
 import { serverName } from '../../MatrixTypes/StringlyTypedMatrix';
@@ -36,7 +37,6 @@ import {
   RoomStateRevision,
   StateChange,
 } from '../../StateTracking/StateRevisionIssuer';
-import { TrackedStateEvent } from '../../StateTracking/StateTrackingMeta';
 import { AccessControl } from '../AccessControl';
 import { BasicConsequenceProvider } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
@@ -69,7 +69,7 @@ export class ServerBanSynchronisation
 
   public async handleStateChange(
     revision: RoomStateRevision,
-    changes: StateChange<TrackedStateEvent>[]
+    changes: StateChange<StateEvent>[]
   ): Promise<ActionResult<void>> {
     const serverACLEventChanges = changes.filter(
       (change) => change.eventType === 'm.room.server_acl'

@@ -31,7 +31,6 @@ import { Map as PersistentMap } from 'immutable';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StateEvent } from '../MatrixTypes/Events';
 import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
-import { StateTrackingMeta, TrackedStateEvent } from './StateTrackingMeta';
 import { Logger } from '../Logging/Logger';
 
 const log = new Logger('StandardRoomStateRevision');
@@ -39,18 +38,12 @@ const log = new Logger('StandardRoomStateRevision');
 /**
  * A map interning rules by their rule type, and then their state key.
  */
-type StateEventMap = PersistentMap<
-  string,
-  PersistentMap<string, TrackedStateEvent>
->;
+type StateEventMap = PersistentMap<string, PersistentMap<string, StateEvent>>;
 
 /**
  * A map interning rules by their event id.
  */
-type StateEventByEventIDMap = PersistentMap<
-  string /* event id */,
-  TrackedStateEvent
->;
+type StateEventByEventIDMap = PersistentMap<string /* event id */, StateEvent>;
 
 /**
  * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
@@ -66,7 +59,6 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   public constructor(
     public readonly room: MatrixRoomID,
     public readonly revisionID: Revision,
-    public readonly trackingMeta: StateTrackingMeta,
     /**
      * A map of state events indexed first by state type and then state keys.
      */
@@ -80,14 +72,10 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   /**
    * @returns An empty revision.
    */
-  public static blankRevision(
-    room: MatrixRoomID,
-    trackingMeta: StateTrackingMeta
-  ): StandardRoomStateRevision {
+  public static blankRevision(room: MatrixRoomID): StandardRoomStateRevision {
     return new StandardRoomStateRevision(
       room,
       new Revision(),
-      trackingMeta,
       PersistentMap(),
       PersistentMap()
     );
@@ -99,10 +87,7 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   public get allState() {
     return [...this.stateEventsByEventID.values()];
   }
-  public getStateEvent(
-    type: string,
-    key: string
-  ): TrackedStateEvent | undefined {
+  public getStateEvent(type: string, key: string): StateEvent | undefined {
     return this.stateEvents.get(type)?.get(key);
   }
   public getStateEventsOfType(type: string) {
@@ -133,7 +118,7 @@ export class StandardRoomStateRevision implements RoomStateRevision {
         event
       );
     };
-    const removeStateEvent = (event: TrackedStateEvent): void => {
+    const removeStateEvent = (event: StateEvent): void => {
       nextStateEvents = nextStateEvents.deleteIn([event.type, event.state_key]);
       nextStateEventsByEventID = nextStateEventsByEventID.delete(
         event.event_id
@@ -157,7 +142,6 @@ export class StandardRoomStateRevision implements RoomStateRevision {
     return new StandardRoomStateRevision(
       this.room,
       new Revision(),
-      this.trackingMeta,
       nextStateEvents,
       nextStateEventsByEventID
     );
@@ -193,16 +177,5 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   public reviseFromState(state: StateEvent[]): RoomStateRevision {
     const changes = this.changesFromState(state);
     return this.reviseFromChanges(changes);
-  }
-  public reviseTrackingMeta(
-    trackingMeta: StateTrackingMeta
-  ): RoomStateRevision {
-    return new StandardRoomStateRevision(
-      this.room,
-      this.revisionID,
-      trackingMeta,
-      this.stateEvents,
-      this.stateEventsByEventID
-    );
   }
 }

@@ -55,7 +55,9 @@ export const MembershipEventContent = Type.Object({
   avatar_url: Type.Optional(
     Type.String({
       description: 'The avatar URL for this user, if any.',
-      format: 'uri',
+      // There's no chance that every homeserver is going to validate these
+      // so we can't reject memberships oureselves that don't have a uri here.
+      //format: 'uri',
     })
   ),
   displayname: Type.Optional(Type.Union([Type.String(), Type.Null()])),

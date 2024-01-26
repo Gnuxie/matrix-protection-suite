@@ -17,29 +17,23 @@ import { StateEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { ChangeType } from './ChangeType';
-import { StateTrackingMeta, TrackedStateEvent } from './StateTrackingMeta';
 
 export interface StateRevision {
-  readonly allState: TrackedStateEvent[];
-  readonly trackingMeta: StateTrackingMeta;
-  getStateEvent(type: string, key: string): TrackedStateEvent | undefined;
-  getStateEventsOfType(type: string): TrackedStateEvent[];
+  readonly allState: StateEvent[];
+  getStateEvent(type: string, key: string): StateEvent | undefined;
+  getStateEventsOfType(type: string): StateEvent[];
   hasEvent(eventID: StringEventID): boolean;
   reviseFromChanges(changes: StateChange[]): StateRevision;
-  reviseTrackingMeta(trackingMeta: StateTrackingMeta): StateRevision;
 }
 
 export interface RoomStateRevision extends StateRevision {
   room: MatrixRoomID;
   changesFromState(state: StateEvent[]): StateChange[];
   reviseFromState(state: StateEvent[]): RoomStateRevision;
-  reviseTrackingMeta(trackingMeta: StateTrackingMeta): RoomStateRevision;
   reviseFromChanges(changes: StateChange[]): RoomStateRevision;
 }
 
-export interface StateChange<
-  EventSchema extends TrackedStateEvent = TrackedStateEvent
-> {
+export interface StateChange<EventSchema extends StateEvent = StateEvent> {
   readonly changeType: ChangeType;
   readonly eventType: EventSchema['type'];
   readonly state: EventSchema;
@@ -60,8 +54,6 @@ export type StateRevisionListener<
 
 export declare interface StateRevisionIssuer {
   readonly currentRevision: StateRevision;
-  readonly trackingMeta: StateTrackingMeta;
-  setTrackingMeta(trackingMeta: StateTrackingMeta): void;
   on(event: 'revision', listener: StateRevisionListener): this;
   off(...args: Parameters<StateRevisionIssuer['on']>): this;
   emit(event: 'revision', ...args: Parameters<StateRevisionListener>): boolean;

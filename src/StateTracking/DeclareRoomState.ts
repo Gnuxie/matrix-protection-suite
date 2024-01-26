@@ -9,7 +9,6 @@ import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { DefaultStateTrackingMeta } from './DefaultStateTrackingMeta';
 import { Membership } from './MembershipChange';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { DefaultEventDecoder } from '../MatrixTypes/EventDecoder';
@@ -177,10 +176,8 @@ export function describeRoom({
       membershipDescriptions,
       policyDescriptions,
     });
-  const stateRevision = StandardRoomStateRevision.blankRevision(
-    room,
-    DefaultStateTrackingMeta
-  ).reviseFromState(stateEvents);
+  const stateRevision =
+    StandardRoomStateRevision.blankRevision(room).reviseFromState(stateEvents);
   const membershipRevision =
     StandardRoomMembershipRevision.blankRevision(room).reviseFromMembership(
       membershipEvents
@@ -191,8 +188,7 @@ export function describeRoom({
     );
   const stateRevisionIssuer = new FakeRoomStateRevisionIssuer(
     stateRevision,
-    room,
-    DefaultStateTrackingMeta
+    room
   );
   const membershipRevisionIssuer = new FakeRoomMembershipRevisionIssuer(
     room,
@@ -216,6 +212,9 @@ export type DescribeRoomMemberOptions = {
   target?: StringUserID;
   membership?: Membership;
   room_id?: StringRoomID;
+  avatar_url?: string;
+  displayname?: string;
+  reason?: string;
 };
 
 export function describeRoomMember({
@@ -223,12 +222,18 @@ export function describeRoomMember({
   target = sender,
   membership = Membership.Join,
   room_id = randomRoomID([]).toRoomIDOrAlias(),
+  avatar_url,
+  displayname,
+  reason,
 }: DescribeRoomMemberOptions): MembershipEvent {
   return describeStateEvent({
     sender,
     state_key: target,
     content: {
       membership,
+      avatar_url,
+      displayname,
+      reason,
     },
     type: 'm.room.member',
     room_id,

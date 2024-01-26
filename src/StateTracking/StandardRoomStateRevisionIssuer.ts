@@ -11,7 +11,6 @@ import {
 } from './StateRevisionIssuer';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
-import { StateTrackingMeta } from './StateTrackingMeta';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { ConstantPeriodEventBatch, EventBatch } from './EventBatch';
 import { isError } from '../Interface/Action';
@@ -28,24 +27,15 @@ export class StandardRoomStateRevisionIssuer
   private batchCompleteCallback: EventBatch['batchCompleteCallback'];
   constructor(
     public readonly room: MatrixRoomID,
-    private readonly getRoomState: RoomStateManager['getRoomState'],
-    public trackingMeta: StateTrackingMeta
+    private readonly getRoomState: RoomStateManager['getRoomState']
   ) {
     super();
-    this.currentRevision = StandardRoomStateRevision.blankRevision(
-      this.room,
-      this.trackingMeta
-    );
+    this.currentRevision = StandardRoomStateRevision.blankRevision(this.room);
     this.batchCompleteCallback = this.createBatchedRevision.bind(this);
     this.currentBatch = new ConstantPeriodEventBatch(
       this.batchCompleteCallback,
       {}
     );
-  }
-  public setTrackingMeta(trackingMeta: StateTrackingMeta): void {
-    this.trackingMeta = trackingMeta;
-    this.currentRevision =
-      this.currentRevision.reviseTrackingMeta(trackingMeta);
   }
   updateForEvent(event: { event_id: StringEventID }): void {
     if (this.currentRevision.hasEvent(event.event_id)) {

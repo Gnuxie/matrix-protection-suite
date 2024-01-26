@@ -82,7 +82,6 @@ export * from './Protection/Protection';
 export * from './Reporting/EventReport';
 
 export * from './StateTracking/ChangeType';
-export * from './StateTracking/DefaultStateTrackingMeta';
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/MembershipChange';
 export * from './StateTracking/MembershipRevision';
@@ -98,4 +97,3 @@ export * from './StateTracking/StandardRoomStateRevisionIssuer';
 export * from './StateTracking/StandardSetMembershp';
 export * from './StateTracking/StandardSetRoomState';
 export * from './StateTracking/StateRevisionIssuer';
-export * from './StateTracking/StateTrackingMeta';

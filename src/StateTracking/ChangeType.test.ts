@@ -2,11 +2,11 @@
 // against the standard policy list revision.
 
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { describePolicyRule } from '../StateTracking/DeclareRoomState';
-import { DefaultStateTrackingMeta } from '../StateTracking/DefaultStateTrackingMeta';
-import { StandardRoomStateRevision } from '../StateTracking/StandardRoomStateRevision';
+import { describePolicyRule, describeRoomMember } from './DeclareRoomState';
+import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { ChangeType } from '../StateTracking/ChangeType';
+import { ChangeType } from './ChangeType';
+import { Membership } from './MembershipChange';
 
 // if events aren't normalized as they are indexed then we really need to make
 // sure that the policy room editor removes them according to their source
@@ -19,14 +19,9 @@ import { ChangeType } from '../StateTracking/ChangeType';
 // that's probably going to change, so that policyRoomRevision don't have
 // a method to `reviseFromState`.
 
-// This is a direct, more specific replacement to the StandardRoomStateRevision.test
-// We just haven't removed it yet or removed the policy room `changesFromState` function
-// which should be largely unused.
-
 test('A new policy rule will be seen as an Added rule by the revision', function () {
   const blankRevision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   );
   const changes = blankRevision.changesFromState([
     describePolicyRule({
@@ -40,8 +35,7 @@ test('A new policy rule will be seen as an Added rule by the revision', function
 test('A modified rule will be seen as a modification to an existing rule', function () {
   const entity = randomUserID();
   const revision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   ).reviseFromState([
     describePolicyRule({
       type: PolicyRuleType.User,
@@ -65,8 +59,7 @@ test('Redacting a rule will be seen as removing a rule (without checking redacte
     entity,
   });
   const revision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   ).reviseFromState([event]);
   const changes = revision.changesFromState([
     {
@@ -84,8 +77,7 @@ test('Sending a blank state event with the same type-key pair will be seen as re
     entity,
   });
   const revision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   ).reviseFromState([policy]);
   const changes = revision.changesFromState([
     describePolicyRule({
@@ -102,8 +94,7 @@ test('Sending a blank state event to an already blank type-key pair will result 
     entity,
   });
   const revision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   ).reviseFromState([
     describePolicyRule({
       remove: policy,
@@ -122,8 +113,7 @@ test('Recieving the same poliy rule will not count as a modification or addition
     entity: randomUserID(),
   });
   const blankRevision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   ).reviseFromState([policy]);
   const changes = blankRevision.changesFromState([policy]);
   expect(changes.length).toBe(0);
@@ -134,8 +124,7 @@ test('A redacted event state event that is returned by `/state` on a blank revis
     entity: randomUserID(),
   });
   const blankRevision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   );
   const changes = blankRevision.changesFromState([
     {
@@ -156,12 +145,12 @@ test('A redacted event for an existing state (ensures check for redacted_because
     entity: randomUserID(),
   });
   const revision = StandardRoomStateRevision.blankRevision(
-    randomRoomID([]),
-    DefaultStateTrackingMeta
+    randomRoomID([])
   ).reviseFromState([policy]);
   const changes = revision.changesFromState([
     {
       ...policy,
+      content: {},
       unsigned: {
         redacted_because: {
           reason: 'unbanning the user',
@@ -171,4 +160,31 @@ test('A redacted event for an existing state (ensures check for redacted_because
   ]);
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(ChangeType.Removed);
+});
+test('A redacted membership event is classified as modified because it still has keys', function () {
+  const roomID = randomRoomID([]);
+  const member = describeRoomMember({
+    sender: randomUserID(),
+    avatar_url: 'mxc://example.com/wiejfoiejf',
+    displayname: 'Red Wine from Coloroy',
+    membership: Membership.Join,
+  });
+  const revision = StandardRoomStateRevision.blankRevision(
+    roomID
+  ).reviseFromState([member]);
+  const changes = revision.changesFromState([
+    {
+      ...member,
+      content: {
+        membership: Membership.Join,
+      },
+      unsigned: {
+        redacted_because: {
+          reason: 'unbanning the user',
+        },
+      },
+    },
+  ]);
+  expect(changes.length).toBe(1);
+  expect(changes.at(0)?.changeType).toBe(ChangeType.Modified);
 });
