@@ -187,13 +187,34 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         removePolicyRule(change.rule);
       }
     }
-    const nextPolicyRuleScopes = [...this.policyRuleScopes.values()]
-      .flatMap((byRecommendation) => [...byRecommendation.values()])
-      .reduce((map, scope) => {
-        return map.setIn([scope.entityType, scope.recommendation], scope);
-      }, PersistentMap() as PolicyRuleScopes);
+    const nextRevisionID = new Revision();
+    const changesByScope = groupChangesByScope(changes);
+    const nextPolicyRuleScopes = flattenChangesByScope(changesByScope).reduce(
+      (map, [policyRuleType, recommendation, changes]) => {
+        const scopeEntry = map.getIn(
+          [policyRuleType, recommendation],
+          undefined
+        ) as PolicyRuleScope | undefined;
+        if (scopeEntry === undefined) {
+          return map.setIn(
+            [policyRuleType, recommendation],
+            PolicyRuleScope.blankScope(
+              nextRevisionID,
+              policyRuleType,
+              recommendation
+            ).reviseFromChanges(nextRevisionID, changes)
+          );
+        } else {
+          return map.setIn(
+            [policyRuleType, recommendation],
+            scopeEntry.reviseFromChanges(nextRevisionID, changes)
+          );
+        }
+      },
+      this.policyRuleScopes
+    );
     return new StandardPolicyListRevision(
-      new Revision(),
+      nextRevisionID,
       nextPolicyRulesByType,
       nextPolicyRuleScopes
     );
@@ -207,12 +228,86 @@ export class StandardPolicyListRevision implements PolicyListRevision {
   }
 }
 
+export type PolicyRuleChangeByScope = Map<
+  PolicyRuleType,
+  Map<Recommendation, PolicyRuleChange[]>
+>;
+
+export function groupChangesByScope(
+  changes: PolicyRuleChange[]
+): PolicyRuleChangeByScope {
+  const changesByScope: PolicyRuleChangeByScope = new Map();
+  const addChange = (change: PolicyRuleChange) => {
+    const policyTypeEntry = changesByScope.get(change.rule.kind);
+    if (policyTypeEntry === undefined) {
+      const map = new Map();
+      map.set(change.rule.recommendation, [change]);
+      changesByScope.set(change.rule.kind, map);
+    } else {
+      const recommendationEntry = policyTypeEntry.get(
+        change.rule.recommendation
+      );
+      if (recommendationEntry === undefined) {
+        policyTypeEntry.set(change.rule.recommendation, [change]);
+      } else {
+        recommendationEntry.push(change);
+      }
+    }
+  };
+  for (const change of changes) {
+    addChange(change);
+  }
+  return changesByScope;
+}
+
+type FlatPolicyRuleChnageByScope = [
+  PolicyRuleType,
+  Recommendation,
+  PolicyRuleChange[]
+][];
+
+function flattenChangesByScope(
+  scopes: PolicyRuleChangeByScope
+): FlatPolicyRuleChnageByScope {
+  const flatChanges: FlatPolicyRuleChnageByScope = [];
+  for (const [policyRuleType, changeByRecommendation] of scopes.entries()) {
+    for (const [recommendation, changes] of changeByRecommendation.entries()) {
+      flatChanges.push([policyRuleType, recommendation, changes]);
+    }
+  }
+  return flatChanges;
+}
+
 type PolicyRuleByEntity = PersistentMap<
   string /*rule entity*/,
   PersistentList<PolicyRule>
 >;
 
+/**
+ * A scope is a collection of rules that are scoped to a single entity type and
+ * recommendation. So for the most basic policy list, there will usually be
+ * a scope for all the `m.policy.rule.user` events that have the recommendation
+ * `m.ban`.
+ *
+ * Scopes are built, quite painfully, to make rule lookup convienant and quick.
+ * We accept this because revisions are few and far between, and if they are
+ * frequent, will have a very small number of change events.
+ */
 class PolicyRuleScope {
+  public static blankScope(
+    revisionID: Revision,
+    ruleType: PolicyRuleType,
+    recommendation: Recommendation
+  ): PolicyRuleScope {
+    return new PolicyRuleScope(
+      revisionID,
+      ruleType,
+      recommendation,
+      PersistentMap(),
+      PersistentMap()
+    );
+  }
+
   constructor(
     public readonly revisionID: Revision,
     /**
@@ -262,12 +357,18 @@ class PolicyRuleScope {
     let nextGlobRules = this.globRules;
     let nextLiteralRules = this.literalRules;
     const addRule = (rule: PolicyRule): void => {
-      nextGlobRules = addRuleToMap(nextGlobRules, rule);
-      nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
+      if (rule.isGlob()) {
+        nextGlobRules = addRuleToMap(nextGlobRules, rule);
+      } else {
+        nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
+      }
     };
     const removeRule = (rule: PolicyRule): void => {
-      nextGlobRules = removeRuleFromMap(nextGlobRules, rule);
-      nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
+      if (rule.isGlob()) {
+        nextGlobRules = removeRuleFromMap(nextGlobRules, rule);
+      } else {
+        nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
+      }
     };
     for (const change of changes) {
       if (
