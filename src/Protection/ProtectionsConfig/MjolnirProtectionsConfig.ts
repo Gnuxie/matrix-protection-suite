@@ -39,6 +39,10 @@ import { ConsequenceProviderDescription } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import { AbstractProtectionsConfig } from './FakeProtectionsConfig';
+import {
+  DRAUPNIR_SCHEMA_VERSION_KEY,
+  SchemedDataManager,
+} from '../../Interface/SchemedMatrixData';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
 // A boring way is by naming them like protections and just matching the provider name to the protection name.
@@ -48,6 +52,7 @@ export type MjolnirEnabledProtectionsEvent = StaticDecode<
 >;
 export const MjolnirEnabledProtectionsEvent = Type.Object({
   enabled: Type.Array(Type.String()),
+  [DRAUPNIR_SCHEMA_VERSION_KEY]: Type.Optional(Type.Number()),
 });
 Value.Compile(MjolnirEnabledProtectionsEvent);
 
@@ -87,7 +92,16 @@ export class MjolnirProtectionsConfig<Context = unknown>
 {
   public constructor(
     private readonly enabledProtectionsStore: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
-    private readonly protectionSettingsStore: MatrixStateData<MjolnirProtectionSettingsEventContent>
+    private readonly protectionSettingsStore: MatrixStateData<MjolnirProtectionSettingsEventContent>,
+    /**
+     * It is necessary for some consumers to provide a way to enable/disable protections
+     * based the version of software that is being loaded. For example Draupnir
+     * needs to enable the `BanPropagationProtection` for users who are upgrading
+     * from older versions & for those migrating from Mjolnir.
+     * This should not be used to change the structure of the account data itself,
+     * because this is supposed to be directly compatible with Mjolnir account data.
+     */
+    private readonly enabledProtectionsMigration?: SchemedDataManager<MjolnirEnabledProtectionsEvent>
   ) {
     super();
   }
@@ -107,22 +121,14 @@ export class MjolnirProtectionsConfig<Context = unknown>
     if (isError(startResult)) {
       return startResult;
     }
-    const storeResult = await this.enabledProtectionsStore.storeAccountData({
-      enabled: this.allProtections.map(
-        (protection) => protection.description.name
-      ),
-    });
+    const storeResult = await this.storeEnabledProtections();
     return storeResult;
   }
   public async removeProtection(
     protection: ProtectionDescription
   ): Promise<ActionResult<void>> {
     super.removeProtectionSync(protection);
-    const storeResult = await this.enabledProtectionsStore.storeAccountData({
-      enabled: this.allProtections.map(
-        (protection) => protection.description.name
-      ),
-    });
+    const storeResult = await this.storeEnabledProtections();
     return storeResult;
   }
 
@@ -148,6 +154,49 @@ export class MjolnirProtectionsConfig<Context = unknown>
     return Ok(undefined);
   }
 
+  private async requestEnabledProtectionsAndMigrate(): Promise<
+    ActionResult<MjolnirEnabledProtectionsEvent>
+  > {
+    const rawDataResult =
+      await this.enabledProtectionsStore.requestAccountData();
+    if (isError(rawDataResult)) {
+      return rawDataResult;
+    }
+    if (rawDataResult.ok === undefined) {
+      const defaultProtections = {
+        enabled: [],
+      };
+      if (this.enabledProtectionsMigration !== undefined) {
+        return this.enabledProtectionsMigration.migrateData(defaultProtections);
+      } else {
+        return Ok(defaultProtections);
+      }
+    } else if (this.enabledProtectionsMigration !== undefined) {
+      return await this.enabledProtectionsMigration.migrateData(
+        rawDataResult.ok
+      );
+    } else {
+      // TypeScript for some reason cannot narrow the union in type parameter based
+      // on the narrowing of a porperty that uses that type parameter.
+      // Remove the surrounding Ok() and return only rawDataResult to try it.
+      return Ok(rawDataResult.ok);
+    }
+  }
+
+  private async storeEnabledProtections(): Promise<ActionResult<void>> {
+    return await this.enabledProtectionsStore.storeAccountData({
+      enabled: this.allProtections.map(
+        (protection) => protection.description.name
+      ),
+      ...(this.enabledProtectionsMigration === undefined
+        ? {}
+        : {
+            [this.enabledProtectionsMigration.versionKey]:
+              this.enabledProtectionsMigration.latestVersion,
+          }),
+    });
+  }
+
   public async loadProtections(
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
@@ -157,7 +206,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
       throw new TypeError('This can only be used at startup');
     }
     const enabledProtectionsResult =
-      await this.enabledProtectionsStore.requestAccountData();
+      await this.requestEnabledProtectionsAndMigrate();
     if (isError(enabledProtectionsResult)) {
       return enabledProtectionsResult;
     }

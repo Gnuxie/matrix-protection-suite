@@ -10,9 +10,9 @@ export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
 export * from './Interface/MultipleErrors';
-export * from './Interface/PersistentData';
 export * from './Interface/PersistentMatrixData';
 export * from './Interface/RoomUpdateError';
+export * from './Interface/SchemedMatrixData';
 export * from './Interface/Task';
 export * from './Interface/Value';
 
