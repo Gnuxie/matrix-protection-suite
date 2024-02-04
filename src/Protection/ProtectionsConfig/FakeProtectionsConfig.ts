@@ -25,7 +25,7 @@ limitations under the License.
  * are NOT distributed, contributed, committed, or licensed under the Apache License.
  */
 
-import { ActionError, ActionResult, isError, Ok } from '../../Interface/Action';
+import { ActionResult, isError, Ok } from '../../Interface/Action';
 import {
   BasicConsequenceProvider,
   ConsequenceProviderDescription,
@@ -35,7 +35,10 @@ import {
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
-import { ProtectionsConfig } from './ProtectionsConfig';
+import {
+  ProtectionFailedToStartCB,
+  ProtectionsConfig,
+} from './ProtectionsConfig';
 
 export class AbstractProtectionsConfig<Context = unknown>
   implements
@@ -205,10 +208,7 @@ export class FakeProtectionsConfig<Context = unknown>
   public async loadProtections(
     _protectedRoomsSet: ProtectedRoomsSet,
     _context: unknown,
-    _protectionFailedToStart: (
-      Error: ActionError,
-      ProtectionDescription?: ProtectionDescription | undefined
-    ) => Promise<void>
+    _protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<ActionResult<void>> {
     // do nothing.
     return Ok(undefined);

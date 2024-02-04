@@ -28,7 +28,10 @@ limitations under the License.
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { ProtectionDescription, findProtection } from '../Protection';
-import { ProtectionsConfig } from './ProtectionsConfig';
+import {
+  ProtectionFailedToStartCB,
+  ProtectionsConfig,
+} from './ProtectionsConfig';
 import { Value } from '../../Interface/Value';
 import { StateEvent } from '../../MatrixTypes/Events';
 import {
@@ -80,11 +83,6 @@ export const MjolnirProtectionSettingsEvent = Type.Composite([
     type: Type.Literal(MjolnirProtectionSettingsEventType),
   }),
 ]);
-
-type ProtectionFailedToStartCB = (
-  Error: ActionError,
-  ProtectionDescription?: ProtectionDescription
-) => Promise<void>;
 
 export class MjolnirProtectionsConfig<Context = unknown>
   extends AbstractProtectionsConfig<Context>
@@ -216,7 +214,8 @@ export class MjolnirProtectionsConfig<Context = unknown>
         await protectionFailedToStart(
           new ActionError(
             `Couldn't find a protection named ${protectionName} so it cannot be started.`
-          )
+          ),
+          protectionName
         );
         continue;
       }
@@ -228,7 +227,8 @@ export class MjolnirProtectionsConfig<Context = unknown>
         await protectionFailedToStart(
           new ActionError(
             `Couldn't find the consequence provider for ${protectionDescription.name}`
-          )
+          ),
+          protectionName
         );
         continue;
       }
@@ -239,7 +239,11 @@ export class MjolnirProtectionsConfig<Context = unknown>
         context
       );
       if (isError(startResult)) {
-        await protectionFailedToStart(startResult.error, protectionDescription);
+        await protectionFailedToStart(
+          startResult.error,
+          protectionName,
+          protectionDescription
+        );
         continue;
       }
     }

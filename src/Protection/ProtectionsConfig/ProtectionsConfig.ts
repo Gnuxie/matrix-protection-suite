@@ -44,8 +44,15 @@ import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
  * A callback that will be called when a protection fails to start
  * for the first time when loading protections.
  */
-type ProtectionFailedToStartCB = (
+/**
+ * Callback when a protection failed to start.
+ */
+export type ProtectionFailedToStartCB = (
+  /** The problem leading to the failure. */
   Error: ActionError,
+  /** The name of the protection as given in the `enabled_protections` config. */
+  protectionName: string,
+  /** The protection description, if it can be found. */
   ProtectionDescription?: ProtectionDescription
 ) => Promise<void>;
 
