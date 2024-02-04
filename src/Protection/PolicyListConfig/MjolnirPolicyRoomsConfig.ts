@@ -10,7 +10,7 @@ import {
   ActionExceptionKind,
 } from '../../Interface/ActionException';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
-import { PersistentMatrixData } from '../../Interface/PersistentMatrixData';
+import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import {
   MatrixRoomID,
   ResolveRoom,
@@ -30,9 +30,7 @@ export class MjolnirPolicyRoomsConfig
 {
   private readonly writeLock = new AwaitLock();
   private constructor(
-    private readonly store: PersistentMatrixData<
-      typeof MjolnirWatchedPolicyRoomsEvent
-    >,
+    private readonly store: MatrixAccountData<MjolnirWatchedPolicyRoomsEvent>,
     policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
     policyRoomManager: PolicyRoomManager,
     watchedLists: Set<MatrixRoomID>
@@ -41,16 +39,17 @@ export class MjolnirPolicyRoomsConfig
   }
 
   public static async createFromStore(
-    store: PersistentMatrixData<typeof MjolnirWatchedPolicyRoomsEvent>,
+    store: MatrixAccountData<MjolnirWatchedPolicyRoomsEvent>,
     policyRoomManager: PolicyRoomManager,
     resolveRoomClient: { resolveRoom: ResolveRoom }
   ): Promise<ActionResult<MjolnirPolicyRoomsConfig>> {
-    const watchedListsResult = await store.requestPersistentData();
+    const watchedListsResult = await store.requestAccountData();
     if (isError(watchedListsResult)) {
       return watchedListsResult;
     }
+    const references = watchedListsResult.ok?.references ?? [];
     const issuers = await Promise.all(
-      watchedListsResult.ok.references.map(async (room) => {
+      references.map(async (room) => {
         const resolvedRoomResult = await room.resolve(resolveRoomClient);
         if (isError(resolvedRoomResult)) {
           return resolvedRoomResult;
@@ -115,7 +114,7 @@ export class MjolnirPolicyRoomsConfig
     }
     await this.writeLock.acquireAsync();
     try {
-      const storeUpdateResult = await this.store.storePersistentData({
+      const storeUpdateResult = await this.store.storeAccountData({
         references: [...this.policyListRevisionIssuer.references, list],
       });
       if (isError(storeUpdateResult)) {
@@ -137,7 +136,7 @@ export class MjolnirPolicyRoomsConfig
     }
     await this.writeLock.acquireAsync();
     try {
-      const storeUpdateResult = await this.store.storePersistentData({
+      const storeUpdateResult = await this.store.storeAccountData({
         references: this.policyListRevisionIssuer.references.filter(
           (roomID) => roomID.toRoomIDOrAlias() === list.toRoomIDOrAlias()
         ),
