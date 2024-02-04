@@ -28,7 +28,7 @@ limitations under the License.
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
-import { PersistentMatrixData } from '../../Interface/PersistentMatrixData';
+import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
 import EventEmitter from 'events';
 import AwaitLock from 'await-lock';
@@ -63,24 +63,22 @@ export class MjolnirProtectedRoomsConfig
 {
   private readonly writeLock = new AwaitLock();
   private constructor(
-    private readonly store: PersistentMatrixData<
-      typeof MjolnirProtectedRoomsEvent
-    >,
+    private readonly store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
     private readonly protectedRooms: Map<StringRoomID, MatrixRoomID>
   ) {
     super();
   }
   public static async createFromStore(
-    store: PersistentMatrixData<typeof MjolnirProtectedRoomsEvent>
+    store: MatrixAccountData<MjolnirProtectedRoomsEvent>
   ): Promise<ActionResult<ProtectedRoomsConfig>> {
-    const data = await store.requestPersistentData();
+    const data = await store.requestAccountData();
     if (isError(data)) {
       return data.addContext(
         `Failed to load ProtectedRoomsConfig when creating ProtectedRoomsConfig`
       );
     }
     const protectedRooms = new Map();
-    for (const ref of data.ok.rooms) {
+    for (const ref of data.ok?.rooms ?? []) {
       protectedRooms.set(ref.toRoomIDOrAlias(), ref);
     }
     return Ok(new MjolnirProtectedRoomsConfig(store, protectedRooms));
@@ -97,7 +95,7 @@ export class MjolnirProtectedRoomsConfig
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     await this.writeLock.acquireAsync();
     try {
-      const result = await this.store.storePersistentData({
+      const result = await this.store.storeAccountData({
         rooms: [...this.allRooms, room],
       });
       if (isError(result)) {
@@ -115,7 +113,7 @@ export class MjolnirProtectedRoomsConfig
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     await this.writeLock.acquireAsync();
     try {
-      const result = await this.store.storePersistentData({
+      const result = await this.store.storeAccountData({
         rooms: this.allRooms.filter(
           (ref) => ref.toRoomIDOrAlias() !== room.toRoomIDOrAlias()
         ),
