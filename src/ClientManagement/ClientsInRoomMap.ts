@@ -4,8 +4,12 @@
  */
 
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
-import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
-import { ClientRooms, ClientRoomsEvents } from './ClientRooms';
+import { JoinedRoomsRevision } from './JoinedRoomsRevision';
+import {
+  ClientRooms,
+  ClientRoomsChange,
+  ClientRoomsEvents,
+} from './ClientRooms';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { Value } from '../Interface/Value';
@@ -58,7 +62,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
 
   private userRevisionListenerMethod(
     revision: JoinedRoomsRevision,
-    changes: JoinedRoomsChange
+    changes: ClientRoomsChange
   ): void {
     for (const joinRoomID of changes.joined) {
       this.addUserToRoom(joinRoomID, revision.clientUserID);
@@ -67,6 +71,9 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
       this.addUserToRoom(preemptivelyJoinedRoomID, revision.clientUserID);
     }
     for (const partRoomID of changes.parted) {
+      this.removeUserFromRoom(partRoomID, revision.clientUserID);
+    }
+    for (const partRoomID of changes.failedPreemptiveJoins) {
       this.removeUserFromRoom(partRoomID, revision.clientUserID);
     }
   }

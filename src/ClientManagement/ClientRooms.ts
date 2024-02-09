@@ -8,13 +8,19 @@ import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
 
+export interface ClientRoomsChange extends JoinedRoomsChange {
+  preemptivelyJoined: StringRoomID[];
+  // preemptive joins that never got an associated join.
+  failedPreemptiveJoins: StringRoomID[];
+}
+
 // Finally someone found a solution to the interfaces of emitters that is pretty correct.
 // I'm so happy.
 // https://stackoverflow.com/a/61609010
 export interface ClientRoomsEvents {
   revision: (
     revision: JoinedRoomsRevision,
-    changes: JoinedRoomsChange,
+    changes: ClientRoomsChange,
     previousRevision: JoinedRoomsRevision
   ) => void;
   timeline: (roomID: StringRoomID, event: RoomEvent) => void;
@@ -82,23 +88,5 @@ export abstract class AbstractClientRooms
 
   public isJoinedRoom(roomID: StringRoomID): boolean {
     return this.joinedRoomsRevision.isJoinedRoom(roomID);
-  }
-
-  public isPreemptivelyJoinedRoom(roomID: StringRoomID): boolean {
-    return this.joinedRoomsRevision.isPreemptivelyJoinedRoom(roomID);
-  }
-
-  public preemptTimelineJoin(roomID: StringRoomID): void {
-    const previousRevision = this.joinedRoomsRevision;
-    this.joinedRoomsRevision =
-      this.joinedRoomsRevision.reviseForPreemptiveJoin(roomID);
-    this.emit(
-      'revision',
-      this.joinedRoomsRevision,
-      {
-        preemptivelyJoined: [roomID],
-      },
-      previousRevision
-    );
   }
 }
