@@ -43,6 +43,9 @@ export class StandardClientRooms
   ) {
     super(...rest);
   }
+  public get allPreemptedRooms(): StringRoomID[] {
+    return [...this.preemptivelyJoinedRooms];
+  }
   public isPreemptivelyJoinedRoom(roomID: StringRoomID): boolean {
     return (
       this.joinedRoomsRevision.isJoinedRoom(roomID) ||
@@ -147,7 +150,7 @@ export class StandardClientRooms
         this.preemptivelyJoinedRooms.delete(roomID);
       }
       const changes: ClientRoomsChange = {
-        ...this.joinedRoomsRevision.changesFromJoinedRooms(joinedRooms),
+        ...previousRevision.changesFromJoinedRooms(joinedRooms),
         preemptivelyJoined: [],
         failedPreemptiveJoins,
       };

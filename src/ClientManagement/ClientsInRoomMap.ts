@@ -81,12 +81,18 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
     for (const roomID of client.currentRevision.allJoinedRooms) {
       this.addUserToRoom(roomID, client.clientUserID);
     }
+    for (const roomID of client.allPreemptedRooms) {
+      this.addUserToRoom(roomID, client.clientUserID);
+    }
     this.clientRoomsByUserID.set(client.clientUserID, client);
     client.on('revision', this.userRevisionListener);
   }
 
   public removeClientRooms(client: ClientRooms): void {
     for (const roomID of client.currentRevision.allJoinedRooms) {
+      this.removeUserFromRoom(roomID, client.clientUserID);
+    }
+    for (const roomID of client.allPreemptedRooms) {
       this.removeUserFromRoom(roomID, client.clientUserID);
     }
     this.clientRoomsByUserID.delete(client.clientUserID);

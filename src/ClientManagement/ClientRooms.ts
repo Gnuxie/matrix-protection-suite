@@ -57,6 +57,7 @@ export declare interface ClientRooms {
    * @param roomID The room we are certain that we have joined.
    */
   preemptTimelineJoin(roomID: StringRoomID): void;
+  allPreemptedRooms: StringRoomID[];
   on<U extends keyof ClientRoomsEvents>(
     event: U,
     listener: ClientRoomsEvents[U]
