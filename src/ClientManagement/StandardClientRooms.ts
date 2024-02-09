@@ -77,6 +77,10 @@ export class StandardClientRooms
       this.roomPauser.handleTimelineEventInPausedRoom(roomID, event);
     }
   }
+  // can we check that the room is paused when preemptively joining?
+  // if the room is paused, then we need to force another check once the room
+  // unapauses to remove the preemptively joined room.
+  // if the room isn't paused, then we can say "remove the preemptively joined room at the next check"
 
   private handleRoomChange(roomID: StringRoomID): void {
     this.roomPauser.pauseRoom(

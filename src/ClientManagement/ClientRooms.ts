@@ -38,9 +38,19 @@ export declare interface ClientRooms {
    * @param roomID The room to test whether the user is joined to.
    */
   isJoinedRoom(roomID: StringRoomID): boolean;
+  isPreemptivelyJoinedRoom(roomID: StringRoomID): boolean;
   readonly clientUserID: StringUserID;
   readonly currentRevision: JoinedRoomsRevision;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
+  /**
+   * Sometimes it is necessary to preempt a join event that will appear in the
+   * timeline from sync or appservice push. For example, immediately after
+   * receiving a response from a homeserver when creating a room, joining a room
+   * or accepting an invitation.
+   * This will not give access to timeline events, or invoke a timeline pauser.
+   * @param roomID The room we are certain that we have joined.
+   */
+  preemptTimelineJoin(roomID: StringRoomID): void;
   on<U extends keyof ClientRoomsEvents>(
     event: U,
     listener: ClientRoomsEvents[U]
@@ -55,7 +65,10 @@ export declare interface ClientRooms {
   ): boolean;
 }
 
-export abstract class AbstractClientRooms extends EventEmitter {
+export abstract class AbstractClientRooms
+  extends EventEmitter
+  implements Pick<ClientRooms, 'emit'>
+{
   constructor(
     public readonly clientUserID: StringUserID,
     protected joinedRoomsRevision: JoinedRoomsRevision
@@ -69,5 +82,23 @@ export abstract class AbstractClientRooms extends EventEmitter {
 
   public isJoinedRoom(roomID: StringRoomID): boolean {
     return this.joinedRoomsRevision.isJoinedRoom(roomID);
+  }
+
+  public isPreemptivelyJoinedRoom(roomID: StringRoomID): boolean {
+    return this.joinedRoomsRevision.isPreemptivelyJoinedRoom(roomID);
+  }
+
+  public preemptTimelineJoin(roomID: StringRoomID): void {
+    const previousRevision = this.joinedRoomsRevision;
+    this.joinedRoomsRevision =
+      this.joinedRoomsRevision.reviseForPreemptiveJoin(roomID);
+    this.emit(
+      'revision',
+      this.joinedRoomsRevision,
+      {
+        preemptivelyJoined: [roomID],
+      },
+      previousRevision
+    );
   }
 }

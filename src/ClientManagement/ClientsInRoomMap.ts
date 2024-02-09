@@ -12,11 +12,16 @@ import { Value } from '../Interface/Value';
 
 export interface ClientsInRoomMap {
   isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean;
+  isClientPreemptivelyInRoom(
+    userID: StringUserID,
+    roomID: StringRoomID
+  ): boolean;
   getManagedUsersInRoom(roomID: StringRoomID): StringUserID[];
   getClientRooms(userID: StringUserID): ClientRooms | undefined;
   addClientRooms(client: ClientRooms): void;
   removeClientRooms(client: ClientRooms): void;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
+  preemptTimelineJoin(userID: StringUserID, roomID: StringRoomID): void;
 }
 
 export class StandardClientsInRoomMap implements ClientsInRoomMap {
@@ -58,6 +63,9 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
     for (const joinRoomID of changes.joined) {
       this.addUserToRoom(joinRoomID, revision.clientUserID);
     }
+    for (const preemptivelyJoinedRoomID of changes.preemptivelyJoined) {
+      this.addUserToRoom(preemptivelyJoinedRoomID, revision.clientUserID);
+    }
     for (const partRoomID of changes.parted) {
       this.removeUserFromRoom(partRoomID, revision.clientUserID);
     }
@@ -85,6 +93,28 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
     } else {
       return entry.isJoinedRoom(roomID);
     }
+  }
+
+  public isClientPreemptivelyInRoom(
+    userID: StringUserID,
+    roomID: StringRoomID
+  ): boolean {
+    const entry = this.clientRoomsByUserID.get(userID);
+    if (entry === undefined) {
+      return false;
+    } else {
+      return entry.isPreemptivelyJoinedRoom(roomID);
+    }
+  }
+
+  public preemptTimelineJoin(userID: StringUserID, roomID: StringRoomID): void {
+    const entry = this.getClientRooms(userID);
+    if (entry === undefined) {
+      throw new TypeError(
+        `Unable to preempt a join for an unknown client ${userID}`
+      );
+    }
+    entry.preemptTimelineJoin(roomID);
   }
 
   public getClientRooms(userID: StringUserID): ClientRooms | undefined {
