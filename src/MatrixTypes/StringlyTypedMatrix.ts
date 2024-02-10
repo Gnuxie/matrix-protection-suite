@@ -1,7 +1,6 @@
-/**
- * Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
- * All rights reserved.
- */
+// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
 
 import { Type } from '@sinclair/typebox';
 

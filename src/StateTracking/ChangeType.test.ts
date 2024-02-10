@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023-2024 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
+
 // please note that the changes calculated from this test need to be tested
 // against the standard policy list revision.
 

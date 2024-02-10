@@ -1,7 +1,6 @@
-/**
- * Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
- * All rights reserved.
- */
+// Copyright (C) 2023 - 2024 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
 
 import { randomUUID } from 'crypto';
 import { StateEvent } from '../MatrixTypes/Events';

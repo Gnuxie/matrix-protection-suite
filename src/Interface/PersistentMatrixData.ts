@@ -1,6 +1,6 @@
-/**
- * Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
- */
+// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
 
 import { StaticDecode, TSchema } from '@sinclair/typebox';
 import { ActionResult } from './Action';
