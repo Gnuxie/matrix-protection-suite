@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023-2024 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
+
 import { BasicConsequenceProvider } from '../Consequence/Consequence';
 import { createMock } from 'ts-auto-mock';
 import { Protection, findProtection } from '../Protection';

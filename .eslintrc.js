@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
+
 module.exports = {
   parser: '@typescript-eslint/parser', // Specifies the ESLint parser
   plugins: ['@typescript-eslint', 'prettier'],

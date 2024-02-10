@@ -1,7 +1,6 @@
-/**
- * Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
- * All rights reserved.
- */
+// Copyright (C) 2023 - 2024 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
 
 import AwaitLock from 'await-lock';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
