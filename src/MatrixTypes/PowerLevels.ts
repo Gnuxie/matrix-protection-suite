@@ -3,9 +3,11 @@
 // Copyright 2018 New Vector Ltd
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
-
+//
+// SPDX-FileAttributionText: <text>
 // This modified file incorporates work from matrix-spec
 // https://github.com/matrix-org/matrix-spec
+// </text>
 
 import { Static, Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';

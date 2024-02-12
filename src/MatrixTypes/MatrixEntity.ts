@@ -2,9 +2,11 @@
 // SPDX-FileCopyrightText: 2018 - 2022 Travis Ralston
 //
 // SPDX-License-Identifier: MIT
-
+//
+// SPDX-FileAttributionText: <text>
 // This modified file incorporates work from matrix-bot-sdk
 // https://github.com/turt2live/matrix-bot-sdk
+// </text>
 
 import { StringUserID, isStringUserID } from './StringlyTypedMatrix';
 
