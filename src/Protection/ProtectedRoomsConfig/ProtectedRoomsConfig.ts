@@ -2,9 +2,11 @@
 // Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
-
+//
+// SPDX-FileAttributionText: <text>
 // This modified file incorporates work from mjolnir
 // https://github.com/matrix-org/mjolnir
+// </text>
 
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok, isError } from '../../Interface/Action';
