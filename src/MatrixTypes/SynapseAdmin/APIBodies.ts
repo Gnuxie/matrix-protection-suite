@@ -2,9 +2,11 @@
 // Copyright 2019 - 2021 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
-
+//
+// SPDX-FileAttributionText: <text>
 // This modified file incorporates work from synapse
 // https://github.com/matrix-org/synapse
+// </text>
 
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { StringUserID } from '../StringlyTypedMatrix';
