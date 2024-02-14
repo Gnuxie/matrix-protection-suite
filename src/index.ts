@@ -3,6 +3,10 @@
 // SPDX-License-Identifier: AFL-3.0
 
 // For the love of god keep this in alphabetical order please.
+export * from './Client/RoomCreator';
+export * from './Client/RoomJoiner';
+export * from './Client/RoomResolver';
+
 export * from './ClientManagement/Client';
 export * from './ClientManagement/ClientRooms';
 export * from './ClientManagement/ClientsInRoomMap';
@@ -13,6 +17,7 @@ export * from './ClientManagement/StandardClientRooms';
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/InternedInstanceFactory';
+export * from './Interface/MatrixException';
 export * from './Interface/MultipleErrors';
 export * from './Interface/PersistentMatrixData';
 export * from './Interface/RoomUpdateError';
