@@ -22,9 +22,9 @@ export class RoomActionError extends ActionError implements RoomUpdateError {
   constructor(
     public readonly room: MatrixRoomID,
     message: string,
-    context: string[] = []
+    elaborations: string[] = []
   ) {
-    super(message, context);
+    super(message, elaborations);
   }
 
   public static Result(
@@ -43,7 +43,7 @@ export class RoomActionError extends ActionError implements RoomUpdateError {
     } else if (error instanceof RoomActionError) {
       return error;
     } else {
-      return new RoomActionError(room, error.message, error.getContext());
+      return new RoomActionError(room, error.message, error.getElaborations());
     }
   }
 }
@@ -95,7 +95,7 @@ export class RoomUpdateException
       {
         uuid: error.uuid,
         suppressLog: true,
-        context: error.getContext(),
+        elaborations: error.getElaborations(),
       }
     );
   }

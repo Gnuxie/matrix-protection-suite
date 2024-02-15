@@ -102,7 +102,7 @@ export class AbstractProtectionsConfig<Context = unknown>
         protectionDescription as ProtectionDescription
       );
     if (isError(consequenceProviderDescription)) {
-      return consequenceProviderDescription.addContext(
+      return consequenceProviderDescription.elaborate(
         `Couldn't find a consequence provider for the protection ${protectionDescription.name}`
       );
     }
@@ -116,7 +116,7 @@ export class AbstractProtectionsConfig<Context = unknown>
       settings
     );
     if (isError(newProtection)) {
-      return newProtection.addContext(
+      return newProtection.elaborate(
         `Couldn't create the protection from these settings, are they correct?`
       );
     }

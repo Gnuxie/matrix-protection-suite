@@ -271,7 +271,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
     const parsedSettings =
       protectionDescription.protectionSettings.parseSettings(rawSettings);
     if (isError(parsedSettings)) {
-      return parsedSettings.addContext(
+      return parsedSettings.elaborate(
         `The protection settings currently stored for the protection named ${protectionDescription.name} are invalid.`
       );
     }

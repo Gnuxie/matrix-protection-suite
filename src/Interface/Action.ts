@@ -27,7 +27,7 @@ type ActionResultError<Error = ActionError> = {
   /**
    * Add context to an action result as it is passed down the stack.
    */
-  addContext: typeof addContext;
+  elaborate: typeof elaborate;
 };
 
 /**
@@ -64,7 +64,7 @@ export function Ok<Ok>(ok: Ok): ActionResult<Ok, never> {
  * @returns An `ActionResult` that was a failure with the error value.
  */
 export function ResultError<Error>(error: Error): ActionResult<never, Error> {
-  return { error, isOkay: false, match, addContext };
+  return { error, isOkay: false, match, elaborate };
 }
 
 /**
@@ -89,11 +89,11 @@ export function isError<Ok, Error = ActionError>(
   return !result.isOkay;
 }
 
-function addContext<Error extends ActionError = ActionError>(
+function elaborate<Error extends ActionError = ActionError>(
   this: ActionResultError<Error>,
   message: string
 ): ActionResultError<Error> {
-  this.error.addContext(message);
+  this.error.elaborate(message);
   return this;
 }
 
@@ -117,7 +117,7 @@ function match<T, Ok, Error = ActionError>(
 export class ActionError {
   public constructor(
     public readonly message: string,
-    private readonly context: string[] = []
+    private readonly elaborations: string[] = []
   ) {
     // nothing to do.
   }
@@ -137,17 +137,25 @@ export class ActionError {
   }
 
   /**
-   * Add some context to the ActionError as it is passed down the stack.
-   * @param message A short message to contextualise the action, e.g. something
-   * in future tense. e.g. `Watch the list {list.toPermalink()}`.
+   * Elaborate on an ActionError that has been passed down the call stack.
+   * Since we may need to offer a better explanation in a higher level context.
+   * For example, there may be an ActionException relating to a network error,
+   * but there is no explanation for what the caller was attempting to do.
+   * So we can use this in the caller code to elaborate on the error.
+   * @param message A short message to contextualise the action,
+   * For example: "Failed to join the provided policy room.".
    * @returns This ActionError.
    */
-  public addContext(message: string): this {
-    this.context.push(message);
+  public elaborate(message: string): this {
+    this.elaborations.push(message);
     return this;
   }
 
-  public getContext(): string[] {
-    return this.context;
+  public getElaborations(): string[] {
+    return this.elaborations;
+  }
+
+  public get mostRelevantElaboration(): string {
+    return this.elaborations.at(-1) ?? this.message;
   }
 }

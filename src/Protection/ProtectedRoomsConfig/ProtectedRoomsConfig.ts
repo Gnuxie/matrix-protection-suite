@@ -56,7 +56,7 @@ export class MjolnirProtectedRoomsConfig
   ): Promise<ActionResult<ProtectedRoomsConfig>> {
     const data = await store.requestAccountData();
     if (isError(data)) {
-      return data.addContext(
+      return data.elaborate(
         `Failed to load ProtectedRoomsConfig when creating ProtectedRoomsConfig`
       );
     }
@@ -82,7 +82,7 @@ export class MjolnirProtectedRoomsConfig
         rooms: [...this.allRooms, room],
       });
       if (isError(result)) {
-        return result.addContext(
+        return result.elaborate(
           `Failed to add ${room.toPermalink()} to protected rooms set.`
         );
       }
@@ -102,7 +102,7 @@ export class MjolnirProtectedRoomsConfig
         ),
       });
       if (isError(result)) {
-        return result.addContext(
+        return result.elaborate(
           `Failed to remove ${room.toPermalink()} to protected rooms set.`
         );
       }

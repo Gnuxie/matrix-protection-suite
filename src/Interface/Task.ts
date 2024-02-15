@@ -19,7 +19,7 @@ let globalTaskReporter: TaskErrorReporter = function (error) {
     log.warn(
       `A Task failed with an ActionException`,
       error.uuid,
-      ...error.getContext(),
+      ...error.getElaborations(),
       error.message,
       error.exceptionKind
     );
@@ -27,7 +27,7 @@ let globalTaskReporter: TaskErrorReporter = function (error) {
   }
   log.warn(
     `A Task failed with an ActionError`,
-    ...error.getContext(),
+    ...error.getElaborations(),
     error.message
   );
 };

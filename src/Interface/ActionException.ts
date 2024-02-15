@@ -44,14 +44,14 @@ export class ActionException extends ActionError {
     {
       uuid = randomUUID(),
       suppressLog = false,
-      context = [],
+      elaborations = [],
     }: {
       uuid?: ReturnType<typeof randomUUID>;
       suppressLog?: boolean;
-      context?: string[];
+      elaborations?: string[];
     } = {}
   ) {
-    super(message, context);
+    super(message, elaborations);
     this.uuid = uuid;
     if (!suppressLog) {
       this.log();
