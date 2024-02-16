@@ -30,7 +30,7 @@ import {
   describeProtection,
 } from '../Protection';
 
-export class ServerBanSynchronisation
+export class ServerBanSynchronisationProtection
   extends AbstractProtection
   implements Protection
 {
@@ -108,12 +108,12 @@ export class ServerBanSynchronisation
 }
 
 describeProtection({
-  name: 'ServerBanSynchronisation',
+  name: 'ServerBanSynchronisationProtection',
   description:
     'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
   factory: (description, consequenceProvider, protectedRoomsSet, _settings) =>
     Ok(
-      new ServerBanSynchronisation(
+      new ServerBanSynchronisationProtection(
         description,
         consequenceProvider,
         protectedRoomsSet
