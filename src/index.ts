@@ -42,6 +42,7 @@ export * from './MatrixTypes/Permalinks';
 export * from './MatrixTypes/PolicyEvents';
 export * from './MatrixTypes/PowerLevels';
 export * from './MatrixTypes/ReactionEvent';
+export * from './MatrixTypes/Redaction';
 export * from './MatrixTypes/RoomMessage';
 export * from './MatrixTypes/ServerACL';
 export * from './MatrixTypes/ServerACLBuilder';
