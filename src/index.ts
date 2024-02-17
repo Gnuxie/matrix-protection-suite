@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 // For the love of god keep this in alphabetical order please.
+export * from './Client/ClientPlatform';
 export * from './Client/RoomCreator';
 export * from './Client/RoomJoiner';
 export * from './Client/RoomResolver';
