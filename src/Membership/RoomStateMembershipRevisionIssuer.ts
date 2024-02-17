@@ -12,7 +12,7 @@ import {
   RoomStateRevisionIssuer,
   StateChange,
   StateRevisionListener,
-} from './StateRevisionIssuer';
+} from '../StateTracking/StateRevisionIssuer';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 
 /**

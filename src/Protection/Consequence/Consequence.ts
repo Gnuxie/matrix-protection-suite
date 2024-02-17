@@ -16,7 +16,7 @@ import {
   StringUserID,
 } from '../../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
-import { SetMembership } from '../../StateTracking/SetMembership';
+import { SetMembership } from '../../Membership/SetMembership';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { ProtectionDescription } from '../Protection';
 

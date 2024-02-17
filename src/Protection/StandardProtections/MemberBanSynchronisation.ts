@@ -25,8 +25,8 @@ import {
   Membership,
   MembershipChange,
   MembershipChangeType,
-} from '../../StateTracking/MembershipChange';
-import { RoomMembershipRevision } from '../../StateTracking/MembershipRevision';
+} from '../../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../../Membership/MembershipRevision';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
@@ -36,7 +36,7 @@ import {
   StringRoomID,
   StringUserID,
 } from '../../MatrixTypes/StringlyTypedMatrix';
-import { SetMembership } from '../../StateTracking/SetMembership';
+import { SetMembership } from '../../Membership/SetMembership';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { RoomEvent } from '../../MatrixTypes/Events';
 import { Value } from '../../Interface/Value';

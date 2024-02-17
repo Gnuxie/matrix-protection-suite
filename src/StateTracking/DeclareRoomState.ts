@@ -8,13 +8,13 @@ import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { Membership } from './MembershipChange';
+import { Membership } from '../Membership/MembershipChange';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { DefaultEventDecoder } from '../MatrixTypes/EventDecoder';
 import { isError } from '../Interface/Action';
 import { Recommendation } from '../PolicyList/PolicyRule';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { StandardRoomMembershipRevision } from './StandardRoomMembershipRevision';
+import { StandardRoomMembershipRevision } from '../Membership/StandardRoomMembershipRevision';
 import { StandardPolicyRoomRevision } from '../PolicyList/StandardPolicyRoomRevision';
 import {
   ProtectedRoomsSet,
@@ -24,13 +24,13 @@ import { FakeProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/Fak
 import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
 import { FakeProtectionsConfig } from '../Protection/ProtectionsConfig/FakeProtectionsConfig';
 import { FakeRoomStateManager } from './FakeRoomStateManager';
-import { StandardSetMembership } from './StandardSetMembershp';
-import { FakeRoomMembershipManager } from './FakeRoomMembershipManager';
+import { StandardSetMembership } from '../Membership/StandardSetMembershp';
+import { FakeRoomMembershipManager } from '../Membership/FakeRoomMembershipManager';
 import { FakePolicyRoomManager } from './FakePolicyRoomManager';
 import { StandardSetRoomState } from './StandardSetRoomState';
 import { FakePolicyListConfig } from '../Protection/PolicyListConfig/FakePolicyListConfig';
 import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
-import { FakeRoomMembershipRevisionIssuer } from './FakeRoomMembershipRevisionIssuer';
+import { FakeRoomMembershipRevisionIssuer } from '../Membership/FakeRoomMembershipRevisionIssuer';
 import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
 
 // TODO:

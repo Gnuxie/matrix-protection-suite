@@ -19,7 +19,7 @@ import {
 import {
   Membership,
   MembershipChangeType,
-} from '../../StateTracking/MembershipChange';
+} from '../../Membership/MembershipChange';
 import waitForExpect from 'wait-for-expect';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';

@@ -8,9 +8,12 @@ import { RoomMembershipRevision } from './MembershipRevision';
 import { RoomMembershipManager } from './RoomMembershipManager';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
-import { ConstantPeriodEventBatch, EventBatch } from './EventBatch';
 import { Logger } from '../Logging/Logger';
 import { isError } from '../Interface/Action';
+import {
+  ConstantPeriodEventBatch,
+  EventBatch,
+} from '../StateTracking/EventBatch';
 
 const log = new Logger('StandardRoomMembershipRevisionIssuer');
 

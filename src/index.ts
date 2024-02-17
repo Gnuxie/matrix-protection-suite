@@ -46,6 +46,16 @@ export * from './MatrixTypes/ServerACLBuilder';
 export * from './MatrixTypes/StringlyTypedMatrix';
 export * from './MatrixTypes/SynapseReport';
 
+export * from './Membership/MembershipChange';
+export * from './Membership/MembershipRevision';
+export * from './Membership/MembershipRevisionIssuer';
+export * from './Membership/RoomMembershipManager';
+export * from './Membership/RoomStateMembershipRevisionIssuer';
+export * from './Membership/SetMembership';
+export * from './Membership/StandardRoomMembershipRevision';
+export * from './Membership/StandardRoomMembershipRevisionIssuer';
+export * from './Membership/StandardSetMembershp';
+
 export * from './PolicyList/PolicyListRevision';
 export * from './PolicyList/PolicyListRevisionIssuer';
 export * from './PolicyList/PolicyRoomEditor';
@@ -92,17 +102,8 @@ export * from './Reporting/EventReport';
 
 export * from './StateTracking/ChangeType';
 export * from './StateTracking/EventBatch';
-export * from './StateTracking/MembershipChange';
-export * from './StateTracking/MembershipRevision';
-export * from './StateTracking/MembershipRevisionIssuer';
-export * from './StateTracking/RoomMembershipManager';
-export * from './StateTracking/RoomStateMembershipRevisionIssuer';
-export * from './StateTracking/SetMembership';
 export * from './StateTracking/SetRoomState';
-export * from './StateTracking/StandardRoomMembershipRevision';
-export * from './StateTracking/StandardRoomMembershipRevisionIssuer';
 export * from './StateTracking/StandardRoomStateRevision';
 export * from './StateTracking/StandardRoomStateRevisionIssuer';
-export * from './StateTracking/StandardSetMembershp';
 export * from './StateTracking/StandardSetRoomState';
 export * from './StateTracking/StateRevisionIssuer';

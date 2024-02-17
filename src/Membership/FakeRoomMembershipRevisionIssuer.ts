@@ -10,7 +10,7 @@ import {
   RoomMembershipRevisionIssuer,
 } from './MembershipRevisionIssuer';
 import { RoomStateMembershipRevisionIssuer } from './RoomStateMembershipRevisionIssuer';
-import { RoomStateRevisionIssuer } from './StateRevisionIssuer';
+import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
 
 export class FakeRoomMembershipRevisionIssuer
   extends RoomStateMembershipRevisionIssuer

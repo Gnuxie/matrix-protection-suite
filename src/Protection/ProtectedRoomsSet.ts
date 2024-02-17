@@ -9,12 +9,12 @@ import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { RevisionListener } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { EventReport } from '../Reporting/EventReport';
-import { MembershipChange } from '../StateTracking/MembershipChange';
-import { RoomMembershipRevision } from '../StateTracking/MembershipRevision';
+import { MembershipChange } from '../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../Membership/MembershipRevision';
 import {
   SetMembership,
   SetMembershipListener,
-} from '../StateTracking/SetMembership';
+} from '../Membership/SetMembership';
 import {
   SetRoomState,
   SetRoomStateListener,

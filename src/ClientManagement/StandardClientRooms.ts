@@ -8,7 +8,7 @@ import { RoomEvent } from '../MatrixTypes/Events';
 import { MatrixRoomReference } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
-import { Membership } from '../StateTracking/MembershipChange';
+import { Membership } from '../Membership/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
 import {
   AbstractClientRooms,

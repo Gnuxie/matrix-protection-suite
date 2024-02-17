@@ -10,7 +10,7 @@ import { describePolicyRule, describeRoomMember } from './DeclareRoomState';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { ChangeType } from './ChangeType';
-import { Membership } from './MembershipChange';
+import { Membership } from '../Membership/MembershipChange';
 
 // if events aren't normalized as they are indexed then we really need to make
 // sure that the policy room editor removes them according to their source

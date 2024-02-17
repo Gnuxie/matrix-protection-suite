@@ -6,7 +6,7 @@ import { RoomEvent } from '../MatrixTypes/Events';
 import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
 import { EventReport } from '../Reporting/EventReport';
-import { RoomMembershipManager } from '../StateTracking/RoomMembershipManager';
+import { RoomMembershipManager } from '../Membership/RoomMembershipManager';
 import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
 
 // TODO: if ever `Client` needs access to `ClientRooms` please note

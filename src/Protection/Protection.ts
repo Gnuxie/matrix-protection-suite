@@ -14,8 +14,8 @@ import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { EventReport } from '../Reporting/EventReport';
-import { MembershipChange } from '../StateTracking/MembershipChange';
-import { RoomMembershipRevision } from '../StateTracking/MembershipRevision';
+import { MembershipChange } from '../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../Membership/MembershipRevision';
 import {
   RoomStateRevision,
   StateChange,
