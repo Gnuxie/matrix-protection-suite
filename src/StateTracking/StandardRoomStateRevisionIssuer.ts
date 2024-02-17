@@ -14,6 +14,7 @@ import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { ConstantPeriodEventBatch, EventBatch } from './EventBatch';
 import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
+import { StateEvent } from '../MatrixTypes/Events';
 
 const log = new Logger('StandardRoomStateRevisionIssuer');
 
@@ -26,10 +27,13 @@ export class StandardRoomStateRevisionIssuer
   private batchCompleteCallback: EventBatch['batchCompleteCallback'];
   constructor(
     public readonly room: MatrixRoomID,
-    private readonly getRoomState: RoomStateManager['getRoomState']
+    private readonly getRoomState: RoomStateManager['getRoomState'],
+    initialState: StateEvent[]
   ) {
     super();
-    this.currentRevision = StandardRoomStateRevision.blankRevision(this.room);
+    this.currentRevision = StandardRoomStateRevision.blankRevision(
+      this.room
+    ).reviseFromState(initialState);
     this.batchCompleteCallback = this.createBatchedRevision.bind(this);
     this.currentBatch = new ConstantPeriodEventBatch(
       this.batchCompleteCallback,
