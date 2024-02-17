@@ -73,13 +73,16 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   public getStateEvent(type: string, key: string): StateEvent | undefined {
     return this.stateEvents.get(type)?.get(key);
   }
-  public getStateEventsOfType(type: string) {
+  public getStateEventsOfType<T extends StateEvent>(type: string): T[] {
     const typeTable = this.stateEvents.get(type);
     if (typeTable) {
-      return [...typeTable.values()];
+      return [...typeTable.values()] as T[];
     } else {
       return [];
     }
+  }
+  public getStateEventsOfTypes<T extends StateEvent>(types: string[]): T[] {
+    return types.map((type) => this.getStateEventsOfType(type)).flat() as T[];
   }
 
   public reviseFromChanges(changes: StateChange[]): StandardRoomStateRevision {
