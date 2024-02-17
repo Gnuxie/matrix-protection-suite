@@ -9,12 +9,12 @@ import {
   RoomStateRevisionIssuer,
 } from './StateRevisionIssuer';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { ConstantPeriodEventBatch, EventBatch } from './EventBatch';
 import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
-import { StateEvent } from '../MatrixTypes/Events';
+import { RoomEvent, StateEvent } from '../MatrixTypes/Events';
+import { Redaction, redactionTargetEvent } from '../MatrixTypes/Redaction';
 
 const log = new Logger('StandardRoomStateRevisionIssuer');
 
@@ -40,10 +40,8 @@ export class StandardRoomStateRevisionIssuer
       {}
     );
   }
-  updateForEvent(event: { event_id: StringEventID }): void {
-    if (this.currentRevision.hasEvent(event.event_id)) {
-      return;
-    }
+
+  private addEventToBatch(event: RoomEvent): void {
     if (this.currentBatch.isFinished()) {
       this.currentBatch = new ConstantPeriodEventBatch(
         this.batchCompleteCallback,
@@ -51,6 +49,27 @@ export class StandardRoomStateRevisionIssuer
       );
     }
     this.currentBatch.addEvent(event);
+  }
+  updateForEvent(event: RoomEvent): void {
+    if (this.currentRevision.hasEvent(event.event_id)) {
+      return;
+    }
+    this.addEventToBatch(event);
+  }
+
+  updateForRedaction(event: Redaction): void {
+    const targetEvent = redactionTargetEvent(event);
+    if (targetEvent === undefined) {
+      log.warn(
+        `Someone has been redacting redaction events, interesting`,
+        targetEvent
+      );
+      return;
+    }
+    if (!this.currentRevision.hasEvent(targetEvent)) {
+      return;
+    }
+    this.addEventToBatch(event);
   }
 
   private async createBatchedRevision(): Promise<void> {

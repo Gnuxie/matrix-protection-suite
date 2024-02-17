@@ -1,9 +1,10 @@
-// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { Redaction } from '../MatrixTypes/Redaction';
 import { MembershipChange } from './MembershipChange';
 import {
   MembershipRevision,
@@ -33,7 +34,16 @@ export declare interface RoomMembershipRevisionIssuer
   extends MembershipRevisionIssuer {
   currentRevision: RoomMembershipRevision;
   room: MatrixRoomID;
-  updateForEvent({ event_id }: { event_id: StringEventID }): void;
+  /**
+   * Inform the revision issuer about a membership event in the room's timeline.
+   * @param event The membership event.
+   */
+  updateForMembershipEvent(event: MembershipEvent): void;
+  /**
+   * Inform the revision issuer about a redaction event in the room's timeline.
+   * @param event The redaction in question.
+   */
+  updateForRedactionEvent(event: Redaction): void;
   on(
     event: 'revision',
     listener: MembershipRevisionListener<RoomMembershipRevision>

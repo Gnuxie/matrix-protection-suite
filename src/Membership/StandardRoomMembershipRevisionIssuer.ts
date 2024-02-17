@@ -7,16 +7,23 @@ import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipRevision } from './MembershipRevision';
 import { RoomMembershipManager } from './RoomMembershipManager';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { Logger } from '../Logging/Logger';
 import { isError } from '../Interface/Action';
 import {
   ConstantPeriodEventBatch,
   EventBatch,
 } from '../StateTracking/EventBatch';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { RoomEvent } from '../MatrixTypes/Events';
+import { Redaction } from '../MatrixTypes/Redaction';
 
 const log = new Logger('StandardRoomMembershipRevisionIssuer');
 
+/**
+ * Users of this class are strongly recommended to consider the
+ * RoomState based alternative `RoomStateMembershipRevisionIssuer`.
+ * This class will likely be removed shortly.
+ */
 export class StandardRoomMembershipRevisionIssuer
   extends EventEmitter
   implements RoomMembershipRevisionIssuer
@@ -36,10 +43,7 @@ export class StandardRoomMembershipRevisionIssuer
     );
   }
 
-  updateForEvent(event: { event_id: StringEventID }): void {
-    if (this.currentRevision.hasEvent(event.event_id)) {
-      return;
-    }
+  private addToBatch(event: RoomEvent): void {
     if (this.currentBatch.isFinished()) {
       this.currentBatch = new ConstantPeriodEventBatch(
         this.batchCompleteCallback,
@@ -47,6 +51,17 @@ export class StandardRoomMembershipRevisionIssuer
       );
     }
     this.currentBatch.addEvent(event);
+  }
+
+  updateForMembershipEvent(event: MembershipEvent): void {
+    if (this.currentRevision.hasEvent(event.event_id)) {
+      return;
+    }
+    this.addToBatch(event);
+  }
+
+  updateForRedactionEvent(event: Redaction): void {
+    this.addToBatch(event);
   }
 
   private async createBatchedRevision(): Promise<void> {

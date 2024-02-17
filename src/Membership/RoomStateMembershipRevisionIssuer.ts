@@ -6,7 +6,6 @@ import EventEmitter from 'events';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipRevision } from './MembershipRevision';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
@@ -14,6 +13,7 @@ import {
   StateRevisionListener,
 } from '../StateTracking/StateRevisionIssuer';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { Redaction } from '../MatrixTypes/Redaction';
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that
@@ -34,11 +34,15 @@ export class RoomStateMembershipRevisionIssuer
     this.roomStateRevisionIssuer.on('revision', this.stateRevisionListener);
   }
 
-  updateForEvent(event: { event_id: StringEventID }): void {
+  updateForMembershipEvent(event: MembershipEvent): void {
     if (this.currentRevision.hasEvent(event.event_id)) {
       return;
     }
     this.roomStateRevisionIssuer.updateForEvent(event);
+  }
+
+  updateForRedactionEvent(event: Redaction): void {
+    this.roomStateRevisionIssuer.updateForRedaction(event);
   }
 
   private listener(

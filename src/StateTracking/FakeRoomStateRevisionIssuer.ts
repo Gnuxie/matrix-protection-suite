@@ -26,6 +26,10 @@ export class FakeRoomStateRevisionIssuer
     // nothing to do.
   }
 
+  updateForRedaction(): void {
+    // nothing to do.
+  }
+
   unregisterListeners(): void {
     // nothing to unregister
   }

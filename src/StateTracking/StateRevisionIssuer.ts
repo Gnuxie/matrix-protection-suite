@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
@@ -14,6 +14,7 @@
 import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import { Redaction } from '../MatrixTypes/Redaction';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { StateChangeType } from './StateChangeType';
 
@@ -64,7 +65,16 @@ export declare interface StateRevisionIssuer {
 export declare interface RoomStateRevisionIssuer extends StateRevisionIssuer {
   readonly currentRevision: RoomStateRevision;
   readonly room: MatrixRoomID;
-  updateForEvent({ event_id }: { event_id: StringEventID }): void;
+  /**
+   * Inform the revision issuer about a state event in the room's timeline.
+   * @param event The state event.
+   */
+  updateForEvent(event: StateEvent): void;
+  /**
+   * Inform the revision issuer about a redaction event in the room's timeline.
+   * @param event The redaction in question.
+   */
+  updateForRedaction(event: Redaction): void;
   on(
     event: 'revision',
     listener: StateRevisionListener<RoomStateRevision>

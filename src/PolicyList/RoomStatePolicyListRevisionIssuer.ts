@@ -4,7 +4,6 @@
 
 import EventEmitter from 'events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
@@ -15,6 +14,8 @@ import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
 import { PolicyRoomRevision } from './PolicyListRevision';
 import { ALL_RULE_TYPES, PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
+import { StateEvent } from '../MatrixTypes/Events';
+import { Redaction } from '../MatrixTypes/Redaction';
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that
@@ -35,11 +36,15 @@ export class RoomStatePolicyRoomRevisionIssuer
     this.roomStateRevisionIssuer.on('revision', this.stateRevisionListener);
   }
 
-  updateForEvent(event: { event_id: StringEventID }): void {
+  updateForPolicyEvent(event: StateEvent): void {
     if (this.currentRevision.hasEvent(event.event_id)) {
       return;
     }
     this.roomStateRevisionIssuer.updateForEvent(event);
+  }
+
+  updateForRedactionEvent(event: Redaction): void {
+    this.roomStateRevisionIssuer.updateForRedaction(event);
   }
 
   private listener(

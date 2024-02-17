@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2024 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 - 2021 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -9,7 +9,8 @@
 // </text>
 
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
+import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
+import { Redaction } from '../MatrixTypes/Redaction';
 import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';
 
@@ -59,5 +60,10 @@ export interface PolicyRoomRevisionIssuer extends PolicyListRevisionIssuer {
   /**
    * Inform the revision issuer of a new event from Matrix.
    */
-  updateForEvent(event: { event_id: StringEventID }): void;
+  updateForPolicyEvent(event: PolicyRuleEvent): void;
+  /**
+   * Inform the revision issuer about a redaction event in the room's timeline.
+   * @param event The redaction in question.
+   */
+  updateForRedactionEvent(event: Redaction): void;
 }
