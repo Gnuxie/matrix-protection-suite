@@ -11,6 +11,7 @@
 import { Static, StaticDecode, Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
 import { Value } from '../Interface/Value';
+import { registerDefaultDecoder } from './EventDecoder';
 
 export enum PolicyRuleType {
   /// `entity` is to be parsed as a glob of users IDs
@@ -176,4 +177,12 @@ Value.Compile(PolicyRuleEvent);
 
 export function isPolicyRuleEvent(value: unknown): value is PolicyRuleEvent {
   return Value.Check(PolicyRuleEvent, value);
+}
+
+function decodePolicyEvent(event: unknown) {
+  return Value.Decode(PolicyRuleEvent, event);
+}
+
+for (const type of ALL_RULE_TYPES) {
+  registerDefaultDecoder(type, decodePolicyEvent);
 }

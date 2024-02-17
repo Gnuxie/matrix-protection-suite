@@ -11,6 +11,8 @@
 
 import { Static, Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
+import { registerDefaultDecoder } from './EventDecoder';
+import { Value } from '../Interface/Value';
 
 export type PowerLevelsEventContent = Static<typeof PowerLevelsEventContent>;
 export const PowerLevelsEventContent = Type.Optional(
@@ -85,3 +87,7 @@ export const PowerLevelsEvent = Type.Intersect([
     type: Type.Optional(Type.Union([Type.Literal('m.room.power_levels')])),
   }),
 ]);
+
+registerDefaultDecoder('m.room.power_levels', (event) =>
+  Value.Decode(PowerLevelsEvent, event)
+);

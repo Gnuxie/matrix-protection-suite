@@ -10,6 +10,8 @@
 
 import { Static, Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
+import { registerDefaultDecoder } from './EventDecoder';
+import { Value } from '../Interface/Value';
 
 export type ServerACLContent = Static<typeof ServerACLContent>;
 export const ServerACLContent = Type.Optional(
@@ -45,3 +47,7 @@ export const ServerACLEvent = Type.Composite([
     type: Type.Literal('m.room.server_acl'),
   }),
 ]);
+
+registerDefaultDecoder('m.room.server_acl', (event) =>
+  Value.Decode(ServerACLEvent, event)
+);

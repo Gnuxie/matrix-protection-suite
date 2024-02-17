@@ -12,6 +12,8 @@
 import { Static, StaticDecode, Type } from '@sinclair/typebox';
 import { StateEvent, StrippedStateEvent, UnsignedData } from './Events';
 import { StringUserID } from './StringlyTypedMatrix';
+import { registerDefaultDecoder } from './EventDecoder';
+import { Value } from '../Interface/Value';
 
 export type MembershipEventUnsigned = Static<typeof MembershipEventUnsigned>;
 export const MembershipEventUnsigned = Type.Composite([
@@ -108,3 +110,7 @@ export const MembershipEvent = Type.Composite([
     unsigned: Type.Optional(MembershipEventUnsigned),
   }),
 ]);
+
+registerDefaultDecoder('m.room.member', (event) =>
+  Value.Decode(MembershipEvent, event)
+);

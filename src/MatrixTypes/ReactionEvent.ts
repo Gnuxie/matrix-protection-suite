@@ -11,6 +11,8 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { StringEventID } from './StringlyTypedMatrix';
 import { RoomEvent } from './Events';
+import { registerDefaultDecoder } from './EventDecoder';
+import { Value } from '../Interface/Value';
 
 export type ReactionContent = StaticDecode<typeof ReactionContent>;
 export const ReactionContent = Type.Object({
@@ -37,3 +39,7 @@ export const ReactionEvent = Type.Composite([
     type: Type.Literal('m.reaction'),
   }),
 ]);
+
+registerDefaultDecoder('m.reaction', (event) =>
+  Value.Decode(ReactionEvent, event)
+);

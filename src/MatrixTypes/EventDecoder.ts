@@ -7,10 +7,6 @@ import { ActionResult, isError } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
 import { RoomEvent, StateEvent } from './Events';
 import { Map as PersistentMap } from 'immutable';
-import { MembershipEvent } from './MembershipEvent';
-import { ALL_RULE_TYPES, PolicyRuleEvent } from './PolicyEvents';
-import { RoomMessage } from './RoomMessage';
-import { ReactionEvent } from './ReactionEvent';
 
 type EventDecoderFn = (
   event: unknown
@@ -90,24 +86,14 @@ export class StandardEventDecoder implements EventDecoder {
 
 const UnknownEvent = RoomEvent(Type.Unknown());
 
-export let DefaultEventDecoder = StandardEventDecoder.blankEventDecoder()
-  .setDecoderForEventType('m.room.member', (event) =>
-    Value.Decode(MembershipEvent, event)
-  )
-  .setDecoderForEventType('m.room.message', (event) =>
-    Value.Decode(RoomMessage, event)
-  )
-  .setDecoderForEventType('m.reaction', (event) =>
-    Value.Decode(ReactionEvent, event)
-  );
+export let DefaultEventDecoder = StandardEventDecoder.blankEventDecoder();
 
-function decodePolicyEvent(event: unknown) {
-  return Value.Decode(PolicyRuleEvent, event);
-}
-
-for (const type of ALL_RULE_TYPES) {
+export function registerDefaultDecoder(
+  type: string,
+  decoder: EventDecoderFn
+): void {
   DefaultEventDecoder = DefaultEventDecoder.setDecoderForEventType(
     type,
-    decodePolicyEvent
+    decoder
   );
 }

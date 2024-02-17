@@ -11,6 +11,8 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { RoomEvent } from './Events';
 import { StringEventID } from './StringlyTypedMatrix';
+import { registerDefaultDecoder } from './EventDecoder';
+import { Value } from '../Interface/Value';
 
 export type RedactionContent = StaticDecode<typeof RedactionContent>;
 export const RedactionContent = Type.Object({
@@ -44,3 +46,7 @@ export function redactionTargetEvent(
 ): StringEventID | undefined {
   return event.redacts ?? event.content.redacts;
 }
+
+registerDefaultDecoder('m.room.redaction', (event) =>
+  Value.Decode(Redaction, event)
+);

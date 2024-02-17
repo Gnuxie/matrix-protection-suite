@@ -10,6 +10,8 @@
 
 import { Static, StaticDecode, Type } from '@sinclair/typebox';
 import { RoomEvent } from './Events';
+import { registerDefaultDecoder } from './EventDecoder';
+import { Value } from '../Interface/Value';
 
 export type MessageContent = Static<typeof MessageContent>;
 export const MessageContent = Type.Object({
@@ -236,3 +238,7 @@ export const RoomMessage = Type.Composite([
     type: Type.Literal('m.room.message'),
   }),
 ]);
+
+registerDefaultDecoder('m.room.message', (event) =>
+  Value.Decode(RoomMessage, event)
+);
