@@ -8,15 +8,12 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ChangeType, calculateStateChange } from './ChangeType';
+import { calculateStateChange, isChanged } from './StateChangeType';
 import { Revision } from '../PolicyList/Revision';
 import { Map as PersistentMap } from 'immutable';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StateEvent } from '../MatrixTypes/Events';
 import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
-import { Logger } from '../Logging/Logger';
-
-const log = new Logger('StandardRoomStateRevision');
 
 /**
  * A map interning rules by their rule type, and then their state key.
@@ -104,25 +101,9 @@ export class StandardRoomStateRevision implements RoomStateRevision {
         event
       );
     };
-    const removeStateEvent = (event: StateEvent): void => {
-      nextStateEvents = nextStateEvents.deleteIn([event.type, event.state_key]);
-      nextStateEventsByEventID = nextStateEventsByEventID.delete(
-        event.event_id
-      );
-    };
     for (const change of changes) {
-      if (
-        change.changeType === ChangeType.Added ||
-        change.changeType === ChangeType.Modified
-      ) {
+      if (isChanged(change.changeType)) {
         setStateEvent(change);
-      } else if (change.changeType === ChangeType.Removed) {
-        if (change.previousState === undefined) {
-          const message = `There should be previous state for an event that has been removed ${change.state.event_id}`;
-          log.error(message, change);
-          throw new TypeError(message);
-        }
-        removeStateEvent(change.previousState);
       }
     }
     return new StandardRoomStateRevision(
@@ -148,7 +129,7 @@ export class StandardRoomStateRevision implements RoomStateRevision {
       const existingState = this.getStateEvent(event.type, event.state_key);
 
       const changeType = calculateStateChange(event, existingState);
-      if (changeType !== null) {
+      if (isChanged(changeType)) {
         changes.push({
           eventType: event.type,
           changeType,

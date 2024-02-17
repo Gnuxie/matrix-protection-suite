@@ -15,7 +15,7 @@ import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
-import { ChangeType } from './ChangeType';
+import { StateChangeType } from './StateChangeType';
 
 export interface StateRevision {
   readonly allState: StateEvent[];
@@ -34,11 +34,12 @@ export interface RoomStateRevision extends StateRevision {
 }
 
 export interface StateChange<EventSchema extends StateEvent = StateEvent> {
-  readonly changeType: ChangeType;
+  readonly changeType: StateChangeType;
   readonly eventType: EventSchema['type'];
   readonly state: EventSchema;
   /**
-   * The previous state that has been changed. Only (and always) provided when the change type is `ChangeType.Removed` or `Modified`.
+   * The previous state that has been changed. Only (and always) provided when there was a state type-key
+   * combination for this event previously.
    * This will be a copy of the same event as `event` when a redaction has occurred and this will show its unredacted state.
    */
   readonly previousState?: EventSchema;

@@ -12,10 +12,10 @@ import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from './PolicyListRevision';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
-import { ChangeType } from '../StateTracking/ChangeType';
 import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
 import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
+import { SimpleChangeType } from '../Interface/SimpleChangeType';
 
 /**
  * A map of policy rules, by their type and then event id.
@@ -162,11 +162,11 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     };
     for (const change of changes) {
       if (
-        change.changeType === ChangeType.Added ||
-        change.changeType === ChangeType.Modified
+        change.changeType === SimpleChangeType.Added ||
+        change.changeType === SimpleChangeType.Modified
       ) {
         setPolicyRule(change.rule.kind, change.rule);
-      } else if (change.changeType === ChangeType.Removed) {
+      } else if (change.changeType === SimpleChangeType.Removed) {
         removePolicyRule(change.rule);
       }
     }
@@ -361,11 +361,11 @@ class PolicyRuleScope {
         continue;
       }
       switch (change.changeType) {
-        case ChangeType.Added:
-        case ChangeType.Modified:
+        case SimpleChangeType.Added:
+        case SimpleChangeType.Modified:
           addRule(change.rule);
           break;
-        case ChangeType.Removed:
+        case SimpleChangeType.Removed:
           removeRule(change.rule);
       }
     }

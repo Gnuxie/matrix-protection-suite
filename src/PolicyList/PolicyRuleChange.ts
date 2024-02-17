@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
-import { ChangeType } from '../StateTracking/ChangeType';
 import { PolicyRule } from './PolicyRule';
 
 /**
@@ -17,7 +17,7 @@ import { PolicyRule } from './PolicyRule';
  * @see {@link PolicyListRevision}.
  */
 export interface PolicyRuleChange {
-  readonly changeType: ChangeType;
+  readonly changeType: SimpleChangeType;
   /**
    * State event that caused the change.
    * If the rule was redacted, this will be the redacted version of the event.

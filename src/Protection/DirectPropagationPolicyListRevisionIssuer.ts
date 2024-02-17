@@ -13,8 +13,8 @@ import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { ChangeType } from '../StateTracking/ChangeType';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import { SimpleChangeType } from '../Interface/SimpleChangeType';
 
 export interface DirectPropagationPolicyListRevisionIssuer
   extends PolicyListRevisionIssuer {
@@ -71,8 +71,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     const changes: PolicyRuleChange[] = [];
     for (const policy of revision.allRules()) {
       changes.push({
-        // FIXME: Need to have a special change type for watching/unwatching.
-        changeType: ChangeType.Added,
+        changeType: SimpleChangeType.Added,
         event: policy.sourceEvent,
         sender: policy.sourceEvent.sender,
         rule: policy,
@@ -87,8 +86,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     const changes: PolicyRuleChange[] = [];
     for (const policy of revision.allRules()) {
       changes.push({
-        // FIXME: Need to have a special change type for watching/unwatching.
-        changeType: ChangeType.Removed,
+        changeType: SimpleChangeType.Removed,
         event: policy.sourceEvent,
         sender: policy.sourceEvent.sender,
         rule: policy,

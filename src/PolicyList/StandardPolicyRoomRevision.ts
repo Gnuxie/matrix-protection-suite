@@ -18,13 +18,17 @@ import {
 import { PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
-import { ChangeType, calculateStateChange } from '../StateTracking/ChangeType';
+import {
+  StateChangeType,
+  calculateStateChange,
+} from '../StateTracking/StateChangeType';
 import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Logger } from '../Logging/Logger';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
+import { SimpleChangeType } from '../Interface/SimpleChangeType';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
@@ -183,17 +187,22 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       );
     };
     for (const change of changes) {
-      if (
-        change.changeType === ChangeType.Added ||
-        change.changeType === ChangeType.Modified
-      ) {
-        setPolicyRule(
-          change.rule.kind,
-          change.rule.sourceEvent.state_key,
-          change.rule
-        );
-      } else if (change.changeType === ChangeType.Removed) {
-        removePolicyRule(change.rule);
+      switch (change.changeType) {
+        case SimpleChangeType.Added:
+        case SimpleChangeType.Modified:
+          setPolicyRule(
+            change.rule.kind,
+            change.rule.sourceEvent.state_key,
+            change.rule
+          );
+          break;
+        case SimpleChangeType.Removed:
+          removePolicyRule(change.rule);
+          break;
+        default:
+          throw new TypeError(
+            `Unrecognised change type in policy room revision ${change.changeType}`
+          );
       }
     }
     return new StandardPolicyRoomRevision(
@@ -252,35 +261,37 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         }
       }
       const changeType = calculateStateChange(event, existingState);
-
-      if (changeType === null) {
-        // nothing has changed.
-        continue;
-      }
-
-      // If we haven't got any information about what the rule used to be, then it wasn't a valid rule to begin with
-      // and so will not have been used. Removing a rule like this therefore results in no change.
-      if (changeType === ChangeType.Removed && existingRule) {
-        const redactedBecause = event.unsigned?.redacted_because;
-        const sender =
-          typeof redactedBecause === 'object' &&
-          redactedBecause !== null &&
-          'sender' in redactedBecause &&
-          typeof redactedBecause.sender === 'string'
-            ? redactedBecause.sender
-            : event.sender;
-        changes.push({
-          changeType,
-          event,
-          sender,
-          rule: existingRule,
-          ...(existingState ? { existingState } : {}),
-        });
-        // Event has no content and cannot be parsed as a ListRule.
-        continue;
-      }
-      if (changeType) {
-        if ('entity' in event.content) {
+      switch (changeType) {
+        case StateChangeType.NoChange:
+        case StateChangeType.BlankedEmptyContent:
+        case StateChangeType.IntroducedAsBlank:
+          continue;
+        case StateChangeType.CompletelyRedacted:
+        case StateChangeType.BlankedContent:
+          if (existingRule === undefined) {
+            continue; // we have already removed the rule somehow.
+          }
+          // remove the rule.
+          const redactedBecause = event.unsigned?.redacted_because;
+          const sender =
+            typeof redactedBecause === 'object' &&
+            redactedBecause !== null &&
+            'sender' in redactedBecause &&
+            typeof redactedBecause.sender === 'string'
+              ? redactedBecause.sender
+              : event.sender;
+          changes.push({
+            changeType: SimpleChangeType.Removed,
+            event,
+            sender,
+            rule: existingRule,
+            ...(existingState ? { existingState } : {}),
+          });
+          // Event has no content and cannot be parsed as a ListRule.
+          continue;
+        case StateChangeType.Introduced:
+        case StateChangeType.Reintroduced:
+        case StateChangeType.SupersededContent:
           // This cast is required because for some reason TS won't narrow on the
           // properties of `event`.
           // We should really consider making all of the properties in MatrixTypes
@@ -292,14 +303,21 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           );
           changes.push({
             rule,
-            changeType,
+            changeType:
+              changeType === StateChangeType.SupersededContent
+                ? SimpleChangeType.Modified
+                : SimpleChangeType.Added,
             event,
             sender: event.sender,
             ...(existingState ? { existingState } : {}),
           });
-        } else {
-          throw new TypeError(`Should have caught a redaction`);
-        }
+          continue;
+        case StateChangeType.PartiallyRedacted:
+          throw new TypeError(
+            `No idea how the hell there is a partially redacted policy rule`
+          );
+        default:
+          throw new TypeError(`Unrecognised state change type ${changeType}`);
       }
     }
     return changes;

@@ -7,7 +7,7 @@ import { ProtectedRoomsConfig } from './ProtectedRoomsConfig';
 import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok } from '../../Interface/Action';
-import { ChangeType } from '../../StateTracking/ChangeType';
+import { SimpleChangeType } from '../../Interface/SimpleChangeType';
 
 export class AbstractProtectedRoomsConfig
   extends EventEmitter
@@ -36,11 +36,11 @@ export class AbstractProtectedRoomsConfig
   }
   protected addRoom(room: MatrixRoomID): void {
     this.protectedRooms.set(room.toRoomIDOrAlias(), room);
-    this.emit('change', room, ChangeType.Added);
+    this.emit('change', room, SimpleChangeType.Added);
   }
   protected removeRoom(room: MatrixRoomID): void {
     this.protectedRooms.delete(room.toRoomIDOrAlias());
-    this.emit('change', room, ChangeType.Removed);
+    this.emit('change', room, SimpleChangeType.Removed);
   }
 }
 

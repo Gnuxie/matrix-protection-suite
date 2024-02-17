@@ -23,6 +23,7 @@ export * from './Interface/MultipleErrors';
 export * from './Interface/PersistentMatrixData';
 export * from './Interface/RoomUpdateError';
 export * from './Interface/SchemedMatrixData';
+export * from './Interface/SimpleChangeType';
 export * from './Interface/Task';
 export * from './Interface/Value';
 
@@ -101,10 +102,10 @@ export * from './Protection/Protection';
 
 export * from './Reporting/EventReport';
 
-export * from './StateTracking/ChangeType';
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/SetRoomState';
 export * from './StateTracking/StandardRoomStateRevision';
 export * from './StateTracking/StandardRoomStateRevisionIssuer';
 export * from './StateTracking/StandardSetRoomState';
+export * from './StateTracking/StateChangeType';
 export * from './StateTracking/StateRevisionIssuer';
