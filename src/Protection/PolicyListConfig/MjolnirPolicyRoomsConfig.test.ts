@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { createMock } from 'ts-auto-mock';
+import { RoomJoiner } from '../../Client/RoomJoiner';
 import { Ok, isError } from '../../Interface/Action';
 import { FakeMatrixAccountData } from '../../Interface/FakePersistentMatrixData';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
@@ -11,6 +13,10 @@ import { describeRoom } from '../../StateTracking/DeclareRoomState';
 import { FakePolicyRoomManager } from '../../StateTracking/FakePolicyRoomManager';
 import { MjolnirPolicyRoomsConfig } from './MjolnirPolicyRoomsConfig';
 import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
+import {
+  MatrixRoomAlias,
+  MatrixRoomReference,
+} from '../../MatrixTypes/MatrixRoomReference';
 
 test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that already have policies in them', async function () {
   const targetUser = '@spam:example.com';
@@ -29,20 +35,26 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
     new FakeMatrixAccountData<MjolnirWatchedPolicyRoomsEvent>({
       references: [policyRoom.policyRevisionIssuer.room],
     });
+  const fakeRoomJoiner = createMock<RoomJoiner>({
+    resolveRoom: async (roomID) => {
+      if (typeof roomID === 'string') {
+        if (!isStringRoomID(roomID)) {
+          throw new TypeError(`Fake can't deal with aliases.`);
+        } else {
+          return Ok(MatrixRoomReference.fromRoomID(roomID));
+        }
+      } else if (roomID instanceof MatrixRoomAlias) {
+        throw new TypeError(`Fake can't deal with aliases.`);
+      } else {
+        return Ok(roomID);
+      }
+    },
+  });
   const policyRoomsConfigResult =
     await MjolnirPolicyRoomsConfig.createFromStore(
       policyListConfigAccountData,
       policyRoomManager,
-      // this really should be made to use the roomJoiner clientCapability
-      // then we can just make a fake for that rather than this hacky thing.
-      {
-        resolveRoom: async (roomID) => {
-          if (!isStringRoomID(roomID)) {
-            throw new TypeError(`This dumb fake can't handle this`);
-          }
-          return Ok(roomID);
-        },
-      }
+      fakeRoomJoiner
     );
   if (isError(policyRoomsConfigResult)) {
     throw new TypeError(

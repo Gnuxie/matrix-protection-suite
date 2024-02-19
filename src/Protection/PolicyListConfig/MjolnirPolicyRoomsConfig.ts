@@ -10,10 +10,7 @@ import {
 } from '../../Interface/ActionException';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
 import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
-import {
-  MatrixRoomID,
-  ResolveRoom,
-} from '../../MatrixTypes/MatrixRoomReference';
+import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
 import {
   DirectPropagationPolicyListRevisionIssuer,
@@ -22,6 +19,7 @@ import {
 import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
 import { AbstractPolicyListConfig } from './FakePolicyListConfig';
 import { PolicyListConfig, PropagationType } from './PolicyListConfig';
+import { RoomJoiner } from '../../Client/RoomJoiner';
 
 export class MjolnirPolicyRoomsConfig
   extends AbstractPolicyListConfig
@@ -32,6 +30,7 @@ export class MjolnirPolicyRoomsConfig
     private readonly store: MatrixAccountData<MjolnirWatchedPolicyRoomsEvent>,
     policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
     policyRoomManager: PolicyRoomManager,
+    private readonly roomJoiner: RoomJoiner,
     watchedLists: Set<MatrixRoomID>
   ) {
     super(policyListRevisionIssuer, policyRoomManager, watchedLists);
@@ -40,7 +39,7 @@ export class MjolnirPolicyRoomsConfig
   public static async createFromStore(
     store: MatrixAccountData<MjolnirWatchedPolicyRoomsEvent>,
     policyRoomManager: PolicyRoomManager,
-    resolveRoomClient: { resolveRoom: ResolveRoom }
+    roomJoiner: RoomJoiner
   ): Promise<ActionResult<MjolnirPolicyRoomsConfig>> {
     const watchedListsResult = await store.requestAccountData();
     if (isError(watchedListsResult)) {
@@ -49,7 +48,7 @@ export class MjolnirPolicyRoomsConfig
     const references = watchedListsResult.ok?.references ?? [];
     const issuers = await Promise.all(
       references.map(async (room) => {
-        const resolvedRoomResult = await room.resolve(resolveRoomClient);
+        const resolvedRoomResult = await roomJoiner.resolveRoom(room);
         if (isError(resolvedRoomResult)) {
           return resolvedRoomResult;
         }
@@ -96,6 +95,7 @@ export class MjolnirPolicyRoomsConfig
         store,
         new StandardDirectPropagationPolicyListRevisionIssuer(issuers.ok),
         policyRoomManager,
+        roomJoiner,
         new Set(issuers.ok.map((revision) => revision.currentRevision.room))
       )
     );
@@ -109,6 +109,12 @@ export class MjolnirPolicyRoomsConfig
     if (propagation !== PropagationType.Direct) {
       return ActionError.Result(
         `The MjolnirProtectedRoomsConfig does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`
+      );
+    }
+    const joinResult = await this.roomJoiner.joinRoom(list);
+    if (isError(joinResult)) {
+      return joinResult.elaborate(
+        `Could not join the policy room in order to begin watching it.`
       );
     }
     await this.writeLock.acquireAsync();
