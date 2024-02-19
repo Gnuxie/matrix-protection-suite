@@ -76,6 +76,12 @@ export class StandardClientRooms
       event.state_key === this.clientUserID
     ) {
       switch (event.content.membership) {
+        case Membership.Invite:
+          // You might be wondering if we should show invitations some other way
+          // but this is how appservices also get their invitations, so it makes
+          // sense to do it this way for our clients too.
+          this.emit('timeline', roomID, event);
+          break;
         case Membership.Join:
           if (this.isJoinedRoom(roomID)) {
             this.emit('timeline', roomID, event);
