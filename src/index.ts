@@ -7,6 +7,7 @@ export * from './Client/ClientPlatform';
 export * from './Client/RoomCreator';
 export * from './Client/RoomJoiner';
 export * from './Client/RoomResolver';
+export * from './Client/RoomStateEventSender';
 
 export * from './ClientManagement/Client';
 export * from './ClientManagement/ClientRooms';
@@ -68,6 +69,7 @@ export * from './PolicyList/PolicyRuleChange';
 export * from './PolicyList/Revision';
 export * from './PolicyList/RoomStatePolicyListRevisionIssuer';
 export * from './PolicyList/StandardPolicyListRevision';
+export * from './PolicyList/StandardPolicyRoomEditor';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
