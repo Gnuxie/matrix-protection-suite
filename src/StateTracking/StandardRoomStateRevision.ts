@@ -67,8 +67,11 @@ export class StandardRoomStateRevision implements RoomStateRevision {
   public get allState() {
     return [...this.stateEventsByEventID.values()];
   }
-  public getStateEvent(type: string, key: string): StateEvent | undefined {
-    return this.stateEvents.get(type)?.get(key);
+  public getStateEvent<T extends StateEvent>(
+    type: string,
+    key: string
+  ): T | undefined {
+    return this.stateEvents.get(type)?.get(key) as T | undefined;
   }
   public getStateEventsOfType<T extends StateEvent>(type: string): T[] {
     const typeTable = this.stateEvents.get(type);

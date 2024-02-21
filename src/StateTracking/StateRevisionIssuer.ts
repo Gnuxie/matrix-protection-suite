@@ -20,7 +20,7 @@ import { StateChangeType } from './StateChangeType';
 
 export interface StateRevision {
   readonly allState: StateEvent[];
-  getStateEvent(type: string, key: string): StateEvent | undefined;
+  getStateEvent<T extends StateEvent>(type: string, key: string): T | undefined;
   getStateEventsOfType<T extends StateEvent>(type: string): T[];
   getStateEventsOfTypes<T extends StateEvent>(types: string[]): T[];
   hasEvent(eventID: StringEventID): boolean;
