@@ -2,12 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, isError } from '../Interface/Action';
+import { ActionResult, Ok, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
 import { RoomEvent } from '../MatrixTypes/Events';
-import { MatrixRoomReference } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StringRoomID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
+import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../Membership/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
 import {
@@ -15,10 +14,9 @@ import {
   ClientRooms,
   ClientRoomsChange,
 } from './ClientRooms';
-import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
 import AwaitLock from 'await-lock';
 import { Logger } from '../Logging/Logger';
-import { Task } from '../Interface/Task';
+import { StandardJoinedRoomsRevision } from './JoinedRoomsRevision';
 
 const log = new Logger('StandardClientRooms');
 
@@ -36,11 +34,32 @@ export class StandardClientRooms
   private readonly preemptivelyJoinedRooms = new Set<StringRoomID>();
   private readonly joinedRoomsCallLock = new AwaitLock();
   protected constructor(
-    private readonly roomStateManager: RoomStateManager,
     private readonly joinedRoomsThunk: JoinedRoomsSafe,
     ...rest: ConstructorParameters<typeof AbstractClientRooms>
   ) {
     super(...rest);
+  }
+
+  /**
+   * Create a clientRooms, initializing the joinedRoomsSet.
+   * @param clientUserID The Matrix UserID of the client.
+   * @param joinedRoomsThunk A thunk that returns the rooms the user is joined to.
+   * @returns A new ClientRooms instance.
+   */
+  public static async makeClientRooms(
+    clientUserID: StringUserID,
+    joinedRoomsThunk: JoinedRoomsSafe
+  ): Promise<ActionResult<ClientRooms>> {
+    const joinedRooms = await joinedRoomsThunk();
+    if (isError(joinedRooms)) {
+      return joinedRooms;
+    }
+    const revision = StandardJoinedRoomsRevision.blankRevision(
+      clientUserID
+    ).reviseFromJoinedRooms(joinedRooms.ok);
+    return Ok(
+      new StandardClientRooms(joinedRoomsThunk, clientUserID, revision)
+    );
   }
   public get allPreemptedRooms(): StringRoomID[] {
     return [...this.preemptivelyJoinedRooms];
@@ -165,26 +184,6 @@ export class StandardClientRooms
         this.joinedRoomsRevision,
         changes,
         previousRevision
-      );
-      // eagerly load room state immediatley so that it's ready for consumption asap.
-      // There isn't any dependence on this behaviour happening, it's just a nice optimisation.
-      Task(
-        (async () => {
-          for (const join of changes.joined) {
-            const roomStateRevisionIssuer =
-              await this.roomStateManager.getRoomStateRevisionIssuer(
-                MatrixRoomReference.fromRoomID(join, [
-                  serverName(this.clientUserID),
-                ])
-              );
-            if (isError(roomStateRevisionIssuer)) {
-              log.error(
-                `Unable to fetch the room state for a newly joined room`,
-                roomStateRevisionIssuer.error
-              );
-            }
-          }
-        })()
       );
     } finally {
       this.joinedRoomsCallLock.release();

@@ -12,6 +12,8 @@ import {
 import { RoomEvent } from '../MatrixTypes/Events';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { Value } from '../Interface/Value';
+import { JoinedRoomsSafe, StandardClientRooms } from './StandardClientRooms';
+import { ActionResult, Ok, isError } from '../Interface/Action';
 
 export interface ClientsInRoomMap {
   isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean;
@@ -21,8 +23,11 @@ export interface ClientsInRoomMap {
   ): boolean;
   getManagedUsersInRoom(roomID: StringRoomID): StringUserID[];
   getClientRooms(userID: StringUserID): ClientRooms | undefined;
-  addClientRooms(client: ClientRooms): void;
-  removeClientRooms(client: ClientRooms): void;
+  makeClientRooms(
+    userID: StringUserID,
+    joinedRoomsThunk: JoinedRoomsSafe
+  ): Promise<ActionResult<ClientRooms>>;
+  removeClient(clientUserID: StringUserID): void;
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   preemptTimelineJoin(userID: StringUserID, roomID: StringRoomID): void;
 }
@@ -76,7 +81,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
       this.removeUserFromRoom(partRoomID, revision.clientUserID);
     }
   }
-  public addClientRooms(client: ClientRooms): void {
+  private addClientRooms(client: ClientRooms): void {
     for (const roomID of client.currentRevision.allJoinedRooms) {
       this.addUserToRoom(roomID, client.clientUserID);
     }
@@ -86,8 +91,30 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
     this.clientRoomsByUserID.set(client.clientUserID, client);
     client.on('revision', this.userRevisionListener);
   }
+  public async makeClientRooms(
+    userID: StringUserID,
+    joinedRoomsThunk: JoinedRoomsSafe
+  ): Promise<ActionResult<ClientRooms>> {
+    // if for whatever reason a client needs this class to use a different
+    // implemetnation of ClientRooms, then we should add a dedicated factory
+    // as an argument to this class.
+    const existingClientRooms = this.getClientRooms(userID);
+    if (existingClientRooms !== undefined) {
+      return Ok(existingClientRooms);
+    }
+    const clientRooms = await StandardClientRooms.makeClientRooms(
+      userID,
+      joinedRoomsThunk
+    );
+    if (isError(clientRooms)) {
+      return clientRooms;
+    } else {
+      this.addClientRooms(clientRooms.ok);
+      return clientRooms;
+    }
+  }
 
-  public removeClientRooms(client: ClientRooms): void {
+  private removeClientRooms(client: ClientRooms): void {
     for (const roomID of client.currentRevision.allJoinedRooms) {
       this.removeUserFromRoom(roomID, client.clientUserID);
     }
@@ -96,6 +123,14 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
     }
     this.clientRoomsByUserID.delete(client.clientUserID);
     client.off('revision', this.userRevisionListener);
+  }
+
+  public removeClient(clientUserID: StringUserID): void {
+    const clientRooms = this.getClientRooms(clientUserID);
+    if (clientRooms === undefined) {
+      return;
+    }
+    this.removeClientRooms(clientRooms);
   }
 
   public isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean {
