@@ -4,8 +4,11 @@
 
 // For the love of god keep this in alphabetical order please.
 export * from './Client/ClientPlatform';
+export * from './Client/RoomBanner';
 export * from './Client/RoomCreator';
+export * from './Client/RoomEventRedacter';
 export * from './Client/RoomJoiner';
+export * from './Client/RoomKicker';
 export * from './Client/RoomResolver';
 export * from './Client/RoomStateEventSender';
 

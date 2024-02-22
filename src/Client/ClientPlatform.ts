@@ -2,8 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { RoomBanner } from './RoomBanner';
 import { RoomCreator } from './RoomCreator';
+import { RoomEventRedacter } from './RoomEventRedacter';
 import { RoomJoiner } from './RoomJoiner';
+import { RoomKicker } from './RoomKicker';
 import { RoomResolver } from './RoomResolver';
 import { RoomStateEventSender } from './RoomStateEventSender';
 
@@ -17,8 +20,11 @@ import { RoomStateEventSender } from './RoomStateEventSender';
  * of dependencies.
  */
 export interface ClientPlatform {
+  toRoomBanner(): RoomBanner;
   toRoomCreator(): RoomCreator;
+  toRoomEventRedacter(): RoomEventRedacter;
   toRoomJoiner(): RoomJoiner;
+  toRoomKicker(): RoomKicker;
   toRoomResolver(): RoomResolver;
   // TODO: Ideally we'd accept allowed state types here, so we can easily attenuate
   // which types can be sent.
