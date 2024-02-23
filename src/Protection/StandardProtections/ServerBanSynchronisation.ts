@@ -21,7 +21,7 @@ import {
   StateChange,
 } from '../../StateTracking/StateRevisionIssuer';
 import { AccessControl } from '../AccessControl';
-import { BasicConsequenceProvider } from '../Consequence/Consequence';
+import { BasicConsequenceProvider } from '../Capability/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import {
   AbstractProtection,

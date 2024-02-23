@@ -9,7 +9,7 @@
 // </text>
 
 import { ActionError, ActionResult } from '../../Interface/Action';
-import { ConsequenceProviderDescription } from '../Consequence/Consequence';
+import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
@@ -43,7 +43,7 @@ export interface ProtectionsConfig<Context = unknown> {
   readonly allProtections: Protection[];
   addProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProviderDescription: ConsequenceProviderDescription,
+    capabilityProviderDescription: CapabilityProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>>;
@@ -97,7 +97,7 @@ export interface ProtectionsConfig<Context = unknown> {
     TProtectionDescription extends ProtectionDescription = ProtectionDescription
   >(
     protectionDescription: TProtectionDescription
-  ): Promise<ActionResult<ConsequenceProviderDescription>>;
+  ): Promise<ActionResult<CapabilityProviderDescription>>;
 
   getProtectionSettings<
     TSettings extends UnknownSettings<string> = UnknownSettings<string>

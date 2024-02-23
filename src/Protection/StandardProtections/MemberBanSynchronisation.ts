@@ -11,10 +11,7 @@
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
-import {
-  BasicConsequenceProvider,
-  ProtectionDescriptionInfo,
-} from '../Consequence/Consequence';
+import { BasicConsequenceProvider } from '../Capability/Consequence';
 import {
   AbstractProtection,
   Protection,
@@ -41,6 +38,7 @@ import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { RoomEvent } from '../../MatrixTypes/Events';
 import { Value } from '../../Interface/Value';
 import { MembershipEvent } from '../../MatrixTypes/MembershipEvent';
+import { DescriptionMeta } from '../DescriptionMeta';
 
 class MemberBanSynchronisationProtection
   extends AbstractProtection
@@ -183,7 +181,7 @@ function setMemberBanResult(
 }
 
 export async function applyPolicyRevisionToSetMembership(
-  description: ProtectionDescriptionInfo,
+  description: DescriptionMeta,
   revision: PolicyListRevision,
   setMembership: SetMembership,
   consequenceProviderCB: BasicConsequenceProvider['consequenceForUserInRoom']

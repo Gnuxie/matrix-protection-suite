@@ -20,10 +20,7 @@ import {
   RoomStateRevision,
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
-import {
-  BasicConsequenceProvider,
-  ConsequenceProvider,
-} from './Consequence/Consequence';
+import { BasicConsequenceProvider } from './Capability/Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
 import {
   ProtectionSetting,
@@ -33,6 +30,7 @@ import {
   ProtectionSettings,
   StandardProtectionSettings,
 } from './ProtectionSettings/ProtectionSettings';
+import { CapabilityProvider } from './Capability/CapabilityProvider';
 
 /**
  * The typical constructor for a protection.
@@ -75,7 +73,7 @@ export interface ProtectionConstructor<
 export type ProtectionFactoryMethod<
   Context = unknown,
   TSettings extends Record<string, unknown> = Record<string, unknown>,
-  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
+  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
 > = (
   description: ProtectionDescription<Context, TSettings>,
   consequenceProvider: ConsequenceProviderInterface,
@@ -91,7 +89,7 @@ export type ProtectionFactoryMethod<
 export interface ProtectionDescription<
   Context = unknown,
   TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
+  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
 > {
   readonly name: string;
   readonly description: string;
@@ -178,7 +176,7 @@ const PROTECTIONS = new Map<string, ProtectionDescription>();
 export function registerProtection<
   Context = unknown,
   TSettings extends Record<string, unknown> = Record<string, unknown>,
-  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
+  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
 >(
   description: ProtectionDescription<
     Context,
@@ -196,7 +194,7 @@ export function registerProtection<
     description as ProtectionDescription<
       unknown,
       Record<string, unknown>,
-      ConsequenceProvider
+      CapabilityProvider
     >
   );
 }
@@ -210,7 +208,7 @@ export function findProtection(
 export function describeProtection<
   Context = unknown,
   TSettings extends Record<string, unknown> = Record<string, unknown>,
-  ConsequenceProviderInterface extends ConsequenceProvider = BasicConsequenceProvider
+  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
 >({
   name,
   description,

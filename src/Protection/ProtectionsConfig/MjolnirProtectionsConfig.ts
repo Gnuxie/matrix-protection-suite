@@ -21,7 +21,6 @@ import {
   MatrixAccountData,
   MatrixStateData,
 } from '../../Interface/PersistentMatrixData';
-import { ConsequenceProviderDescription } from '../Consequence/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import { AbstractProtectionsConfig } from './FakeProtectionsConfig';
@@ -29,6 +28,7 @@ import {
   DRAUPNIR_SCHEMA_VERSION_KEY,
   SchemedDataManager,
 } from '../../Interface/SchemedMatrixData';
+import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
 // A boring way is by naming them like protections and just matching the provider name to the protection name.
@@ -89,13 +89,13 @@ export class MjolnirProtectionsConfig<Context = unknown>
 
   public async addProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProvider: ConsequenceProviderDescription,
+    capabilityProvider: CapabilityProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>> {
     const startResult = this.startProtection(
       protectionDescription,
-      consequenceProvider,
+      capabilityProvider,
       protectedRoomsSet,
       context
     );
@@ -115,7 +115,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
 
   private startProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProvider: ConsequenceProviderDescription,
+    capabilityProvider: CapabilityProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): ActionResult<void> {
@@ -124,7 +124,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
     );
     const protectionResult = super.addProtectionSync(
       protectionDescription,
-      consequenceProvider,
+      capabilityProvider,
       protectedRoomsSet,
       context,
       settings ?? protectionDescription.protectionSettings.defaultSettings

@@ -10,11 +10,14 @@
 
 import { ActionResult, isError, Ok } from '../../Interface/Action';
 import {
+  CapabilityProviderDescription,
+  findCapabilityProvider,
+} from '../Capability/CapabilityProvider';
+import { wrapCapabilityProviderInRenderer } from '../Capability/CapabilityRenderer';
+import {
   BasicConsequenceProvider,
-  ConsequenceProviderDescription,
   DEFAULT_CONSEQUENCE_PROVIDER,
-  findConsequenceProvider,
-} from '../Consequence/Consequence';
+} from '../Capability/Consequence';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
@@ -40,12 +43,16 @@ export class AbstractProtectionsConfig<Context = unknown>
 
   protected addProtectionSync(
     protectionDescription: ProtectionDescription,
-    consequenceProviderDescription: ConsequenceProviderDescription,
+    capabilityProviderDescription: CapabilityProviderDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     settings: UnknownSettings<string>
   ): ActionResult<void> {
-    const consequenceProvider = consequenceProviderDescription.factory(context);
+    const consequenceProvider = wrapCapabilityProviderInRenderer(
+      protectionDescription,
+      context,
+      capabilityProviderDescription
+    );
     const protectionResult = protectionDescription.factory(
       protectionDescription,
       consequenceProvider as BasicConsequenceProvider,
@@ -75,8 +82,8 @@ export class AbstractProtectionsConfig<Context = unknown>
     TProtectionDescription extends ProtectionDescription<Context> = ProtectionDescription<Context>
   >(
     _protectionDescription: TProtectionDescription
-  ): Promise<ActionResult<ConsequenceProviderDescription>> {
-    const defaultConsequenceProvider = findConsequenceProvider(
+  ): Promise<ActionResult<CapabilityProviderDescription>> {
+    const defaultConsequenceProvider = findCapabilityProvider(
       DEFAULT_CONSEQUENCE_PROVIDER
     );
     if (defaultConsequenceProvider === undefined) {
@@ -97,20 +104,23 @@ export class AbstractProtectionsConfig<Context = unknown>
     context: Context,
     settings: TSettings
   ): Promise<ActionResult<void>> {
-    const consequenceProviderDescription =
+    const capabilityProviderDescription =
       await this.getConsequenceProviderDescriptionForProtection(
         protectionDescription as ProtectionDescription
       );
-    if (isError(consequenceProviderDescription)) {
-      return consequenceProviderDescription.elaborate(
+    if (isError(capabilityProviderDescription)) {
+      return capabilityProviderDescription.elaborate(
         `Couldn't find a consequence provider for the protection ${protectionDescription.name}`
       );
     }
+    const capabilityProvider = wrapCapabilityProviderInRenderer(
+      protectionDescription,
+      context,
+      capabilityProviderDescription.ok
+    );
     const newProtection = protectionDescription.factory(
       protectionDescription,
-      consequenceProviderDescription.ok.factory(
-        context
-      ) as BasicConsequenceProvider,
+      capabilityProvider as BasicConsequenceProvider,
       protectedRoomsSet,
       context,
       settings
@@ -170,13 +180,13 @@ export class FakeProtectionsConfig<Context = unknown>
 
   public async addProtection(
     protectionDescription: ProtectionDescription,
-    consequenceProviderDescription: ConsequenceProviderDescription<unknown>,
+    capabilityProviderDescription: CapabilityProviderDescription<unknown>,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>> {
     return super.addProtectionSync(
       protectionDescription,
-      consequenceProviderDescription,
+      capabilityProviderDescription,
       protectedRoomsSet,
       context,
       this.getSetting(protectionDescription)

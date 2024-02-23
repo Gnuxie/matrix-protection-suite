@@ -76,7 +76,10 @@ export * from './PolicyList/StandardPolicyRoomEditor';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
-export * from './Protection/Consequence/Consequence';
+export * from './Protection/Capability/CapabilityInterface';
+export * from './Protection/Capability/CapabilityProvider';
+export * from './Protection/Capability/CapabilityRenderer';
+export * from './Protection/Capability/Consequence';
 
 export * from './Protection/PolicyListConfig/FakePolicyListConfig';
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
@@ -101,6 +104,7 @@ export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/StandardProtections/ServerBanSynchronisation';
 
 export * from './Protection/AccessControl';
+export * from './Protection/DescriptionMeta';
 
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/ProtectedRoomsSet';

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { BasicConsequenceProvider } from '../Consequence/Consequence';
+import { BasicConsequenceProvider } from '../Capability/Consequence';
 import { createMock } from 'ts-auto-mock';
 import { Protection, findProtection } from '../Protection';
 import './MemberBanSynchronisation';
