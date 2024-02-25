@@ -3,6 +3,11 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { TSchema } from '@sinclair/typebox';
+import {
+  CapabilityInterfaceSet,
+  CapabilitySet,
+  GenericCapabilityDescription,
+} from './CapabilitySet';
 
 const CAPABILITY_INTERFACES = new Map<string, CapabilityInterfaceDescription>();
 
@@ -34,4 +39,20 @@ export function describeCapabilityInterface(
 ): CapabilityInterfaceDescription {
   registerCapabilityInterface(description);
   return description;
+}
+
+export function findCapabilityInterfaceSet<
+  TCapabilitySet extends CapabilitySet = CapabilitySet
+>(
+  names: GenericCapabilityDescription<TCapabilitySet>
+): CapabilityInterfaceSet<TCapabilitySet> {
+  const set = {};
+  for (const [key, name] of Object.entries(names)) {
+    const capabilityInterface = findCapabilityInterface(name);
+    if (capabilityInterface === undefined) {
+      throw new TypeError(`Couldn't find a capability interface named ${name}`);
+    }
+    Object.assign(set, { [key]: capabilityInterface });
+  }
+  return set as CapabilityInterfaceSet<TCapabilitySet>;
 }

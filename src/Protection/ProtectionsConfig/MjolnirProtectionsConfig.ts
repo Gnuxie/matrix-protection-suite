@@ -28,7 +28,7 @@ import {
   DRAUPNIR_SCHEMA_VERSION_KEY,
   SchemedDataManager,
 } from '../../Interface/SchemedMatrixData';
-import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
+import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 
 // FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
 // A boring way is by naming them like protections and just matching the provider name to the protection name.
@@ -89,13 +89,13 @@ export class MjolnirProtectionsConfig<Context = unknown>
 
   public async addProtection(
     protectionDescription: ProtectionDescription,
-    capabilityProvider: CapabilityProviderDescription,
+    capabilities: CapabilityProviderSet,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>> {
     const startResult = this.startProtection(
       protectionDescription,
-      capabilityProvider,
+      capabilities,
       protectedRoomsSet,
       context
     );
@@ -115,7 +115,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
 
   private startProtection(
     protectionDescription: ProtectionDescription,
-    capabilityProvider: CapabilityProviderDescription,
+    capabilities: CapabilityProviderSet,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): ActionResult<void> {
@@ -124,7 +124,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
     );
     const protectionResult = super.addProtectionSync(
       protectionDescription,
-      capabilityProvider,
+      capabilities,
       protectedRoomsSet,
       context,
       settings ?? protectionDescription.protectionSettings.defaultSettings
@@ -202,14 +202,13 @@ export class MjolnirProtectionsConfig<Context = unknown>
         );
         continue;
       }
-      const consequenceProvider =
-        await this.getConsequenceProviderDescriptionForProtection(
-          protectionDescription
-        );
-      if (isError(consequenceProvider)) {
+      const capabilityProviderSet = await this.getCapabilityProviderSet(
+        protectionDescription
+      );
+      if (isError(capabilityProviderSet)) {
         await protectionFailedToStart(
-          new ActionError(
-            `Couldn't find the consequence provider for ${protectionDescription.name}`
+          capabilityProviderSet.error.elaborate(
+            `Couldn't find the capability provider set for ${protectionDescription.name}`
           ),
           protectionName
         );
@@ -217,7 +216,7 @@ export class MjolnirProtectionsConfig<Context = unknown>
       }
       const startResult = this.startProtection(
         protectionDescription,
-        consequenceProvider.ok,
+        capabilityProviderSet.ok,
         protectedRoomsSet,
         context
       );

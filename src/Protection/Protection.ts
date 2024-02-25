@@ -20,7 +20,6 @@ import {
   RoomStateRevision,
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
-import { BasicConsequenceProvider } from './Capability/Consequence';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
 import {
   ProtectionSetting,
@@ -30,35 +29,17 @@ import {
   ProtectionSettings,
   StandardProtectionSettings,
 } from './ProtectionSettings/ProtectionSettings';
-import { CapabilityProvider } from './Capability/CapabilityProvider';
+import {
+  CapabilityInterfaceSet,
+  CapabilityProviderSet,
+  CapabilitySet,
+  GenericCapabilityDescription,
+  capabilitySetEventPermissions,
+  capabilitySetPermissions,
+} from './Capability/CapabilitySet';
+import { findCapabilityInterfaceSet } from './Capability/CapabilityInterface';
+import { findCapabilityProviderSet } from './Capability/CapabilityProvider';
 
-/**
- * The typical constructor for a protection.
- * Doesn't have to be used, @see {@link ProtetctionFactoryMethod}.
- */
-export interface ProtectionConstructor<
-  Context = unknown,
-  TSettings = Record<string, unknown>
-> {
-  /**
-   * @param description The description for the protection being constructed.
-   * @param consequenceProvider The consequence provider that should be used for this protection.
-   * @param protectedRoomsSet The protected rooms that the constructed protection will reside within
-   * and be informed of events within.
-   * @param context This is a client specified argument, for example the draupnir project
-   * will use the Draupnir instance that the `ProtectedRoomsSet` resides within here.
-   * Not necessary and use should be avoided.
-   * @param options The settings for this protection as fetched from a persistent store or
-   * the description's default settings.
-   */
-  new (
-    description: ProtectionDescription,
-    consequenceProvider: BasicConsequenceProvider,
-    protectedRoomsSet: ProtectedRoomsSet,
-    context: Context,
-    options: TSettings
-  ): Protection;
-}
 /**
  * @param description The description for the protection being constructed.
  * @param consequenceProvider The consequence provider that should be used for this protection.
@@ -73,14 +54,16 @@ export interface ProtectionConstructor<
 export type ProtectionFactoryMethod<
   Context = unknown,
   TSettings extends Record<string, unknown> = Record<string, unknown>,
-  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
+  TCapabilitySet extends CapabilitySet = CapabilitySet
 > = (
-  description: ProtectionDescription<Context, TSettings>,
-  consequenceProvider: ConsequenceProviderInterface,
+  description: ProtectionDescription<Context, TSettings, TCapabilitySet>,
   protectedRoomsSet: ProtectedRoomsSet,
   context: Context,
+  capabilities: TCapabilitySet,
   settings: TSettings
-) => ActionResult<Protection>;
+) => ActionResult<
+  Protection<ProtectionDescription<Context, TSettings, TCapabilitySet>>
+>;
 
 /**
  * This is a description of a protection, which is used
@@ -89,16 +72,14 @@ export type ProtectionFactoryMethod<
 export interface ProtectionDescription<
   Context = unknown,
   TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
+  TCapabilitySet extends CapabilitySet = CapabilitySet
 > {
   readonly name: string;
   readonly description: string;
-  readonly factory: ProtectionFactoryMethod<
-    Context,
-    TSettings,
-    ConsequenceProviderInterface
-  >;
+  readonly capabilities: CapabilityInterfaceSet<TCapabilitySet>;
+  readonly factory: ProtectionFactoryMethod<Context, TSettings, TCapabilitySet>;
   readonly protectionSettings: ProtectionSettings<TSettings>;
+  readonly defaultCapabilities: CapabilityProviderSet<TCapabilitySet>;
 }
 
 /**
@@ -107,8 +88,8 @@ export interface ProtectionDescription<
  *
  * Protections are guaranteed to be run before redaction handlers.
  */
-export interface Protection {
-  readonly description: ProtectionDescription;
+export interface Protection<TProtectionDescription> {
+  readonly description: TProtectionDescription;
   readonly requiredEventPermissions: string[];
   readonly requiredPermissions: string[];
 
@@ -145,10 +126,12 @@ export interface Protection {
   handleEventReport?(report: EventReport): Promise<ActionResult<void>>;
 }
 
-export class AbstractProtection implements Protection {
+export class AbstractProtection<TProtectionDescription>
+  implements Protection<TProtectionDescription>
+{
   protected constructor(
-    public readonly description: ProtectionDescription,
-    protected readonly consequenceProvider: BasicConsequenceProvider,
+    public readonly description: TProtectionDescription,
+    protected readonly capabilitySet: CapabilitySet,
     protected readonly protectedRoomsSet: ProtectedRoomsSet,
     private readonly clientEventPermissions: string[],
     private readonly clientPermissions: string[]
@@ -159,14 +142,14 @@ export class AbstractProtection implements Protection {
   public get requiredEventPermissions(): string[] {
     return [
       ...this.clientEventPermissions,
-      ...this.consequenceProvider.requiredEventPermissions,
+      ...capabilitySetEventPermissions(this.capabilitySet),
     ];
   }
 
   public get requiredPermissions(): string[] {
     return [
       ...this.clientPermissions,
-      ...this.consequenceProvider.requiredPermissions,
+      ...capabilitySetPermissions(this.capabilitySet),
     ];
   }
 }
@@ -175,28 +158,18 @@ const PROTECTIONS = new Map<string, ProtectionDescription>();
 
 export function registerProtection<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>,
-  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
+  TSettings extends UnknownSettings<string> = UnknownSettings<string>,
+  TCapabilitySet extends CapabilitySet = CapabilitySet
 >(
-  description: ProtectionDescription<
-    Context,
-    TSettings,
-    ConsequenceProviderInterface
-  >
-): void {
+  description: ProtectionDescription<Context, TSettings, TCapabilitySet>
+): ProtectionDescription<Context, TSettings, TCapabilitySet> {
   if (PROTECTIONS.has(description.name)) {
     throw new TypeError(
       `There is already a protection registered with the name ${description.name}`
     );
   }
-  PROTECTIONS.set(
-    description.name,
-    description as ProtectionDescription<
-      unknown,
-      Record<string, unknown>,
-      CapabilityProvider
-    >
-  );
+  PROTECTIONS.set(description.name, description as ProtectionDescription);
+  return description;
 }
 
 export function findProtection(
@@ -206,12 +179,14 @@ export function findProtection(
 }
 
 export function describeProtection<
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>,
-  ConsequenceProviderInterface extends CapabilityProvider = BasicConsequenceProvider
+  TSettings extends Record<string, unknown> = Record<string, unknown>
 >({
   name,
   description,
+  capabilityInterfaces,
+  defaultCapabilities,
   factory,
   protectionSettings = new StandardProtectionSettings<TSettings>(
     {} as Record<keyof TSettings, ProtectionSetting<string, TSettings>>,
@@ -220,19 +195,24 @@ export function describeProtection<
 }: {
   name: string;
   description: string;
-  factory: ProtectionDescription<
-    Context,
-    TSettings,
-    ConsequenceProviderInterface
-  >['factory'];
+  factory: ProtectionDescription<Context, TSettings, TCapabilitySet>['factory'];
+  capabilityInterfaces: GenericCapabilityDescription<TCapabilitySet>;
+  defaultCapabilities: GenericCapabilityDescription<TCapabilitySet>;
   protectionSettings?: ProtectionSettings<TSettings>;
-}) {
-  registerProtection({
+}): ProtectionDescription<Context, TSettings, TCapabilitySet> {
+  const capabilityInterfaceSet =
+    findCapabilityInterfaceSet(capabilityInterfaces);
+  const defaultCapabilitySet = findCapabilityProviderSet(defaultCapabilities);
+  const protectionDescription = {
     name,
     description,
+    capabilities: capabilityInterfaceSet,
+    defaultCapabilities: defaultCapabilitySet,
     factory,
     protectionSettings,
-  });
+  };
+  registerProtection(protectionDescription);
+  return protectionDescription;
 }
 
 export function getAllProtections(): IterableIterator<ProtectionDescription> {

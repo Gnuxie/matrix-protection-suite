@@ -8,11 +8,17 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { Type } from '@sinclair/typebox';
 import { DescriptionMeta } from '../DescriptionMeta';
 import {
   CapabilityInterfaceDescription,
   findCapabilityInterface,
 } from './CapabilityInterface';
+import {
+  CapabilityProviderSet,
+  CapabilitySet,
+  GenericCapabilityDescription,
+} from './CapabilitySet';
 
 /**
  * We don't want to give protections access to the capability provider
@@ -30,16 +36,18 @@ export interface CapabilityProviderDescription<Context = unknown> {
    * @param context Anything used to create the capability, usually the ProtectedRoomsSet context,
    * like Draupnir.
    */
-  factory(
-    protectionDescription: DescriptionMeta,
-    context: Context
-  ): CapabilityProvider;
+  factory(protectionDescription: DescriptionMeta, context: Context): Capability;
 }
 
-export interface CapabilityProvider {
+export interface Capability {
   readonly requiredPermissions: string[];
   readonly requiredEventPermissions: string[];
 }
+
+export const Capability = Type.Object({
+  requiredPermissions: Type.Array(Type.String()),
+  requiredEventPermissions: Type.Array(Type.String()),
+});
 
 const PROVIDER_DESCRIPTIONS = new Map<string, CapabilityProviderDescription>();
 
@@ -69,7 +77,7 @@ export function describeCapabilityProvider<Context = unknown>({
   name: string;
   description: string;
   interface: string;
-  factory(description: DescriptionMeta, context: Context): CapabilityProvider;
+  factory(description: DescriptionMeta, context: Context): Capability;
 }): void {
   const entry = findCapabilityInterface(interfaceName);
   if (entry === undefined) {
@@ -83,4 +91,20 @@ export function describeCapabilityProvider<Context = unknown>({
     interface: entry,
     factory,
   });
+}
+
+export function findCapabilityProviderSet<
+  TCapabilitySet extends CapabilitySet = CapabilitySet
+>(
+  names: GenericCapabilityDescription<TCapabilitySet>
+): CapabilityProviderSet<TCapabilitySet> {
+  const set = {};
+  for (const [key, name] of Object.entries(names)) {
+    const capabilityProvider = findCapabilityProvider(name);
+    if (capabilityProvider === undefined) {
+      throw new TypeError(`Couldn't find a capability provider named ${name}`);
+    }
+    Object.assign(set, { [key]: capabilityProvider });
+  }
+  return set as CapabilityProviderSet<TCapabilitySet>;
 }

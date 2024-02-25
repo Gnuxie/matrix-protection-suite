@@ -2,9 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { BasicConsequenceProvider } from '../Capability/Consequence';
 import { createMock } from 'ts-auto-mock';
-import { Protection, findProtection } from '../Protection';
+import { findProtection } from '../Protection';
 import './MemberBanSynchronisation';
 import { isError, isOk } from '../../Interface/Action';
 import {
@@ -23,11 +22,16 @@ import {
 import waitForExpect from 'wait-for-expect';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+import {
+  MemberBanSynchronisationProtection,
+  MemberBanSynchronisationProtectionCapabilities,
+} from './MemberBanSynchronisation';
+import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
 
 function createMemberBanSynchronisationProtection(
-  consequenceProvider: BasicConsequenceProvider,
+  capabilities: MemberBanSynchronisationProtectionCapabilities,
   protectedRoomsSet: ProtectedRoomsSet
-): Protection {
+): MemberBanSynchronisationProtection {
   const description = findProtection('MemberBanSynchronisationProtection');
   if (description === undefined) {
     throw new TypeError(
@@ -36,15 +40,19 @@ function createMemberBanSynchronisationProtection(
   }
   const protectionResult = description.factory(
     description,
-    consequenceProvider,
     protectedRoomsSet,
     undefined,
+    capabilities,
     {}
   );
   if (isError(protectionResult)) {
     throw new TypeError('Should be able to construct the protection');
   }
-  return protectionResult.ok;
+  // cba to add a generic to the protection description so the factory can have
+  // a generic return type. Shouldn't be this level of disconect between types
+  // and the real bullshit getting annoyed now whenver i have to do any meta
+  // programming.
+  return protectionResult.ok as unknown as MemberBanSynchronisationProtection;
 }
 
 // handleTimelineEvent
@@ -72,14 +80,14 @@ test('A membership event recieved from the timeline that matches an existing pol
     ],
   });
 
-  const consequenceProvider = createMock<BasicConsequenceProvider>();
+  const userConsequences = createMock<UserConsequences>();
   const consequenceSpy = jest.spyOn(
-    consequenceProvider,
+    userConsequences,
     'consequenceForUserInRoom'
   );
 
   const protection = createMemberBanSynchronisationProtection(
-    consequenceProvider,
+    { userConsequences },
     protectedRoomsSet
   );
 
@@ -137,13 +145,13 @@ test('Membership changes that should result in a ban when matching an existing p
         },
       ],
     });
-  const consequenceProvider = createMock<BasicConsequenceProvider>();
+  const userConsequences = createMock<UserConsequences>();
   const consequenceSpy = jest.spyOn(
-    consequenceProvider,
+    userConsequences,
     'consequenceForUserInRoom'
   );
   const protection = createMemberBanSynchronisationProtection(
-    consequenceProvider,
+    { userConsequences },
     protectedRoomsSet
   );
   const membershipRevisionIssuer =
@@ -213,14 +221,14 @@ test('A policy change banning a user on a directly watched list will call the co
       ],
     });
 
-  const consequenceProvider = createMock<BasicConsequenceProvider>();
+  const userConsequences = createMock<UserConsequences>();
   const consequenceSpy = jest.spyOn(
-    consequenceProvider,
-    'consequenceForUsersInRevision'
+    userConsequences,
+    'consequenceForUserInRoomSet'
   );
 
   const protection = createMemberBanSynchronisationProtection(
-    consequenceProvider,
+    { userConsequences },
     protectedRoomsSet
   );
 

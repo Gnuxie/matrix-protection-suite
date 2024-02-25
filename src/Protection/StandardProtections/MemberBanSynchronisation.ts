@@ -11,7 +11,6 @@
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
-import { BasicConsequenceProvider } from '../Capability/Consequence';
 import {
   AbstractProtection,
   Protection,
@@ -28,28 +27,35 @@ import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
-import { Access, AccessControl } from '../AccessControl';
-import {
-  StringRoomID,
-  StringUserID,
-} from '../../MatrixTypes/StringlyTypedMatrix';
-import { SetMembership } from '../../Membership/SetMembership';
+import { StringUserID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { RoomEvent } from '../../MatrixTypes/Events';
 import { Value } from '../../Interface/Value';
 import { MembershipEvent } from '../../MatrixTypes/MembershipEvent';
-import { DescriptionMeta } from '../DescriptionMeta';
+import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
+import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
+import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
+import '../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
 
-class MemberBanSynchronisationProtection
-  extends AbstractProtection
-  implements Protection
+export type MemberBanSynchronisationProtectionDescription =
+  ProtectionDescription<
+    unknown,
+    UnknownSettings<string>,
+    MemberBanSynchronisationProtectionCapabilities
+  >;
+
+export class MemberBanSynchronisationProtection
+  extends AbstractProtection<MemberBanSynchronisationProtectionDescription>
+  implements Protection<MemberBanSynchronisationProtectionDescription>
 {
+  private readonly userConsequences: UserConsequences;
   constructor(
-    description: ProtectionDescription,
-    consequenceProvider: BasicConsequenceProvider,
+    description: MemberBanSynchronisationProtectionDescription,
+    capabilities: MemberBanSynchronisationProtectionCapabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
-    super(description, consequenceProvider, protectedRoomsSet, [], []);
+    super(description, capabilities, protectedRoomsSet, [], []);
+    this.userConsequences = capabilities.userConsequences;
   }
 
   public async handleMembershipChange(
@@ -78,13 +84,11 @@ class MemberBanSynchronisationProtection
 
       for (const rule of applicableRules) {
         if (rule.recommendation === Recommendation.Ban) {
-          const result =
-            await this.consequenceProvider.consequenceForUserInRoom(
-              this.description,
-              revision.room.toRoomIDOrAlias(),
-              change.userID,
-              rule.reason
-            );
+          const result = await this.userConsequences.consequenceForUserInRoom(
+            revision.room.toRoomIDOrAlias(),
+            change.userID,
+            rule.reason
+          );
           if (isError(result)) {
             errors.push(result.error);
           }
@@ -120,8 +124,7 @@ class MemberBanSynchronisationProtection
           Recommendation.Ban
         );
       if (applicableRule !== undefined) {
-        return await this.consequenceProvider.consequenceForUserInRoom(
-          this.description,
+        return await this.userConsequences.consequenceForUserInRoom(
           room.toRoomIDOrAlias(),
           event.state_key as StringUserID,
           applicableRule.reason
@@ -134,11 +137,14 @@ class MemberBanSynchronisationProtection
   public async synchroniseWithRevision(
     revision: PolicyListRevision
   ): Promise<ActionResult<void>> {
-    return await this.consequenceProvider.consequenceForUsersInRevision(
-      this.description,
-      this.protectedRoomsSet.setMembership,
+    const result = await this.userConsequences.consequenceForUserInRoomSet(
       revision
     );
+    if (isError(result)) {
+      return result;
+    } else {
+      return Ok(undefined);
+    }
   }
 
   public async handlePolicyChange(
@@ -149,66 +155,26 @@ class MemberBanSynchronisationProtection
   }
 }
 
-describeProtection({
+export type MemberBanSynchronisationProtectionCapabilities = {
+  userConsequences: UserConsequences;
+};
+
+describeProtection<MemberBanSynchronisationProtectionCapabilities>({
   name: 'MemberBanSynchronisationProtection',
   description:
     'Synchronises `m.ban` events from watch policy lists with room level bans.',
-  factory: (decription, consequenceProvider, protectedRoomsSet, _settings) =>
+  capabilityInterfaces: {
+    userConsequences: 'UserConsequences',
+  },
+  defaultCapabilities: {
+    userConsequences: 'StandardUserConsequences',
+  },
+  factory: (decription, protectedRoomsSet, _settings, capabilitySet) =>
     Ok(
       new MemberBanSynchronisationProtection(
         decription,
-        consequenceProvider,
+        capabilitySet,
         protectedRoomsSet
       )
     ),
 });
-
-export type SetMemberBanResultMap = Map<
-  StringUserID,
-  Map<StringRoomID, ActionResult<void>>
->;
-
-function setMemberBanResult(
-  map: SetMemberBanResultMap,
-  userID: StringUserID,
-  roomID: StringRoomID,
-  result: ActionResult<void>
-): void {
-  const userEntry =
-    map.get(userID) ??
-    ((roomMap) => (map.set(userID, roomMap), roomMap))(new Map());
-  userEntry.set(roomID, result);
-}
-
-export async function applyPolicyRevisionToSetMembership(
-  description: DescriptionMeta,
-  revision: PolicyListRevision,
-  setMembership: SetMembership,
-  consequenceProviderCB: BasicConsequenceProvider['consequenceForUserInRoom']
-): Promise<SetMemberBanResultMap> {
-  const setMembershipBanResultMap: SetMemberBanResultMap = new Map();
-  for (const membershipRevision of setMembership.allRooms) {
-    for (const membership of membershipRevision.members()) {
-      const access = AccessControl.getAccessForUser(
-        revision,
-        membership.userID,
-        'IGNORE_SERVER'
-      );
-      if (access.outcome === Access.Banned) {
-        const consequenceResult = await consequenceProviderCB(
-          description,
-          membership.roomID,
-          membership.userID,
-          access.rule?.reason ?? '<no reason supplied>'
-        );
-        setMemberBanResult(
-          setMembershipBanResultMap,
-          membership.userID,
-          membership.roomID,
-          consequenceResult
-        );
-      }
-    }
-  }
-  return setMembershipBanResultMap;
-}

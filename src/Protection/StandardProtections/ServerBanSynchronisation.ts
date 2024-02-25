@@ -8,20 +8,16 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionResult, Ok } from '../../Interface/Action';
-import { Value } from '../../Interface/Value';
+import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { StateEvent } from '../../MatrixTypes/Events';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
-import { ServerACLEvent } from '../../MatrixTypes/ServerACL';
-import { serverName } from '../../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
 import {
   RoomStateRevision,
   StateChange,
 } from '../../StateTracking/StateRevisionIssuer';
-import { AccessControl } from '../AccessControl';
-import { BasicConsequenceProvider } from '../Capability/Consequence';
+import { ServerConsequences } from '../Capability/StandardCapability/ServerConsequences';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import {
   AbstractProtection,
@@ -29,25 +25,35 @@ import {
   ProtectionDescription,
   describeProtection,
 } from '../Protection';
+import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 
 export class ServerBanSynchronisationProtection
-  extends AbstractProtection
-  implements Protection
+  extends AbstractProtection<
+    ProtectionDescription<unknown, UnknownSettings<string>, Capabilities>
+  >
+  implements
+    Protection<
+      ProtectionDescription<unknown, UnknownSettings<string>, Capabilities>
+    >
 {
-  private readonly serverName: string;
+  private readonly serverConsequences: ServerConsequences;
   constructor(
-    description: ProtectionDescription,
-    consequenceProvider: BasicConsequenceProvider,
+    description: ProtectionDescription<
+      unknown,
+      UnknownSettings<string>,
+      Capabilities
+    >,
+    capabilities: Capabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
     super(
       description,
-      consequenceProvider,
+      capabilities,
       protectedRoomsSet,
       ['m.room.server_acl'],
       []
     );
-    this.serverName = serverName(this.protectedRoomsSet.userID);
+    this.serverConsequences = capabilities.serverConsequences;
   }
 
   public async handleStateChange(
@@ -65,24 +71,10 @@ export class ServerBanSynchronisationProtection
         `How is it possible for there to be more than one server_acl event change in the same revision?`
       );
     }
-    const serverACLEvent = serverACLEventChanges.at(1)?.state;
-    if (!Value.Check(ServerACLEvent, serverACLEvent)) {
-      throw new TypeError(`Event decoding is not working`);
-    }
-    const mostRecentACL = AccessControl.compileServerACL(
-      this.serverName,
+    return await this.serverConsequences.consequenceForServerInRoom(
+      revision.room.toRoomIDOrAlias(),
       this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
         .currentRevision
-    );
-    if (serverACLEvent.content !== undefined) {
-      if (mostRecentACL.matches(serverACLEvent.content)) {
-        return Ok(undefined);
-      }
-    }
-    return await this.consequenceProvider.consequenceForServerACLInRoom(
-      this.description,
-      revision.room.toRoomIDOrAlias(),
-      mostRecentACL.safeAclContent()
     );
   }
 
@@ -96,26 +88,37 @@ export class ServerBanSynchronisationProtection
     if (serverPolicyChanges.length === 0) {
       return Ok(undefined);
     }
-    return await this.consequenceProvider.consequenceForServerACL(
-      this.description,
-      AccessControl.compileServerACL(
-        this.serverName,
-        this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
-          .currentRevision
-      ).safeAclContent()
+    const result = await this.serverConsequences.consequenceForServerInRoomSet(
+      this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
+        .currentRevision
     );
+    if (isError(result)) {
+      return result;
+    } else {
+      return Ok(undefined);
+    }
   }
 }
 
-describeProtection({
+type Capabilities = {
+  serverConsequences: ServerConsequences;
+};
+
+describeProtection<Capabilities>({
   name: 'ServerBanSynchronisationProtection',
   description:
     'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
-  factory: (description, consequenceProvider, protectedRoomsSet, _settings) =>
+  capabilityInterfaces: {
+    serverConsequences: 'ServerConsequences',
+  },
+  defaultCapabilities: {
+    serverConsequences: 'ServerACLConsequences',
+  },
+  factory: (description, protectedRoomsSet, _settings, capabilities) =>
     Ok(
       new ServerBanSynchronisationProtection(
         description,
-        consequenceProvider,
+        capabilities,
         protectedRoomsSet
       )
     ),

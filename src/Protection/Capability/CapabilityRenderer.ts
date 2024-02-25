@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { DescriptionMeta } from '../DescriptionMeta';
+import { findCapabilityContextGlue } from './CapabilityContextGlue';
 import { findCapabilityInterface } from './CapabilityInterface';
 import {
-  CapabilityProvider,
+  Capability,
   CapabilityProviderDescription,
 } from './CapabilityProvider';
 
@@ -17,7 +18,7 @@ export interface CapabilityRendererDescription<
     protectionDescription: DescriptionMeta,
     context: Context,
     provider: TCapabilityInterface
-  ): CapabilityProvider;
+  ): Capability;
 }
 
 const RENDERER_DESCRIPTIONS = new Map<string, CapabilityRendererDescription>();
@@ -71,7 +72,7 @@ export function wrapCapabilityProviderInRenderer<Context = unknown>(
   protectionDescription: DescriptionMeta,
   context: Context,
   capabilityProviderDescription: CapabilityProviderDescription<Context>
-): CapabilityProvider {
+): Capability {
   const rendererDescription = findCapabilityRenderer(
     capabilityProviderDescription.name
   );
@@ -80,10 +81,15 @@ export function wrapCapabilityProviderInRenderer<Context = unknown>(
       `Cannot find a renderer for the capability provider named ${capabilityProviderDescription.name}`
     );
   }
-  const capabilityProvider = capabilityProviderDescription.factory(
-    protectionDescription,
-    context
-  );
+  const glue = findCapabilityContextGlue(capabilityProviderDescription.name);
+  const capabilityProvider =
+    glue === undefined
+      ? capabilityProviderDescription.factory(protectionDescription, context)
+      : glue.glueMethod(
+          protectionDescription,
+          context,
+          capabilityProviderDescription
+        );
   return rendererDescription.factory(
     protectionDescription,
     context,

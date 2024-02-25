@@ -9,7 +9,7 @@
 // </text>
 
 import { ActionError, ActionResult } from '../../Interface/Action';
-import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
+import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
@@ -40,15 +40,15 @@ export type ProtectionFailedToStartCB = (
 ) => Promise<void>;
 
 export interface ProtectionsConfig<Context = unknown> {
-  readonly allProtections: Protection[];
+  readonly allProtections: Protection<ProtectionDescription<Context>>[];
   addProtection(
-    protectionDescription: ProtectionDescription,
-    capabilityProviderDescription: CapabilityProviderDescription,
+    protectionDescription: ProtectionDescription<Context>,
+    capabilityProviderSet: CapabilityProviderSet,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>>;
   removeProtection(
-    protection: ProtectionDescription
+    protection: ProtectionDescription<Context>
   ): Promise<ActionResult<void>>;
   /**
    * Load protections for the first time after instantiating ProtectionsConfig
@@ -93,11 +93,11 @@ export interface ProtectionsConfig<Context = unknown> {
    * @param protectionDescription The protection description to find the configured
    * consequence provider description for.
    */
-  getConsequenceProviderDescriptionForProtection<
+  getCapabilityProviderSet<
     TProtectionDescription extends ProtectionDescription = ProtectionDescription
   >(
     protectionDescription: TProtectionDescription
-  ): Promise<ActionResult<CapabilityProviderDescription>>;
+  ): Promise<ActionResult<CapabilityProviderSet>>;
 
   getProtectionSettings<
     TSettings extends UnknownSettings<string> = UnknownSettings<string>

@@ -11,6 +11,7 @@ export * from './Client/RoomJoiner';
 export * from './Client/RoomKicker';
 export * from './Client/RoomResolver';
 export * from './Client/RoomStateEventSender';
+export * from './Client/RoomUnbanner';
 
 export * from './ClientManagement/Client';
 export * from './ClientManagement/ClientRooms';
@@ -76,10 +77,19 @@ export * from './PolicyList/StandardPolicyRoomEditor';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
+export * from './Protection/Capability/StandardCapability/CapabilityMethodSchema';
+export * from './Protection/Capability/StandardCapability/EventConsequences';
+export * from './Protection/Capability/StandardCapability/ServerACLConsequences';
+export * from './Protection/Capability/StandardCapability/ServerConsequences';
+export * from './Protection/Capability/StandardCapability/StandardEventConsequences';
+export * from './Protection/Capability/StandardCapability/StandardUserConsequences';
+export * from './Protection/Capability/StandardCapability/UserConsequences';
+
+export * from './Protection/Capability/CapabilityContextGlue';
 export * from './Protection/Capability/CapabilityInterface';
 export * from './Protection/Capability/CapabilityProvider';
 export * from './Protection/Capability/CapabilityRenderer';
-export * from './Protection/Capability/Consequence';
+export * from './Protection/Capability/CapabilitySet';
 
 export * from './Protection/PolicyListConfig/FakePolicyListConfig';
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
