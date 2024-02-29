@@ -10,6 +10,7 @@ import {
 } from '../../../MatrixTypes/StringlyTypedMatrix';
 import { describeCapabilityProvider } from '../CapabilityProvider';
 import { EventConsequences } from './EventConsequences';
+import './EventConsequences'; // we need this so the interface is loaded.
 
 export class StandardEventConsequences implements EventConsequences {
   requiredPermissions = ['redact'];

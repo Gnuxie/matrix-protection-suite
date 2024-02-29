@@ -18,13 +18,16 @@ const CAPABILITY_CONTEXT_GLUE = new Map<string, CapabilityContextGlue>();
  * Therefore, a client has to implement glue to destructure that context
  * for them.
  */
-export type CapabilityContextGlue<Context = unknown> = {
+export type CapabilityContextGlue<
+  HostContext = unknown,
+  GuestContext = unknown
+> = {
   /** The name of the capability provider to provide glue for */
   name: string;
   glueMethod: (
     protectionDescription: DescriptionMeta,
-    context: Context,
-    capabilityProvider: CapabilityProviderDescription
+    context: HostContext,
+    capabilityProvider: CapabilityProviderDescription<GuestContext>
   ) => Capability;
 };
 
@@ -34,14 +37,16 @@ export function findCapabilityContextGlue(
   return CAPABILITY_CONTEXT_GLUE.get(name);
 }
 
-export function registerCapabilityContextGlue(
-  glue: CapabilityContextGlue
-): void {
-  CAPABILITY_CONTEXT_GLUE.set(glue.name, glue);
+export function registerCapabilityContextGlue<
+  HostContext = unknown,
+  GuestContext = unknown
+>(glue: CapabilityContextGlue<HostContext, GuestContext>): void {
+  CAPABILITY_CONTEXT_GLUE.set(glue.name, glue as CapabilityContextGlue);
 }
 
-export function describeCapabilityContextGlue(
-  glue: CapabilityContextGlue
-): void {
-  registerCapabilityContextGlue(glue);
+export function describeCapabilityContextGlue<
+  HostContext = unknown,
+  GuestContext = unknown
+>(glue: CapabilityContextGlue<HostContext, GuestContext>): void {
+  registerCapabilityContextGlue<HostContext, GuestContext>(glue);
 }

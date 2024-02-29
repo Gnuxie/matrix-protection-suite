@@ -21,6 +21,7 @@ import {
   ResultForServerInSetMap,
   ServerConsequences,
 } from './ServerConsequences';
+import './ServerConsequences'; // we need this so the interface is loaded.
 
 function setServerBanRresult(
   map: ResultForServerInSetMap,

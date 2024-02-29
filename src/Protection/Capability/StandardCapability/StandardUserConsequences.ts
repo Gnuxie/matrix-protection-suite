@@ -21,6 +21,7 @@ import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
 import { ResultForUserInSetMap, UserConsequences } from './UserConsequences';
+import './UserConsequences'; // we need this so the interface is loaded.
 
 function setMemberBanResult(
   map: ResultForUserInSetMap,
@@ -120,18 +121,17 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   }
 }
 
+export type StandardUserConsequencesContext = {
+  roomBanner: RoomBanner;
+  roomUnbanner: RoomUnbanner;
+  setMembership: SetMembership;
+};
+
 describeCapabilityProvider({
   name: 'StandardUserConsequences',
   description: 'Bans users and unbans users.',
   interface: 'UserConsequences',
-  factory(
-    _description,
-    context: {
-      roomBanner: RoomBanner;
-      roomUnbanner: RoomUnbanner;
-      setMembership: SetMembership;
-    }
-  ) {
+  factory(_description, context: StandardUserConsequencesContext) {
     return new StandardUserConsequences(
       context.roomBanner,
       context.roomUnbanner,

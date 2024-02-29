@@ -43,7 +43,10 @@ export function findCapabilityRenderer<
   return RENDERER_DESCRIPTIONS.get(name);
 }
 
-export function describeCapabilityRenderer({
+export function describeCapabilityRenderer<
+  TCapabilityInterface = unknown,
+  Context = unknown
+>({
   name,
   description,
   interface: interfaceName,
@@ -52,7 +55,10 @@ export function describeCapabilityRenderer({
   name: string;
   description: string;
   interface: string;
-  factory: CapabilityRendererDescription['factory'];
+  factory: CapabilityRendererDescription<
+    TCapabilityInterface,
+    Context
+  >['factory'];
 }): void {
   const entry = findCapabilityInterface(interfaceName);
   if (entry === undefined) {
