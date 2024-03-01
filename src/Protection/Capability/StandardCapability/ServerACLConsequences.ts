@@ -17,19 +17,9 @@ import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
-import {
-  ResultForServerInSetMap,
-  ServerConsequences,
-} from './ServerConsequences';
+import { RoomSetResult, RoomSetResultBuilder } from './RoomSetResult';
+import { ServerConsequences } from './ServerConsequences';
 import './ServerConsequences'; // we need this so the interface is loaded.
-
-function setServerBanRresult(
-  map: ResultForServerInSetMap,
-  roomID: StringRoomID,
-  result: ActionResult<void>
-): void {
-  map.set(roomID, result);
-}
 
 export class ServerACLConequences implements ServerConsequences, Capability {
   public readonly requiredPermissions = [];
@@ -82,16 +72,15 @@ export class ServerACLConequences implements ServerConsequences, Capability {
 
   private async applyPolicyRevisionToSet(
     revision: PolicyListRevision
-  ): Promise<ActionResult<ResultForServerInSetMap>> {
-    const resultMap: ResultForServerInSetMap = new Map();
+  ): Promise<ActionResult<RoomSetResult>> {
+    const resultBuilder = new RoomSetResultBuilder();
     for (const room of this.protectedRoomsSet.protectedRoomsConfig.allRooms) {
-      setServerBanRresult(
-        resultMap,
+      resultBuilder.addResult(
         room.toRoomIDOrAlias(),
         await this.applyPolicyRevisionToRoom(room.toRoomIDOrAlias(), revision)
       );
     }
-    return Ok(resultMap);
+    return Ok(resultBuilder.getResult());
   }
   public async consequenceForServerInRoom(
     roomID: StringRoomID,
@@ -101,13 +90,13 @@ export class ServerACLConequences implements ServerConsequences, Capability {
   }
   public async consequenceForServerInRoomSet(
     revision: PolicyListRevision
-  ): Promise<ActionResult<ResultForServerInSetMap>> {
+  ): Promise<ActionResult<RoomSetResult>> {
     return await this.applyPolicyRevisionToSet(revision);
   }
   public async unbanServerFromRoomSet(
     serverName: string,
     _reason: string
-  ): Promise<ActionResult<ResultForServerInSetMap>> {
+  ): Promise<ActionResult<RoomSetResult>> {
     const revision =
       this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
         .currentRevision;

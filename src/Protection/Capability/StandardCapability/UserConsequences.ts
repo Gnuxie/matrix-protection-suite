@@ -18,11 +18,9 @@ import {
 import { ActionResult } from '../../../Interface/Action';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Capability } from '../CapabilityProvider';
+import { RoomSetResult } from './RoomSetResult';
 
-export type ResultForUserInSetMap = Map<
-  StringUserID,
-  Map<StringRoomID, ActionResult<void>>
->;
+export type ResultForUserInSetMap = Map<StringUserID, RoomSetResult>;
 
 export interface UserConsequences extends Capability {
   consequenceForUserInRoom(

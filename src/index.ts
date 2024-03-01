@@ -79,6 +79,7 @@ export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
 export * from './Protection/Capability/StandardCapability/CapabilityMethodSchema';
 export * from './Protection/Capability/StandardCapability/EventConsequences';
+export * from './Protection/Capability/StandardCapability/RoomSetResult';
 export * from './Protection/Capability/StandardCapability/ServerACLConsequences';
 export * from './Protection/Capability/StandardCapability/ServerConsequences';
 export * from './Protection/Capability/StandardCapability/StandardEventConsequences';

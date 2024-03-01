@@ -9,16 +9,10 @@ import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { CapabilityMethodSchema } from './CapabilityMethodSchema';
 import { describeCapabilityInterface } from '../CapabilityInterface';
 import { Capability } from '../CapabilityProvider';
+import { RoomSetResult } from './RoomSetResult';
 
 export type ResultForServerInSetMap = Map<StringRoomID, ActionResult<void>>;
 
-// FIXME:
-// should the set even be given as an argument from the set functions?
-// shouldn't the capability be able to destructure it from the context?
-// weird, because how the hell is a protection supposed to be able to do
-// anything without the protected rooms set? idk seems weird
-// well they're suppsoed to be able to do queries through another capability
-// so we should be true to that.
 export interface ServerConsequences extends Capability {
   consequenceForServerInRoom(
     roomID: StringRoomID,
@@ -26,11 +20,11 @@ export interface ServerConsequences extends Capability {
   ): Promise<ActionResult<void>>;
   consequenceForServerInRoomSet(
     revision: PolicyListRevision
-  ): Promise<ActionResult<ResultForServerInSetMap>>;
+  ): Promise<ActionResult<RoomSetResult>>;
   unbanServerFromRoomSet(
     serverName: string,
     reason: string
-  ): Promise<ActionResult<ResultForServerInSetMap>>;
+  ): Promise<ActionResult<RoomSetResult>>;
 }
 export const ServerConsequences = Type.Composite([
   Type.Object({
