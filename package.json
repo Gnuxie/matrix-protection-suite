@@ -1,5 +1,5 @@
 {
-  "name": "matrix-protection-suite",
+  "name": "@gnuxie/matrix-protection-suite",
   "version": "0.9.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -79,5 +79,8 @@
   },
   "peerDependencies": {
     "@sinclair/typebox": "~0.31.15"
+  },
+  "publishConfig": {
+    "@gnuxie:registry": "https://npm.pkg.github.com"
   }
 }
