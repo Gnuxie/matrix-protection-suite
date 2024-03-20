@@ -80,6 +80,6 @@
     "@sinclair/typebox": "~0.31.15"
   },
   "publishConfig": {
-    "@gnuxie:registry": "https://npm.pkg.github.com"
+    "@gnuxie:registry": "https://registry.npmjs.org"
   }
 }
