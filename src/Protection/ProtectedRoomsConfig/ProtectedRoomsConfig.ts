@@ -15,6 +15,7 @@ import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
 import EventEmitter from 'events';
 import AwaitLock from 'await-lock';
+import { RoomJoiner } from '../../Client/RoomJoiner';
 
 export enum ProtectedRoomChangeType {
   Added = 'added',
@@ -47,12 +48,14 @@ export class MjolnirProtectedRoomsConfig
   private readonly writeLock = new AwaitLock();
   private constructor(
     private readonly store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
-    private readonly protectedRooms: Map<StringRoomID, MatrixRoomID>
+    private readonly protectedRooms: Map<StringRoomID, MatrixRoomID>,
+    private readonly roomJoiner: RoomJoiner
   ) {
     super();
   }
   public static async createFromStore(
-    store: MatrixAccountData<MjolnirProtectedRoomsEvent>
+    store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
+    roomJoiner: RoomJoiner
   ): Promise<ActionResult<ProtectedRoomsConfig>> {
     const data = await store.requestAccountData();
     if (isError(data)) {
@@ -60,11 +63,17 @@ export class MjolnirProtectedRoomsConfig
         `Failed to load ProtectedRoomsConfig when creating ProtectedRoomsConfig`
       );
     }
-    const protectedRooms = new Map();
+    const protectedRooms = new Map<StringRoomID, MatrixRoomID>();
     for (const ref of data.ok?.rooms ?? []) {
-      protectedRooms.set(ref.toRoomIDOrAlias(), ref);
+      const resolvedRef = await roomJoiner.resolveRoom(ref);
+      if (isError(resolvedRef)) {
+        return resolvedRef;
+      }
+      protectedRooms.set(resolvedRef.ok.toRoomIDOrAlias(), resolvedRef.ok);
     }
-    return Ok(new MjolnirProtectedRoomsConfig(store, protectedRooms));
+    return Ok(
+      new MjolnirProtectedRoomsConfig(store, protectedRooms, roomJoiner)
+    );
   }
   public getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined {
     return this.protectedRooms.get(roomID);
@@ -76,6 +85,10 @@ export class MjolnirProtectedRoomsConfig
     return this.protectedRooms.has(roomID);
   }
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
+    const joinResult = await this.roomJoiner.joinRoom(room);
+    if (isError(joinResult)) {
+      return joinResult;
+    }
     await this.writeLock.acquireAsync();
     try {
       const result = await this.store.storeAccountData({
