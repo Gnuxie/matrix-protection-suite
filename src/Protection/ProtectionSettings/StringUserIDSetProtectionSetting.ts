@@ -30,6 +30,7 @@ export class StringUserIDSetProtectionSettings<
 
   public addItem(settings: TSettings, value: unknown): ActionResult<TSettings> {
     if (typeof value !== 'string' || !isStringUserID(value)) {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       return ActionError.Result(`${value} is not a valid matrix StringUserID`);
     }
     return super.addItem(settings, value);

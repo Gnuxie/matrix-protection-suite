@@ -36,6 +36,8 @@ export class SafeIntegerProtectionSetting<
   ): ActionResult<TSettings> {
     if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
       return ActionError.Result(
+        // Not sure how we should serlialize this yet.
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `The value ${value} for the setting ${String(
           this.key
         )} is not a safe integer`

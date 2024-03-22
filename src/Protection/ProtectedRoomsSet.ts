@@ -82,7 +82,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       if (protection.handleTimelineEvent === undefined) {
         continue;
       }
-      Task(protection.handleTimelineEvent(room, event));
+      void Task(protection.handleTimelineEvent(room, event));
     }
   }
 
@@ -91,7 +91,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       if (protection.handleEventReport === undefined) {
         continue;
       }
-      Task(protection.handleEventReport(report));
+      void Task(protection.handleEventReport(report));
     }
   }
 
@@ -109,7 +109,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       if (protection.handleMembershipChange === undefined) {
         continue;
       }
-      Task(protection.handleMembershipChange(nextRevision, changes));
+      void Task(protection.handleMembershipChange(nextRevision, changes));
     }
   }
 
@@ -122,7 +122,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       if (protection.handlePolicyChange === undefined) {
         continue;
       }
-      Task(protection.handlePolicyChange(nextRevision, changes));
+      void Task(protection.handlePolicyChange(nextRevision, changes));
     }
   }
 
@@ -136,7 +136,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       if (protection.handleStateChange === undefined) {
         continue;
       }
-      Task(protection.handleStateChange(nextRevision, changes));
+      void Task(protection.handleStateChange(nextRevision, changes));
     }
   }
 }

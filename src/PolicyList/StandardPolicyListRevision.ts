@@ -145,7 +145,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         nextPolicyRulesByType.get(stateType) ?? PersistentMap();
       nextPolicyRulesByType = nextPolicyRulesByType.set(
         stateType,
-        byEventTable.set(rule.sourceEvent.event_id as StringEventID, rule)
+        byEventTable.set(rule.sourceEvent.event_id, rule)
       );
     };
     const removePolicyRule = (rule: PolicyRule): void => {
@@ -157,7 +157,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       }
       nextPolicyRulesByType = nextPolicyRulesByType.set(
         rule.kind,
-        byEventTable.delete(rule.sourceEvent.event_id as StringEventID)
+        byEventTable.delete(rule.sourceEvent.event_id)
       );
     };
     for (const change of changes) {
@@ -223,7 +223,7 @@ export function groupChangesByScope(
   const addChange = (change: PolicyRuleChange) => {
     const policyTypeEntry = changesByScope.get(change.rule.kind);
     if (policyTypeEntry === undefined) {
-      const map = new Map();
+      const map = new Map<Recommendation, PolicyRuleChange[]>();
       map.set(change.rule.recommendation, [change]);
       changesByScope.set(change.rule.kind, map);
     } else {

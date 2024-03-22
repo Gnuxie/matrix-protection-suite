@@ -104,7 +104,9 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     const access = AccessControl.getAccessForServer(revision, serverName);
     if (access.outcome !== Access.Allowed) {
       return ActionError.Result(
-        `The server ${serverName} has policies that are denying it access to protected rooms with the reason: ${access.rule?.reason}`
+        `The server ${serverName} has policies that are denying it access to protected rooms with the reason: ${
+          access.rule?.reason ?? 'undefined'
+        }`
       );
     }
     return await this.applyPolicyRevisionToSet(revision);

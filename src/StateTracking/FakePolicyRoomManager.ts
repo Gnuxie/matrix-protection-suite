@@ -87,7 +87,7 @@ export class FakePolicyRoomManager implements PolicyRoomManager {
     const issuer = this.policyRoomRevisionIssuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       throw new TypeError(
-        `You haven't yet given the room ${room.toPermalink} to the FakePolicyRevisionIssuer`
+        `You haven't yet given the room ${room.toPermalink()} to the FakePolicyRevisionIssuer`
       );
     }
     return issuer;

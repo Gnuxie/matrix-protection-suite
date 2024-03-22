@@ -43,7 +43,7 @@ function setMemberBanResult(
 function buildResult(
   builderMap: ResultForUserinSetBuilder
 ): ResultForUserInSetMap {
-  const map = new Map();
+  const map: ResultForUserInSetMap = new Map();
   for (const [userID, builder] of builderMap.entries()) {
     map.set(userID, builder.getResult());
   }

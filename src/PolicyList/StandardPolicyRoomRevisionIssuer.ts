@@ -133,7 +133,7 @@ class RevisionBatcher {
     // has to do with queuing up `n event` tasks on the event loop that exaust scheduling
     // (so the latency between them is percieved as much higher by
     // the time they get checked in `this.checkBatch`, thus batching fails).
-    this.checkBatch(eventId);
+    void this.checkBatch(eventId);
   }
 
   private async createBatchedRevision(): Promise<void> {

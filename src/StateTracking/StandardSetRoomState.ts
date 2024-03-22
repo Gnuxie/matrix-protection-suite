@@ -107,7 +107,7 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
   private protectedRoomsListener(
     ...[room, changeType]: Parameters<ProtectedRoomsChangeListener>
   ): void {
-    Task(
+    void Task(
       (async (): Promise<ActionResult<void>> => {
         return changeType === ProtectedRoomChangeType.Added
           ? await this.addRoom(room)

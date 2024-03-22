@@ -323,7 +323,7 @@ export function describeStateEvent({
   const decodeResult = DefaultEventDecoder.decodeStateEvent(rawEventJSON);
   if (isError(decodeResult)) {
     throw new TypeError(
-      `Something is wrong with the event generator ${decodeResult.error.errors}`
+      `Something is wrong with the event generator [${decodeResult.error.errors.toString()}]`
     );
   } else {
     return decodeResult.ok;

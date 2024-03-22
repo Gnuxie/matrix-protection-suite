@@ -30,6 +30,7 @@ export class StringSetProtectionSetting<
   addItem(settings: TSettings, value: unknown): ActionResult<TSettings> {
     if (typeof value !== 'string') {
       return ActionError.Result(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `String set was given an unknown value ${value}`
       );
     }
@@ -38,6 +39,7 @@ export class StringSetProtectionSetting<
   removeItem(settings: TSettings, value: unknown): ActionResult<TSettings> {
     if (typeof value !== 'string') {
       return ActionError.Result(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `String set was given an unknown value ${value}`
       );
     }

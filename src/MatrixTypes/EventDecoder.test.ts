@@ -10,7 +10,7 @@ import { DefaultEventDecoder } from './EventDecoder';
 test('Raw events are parsed correctly', function () {
   const room = randomRoomID(['example.org']);
   const nRules = 25;
-  const rawEvents = [...Array(nRules)].map((_) =>
+  const rawEvents = [...(Array(nRules) as unknown[])].map((_) =>
     randomRawEvent('@test:example.com', room.toRoomIDOrAlias())
   );
   const parsedEventsResult = rawEvents.map(

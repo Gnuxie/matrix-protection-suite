@@ -36,7 +36,7 @@ export function randomRawEvent(sender: string, room_id: string): unknown {
 
 export function makePolicyRuleUserEvent({
   sender = randomUserID(),
-  room_id = `!${randomUUID}:example.com` as StringRoomID,
+  room_id = `!${randomUUID()}:example.com` as StringRoomID,
   reason = '<no reason supplied>',
   entity = randomUserID(),
   recommendation = Recommendation.Ban,
@@ -75,9 +75,9 @@ export function makePolicyRuleUserEvent({
   };
   const decodeResult = Value.Decode(PolicyRuleEvent, rawEventJSON);
   if (isError(decodeResult)) {
-    const errors = Value.Errors(PolicyRuleEvent, rawEventJSON);
+    const errors = [...Value.Errors(PolicyRuleEvent, rawEventJSON)];
     throw new TypeError(
-      `Something is wrong with the event generator ${errors}`
+      `Something is wrong with the event generator [${errors.toString()}]`
     );
   } else {
     return decodeResult.ok;

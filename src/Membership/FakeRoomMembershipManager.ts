@@ -56,7 +56,7 @@ export class FakeRoomMembershipManager implements RoomMembershipManager {
     );
     if (issuer === undefined) {
       throw new TypeError(
-        `You haven't yet given the room ${room.toPermalink} to the FakeRoomMembershipManager`
+        `You haven't yet given the room ${room.toPermalink()} to the FakeRoomMembershipManager`
       );
     }
     return issuer;
