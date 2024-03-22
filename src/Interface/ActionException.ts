@@ -69,7 +69,7 @@ export class ActionException extends ActionError {
    */
   public static Result(
     message: string,
-    options: { exception: Error; exceptionKind: ActionExceptionKind }
+    options: { exception: Error | unknown; exceptionKind: ActionExceptionKind }
   ): ActionResult<never, ActionException> {
     return ResultError(
       new ActionException(options.exceptionKind, options.exception, message)
