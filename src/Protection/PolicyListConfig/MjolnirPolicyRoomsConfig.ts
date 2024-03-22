@@ -83,6 +83,8 @@ export class MjolnirPolicyRoomsConfig
             }),
       (exception) =>
         ActionException.Result(`Could not load MjolnirPolicyRoomsConfig`, {
+          // FIXME: Not sure what to do about this tbh :/
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           exception,
           exceptionKind: ActionExceptionKind.Unknown,
         })

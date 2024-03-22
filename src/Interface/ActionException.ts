@@ -39,6 +39,7 @@ export class ActionException extends ActionError {
 
   constructor(
     public readonly exceptionKind: ActionExceptionKind,
+    // make a call to only allow Error in a moment.
     public readonly exception: Error | unknown,
     message: string,
     {
