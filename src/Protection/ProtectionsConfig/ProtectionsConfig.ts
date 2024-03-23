@@ -106,4 +106,22 @@ export interface ProtectionsConfig<Context = unknown> {
   ): Promise<ActionResult<TSettings>>;
 
   isEnabledProtection(protectionDescription: ProtectionDescription): boolean;
+
+  /**
+   * Find the named enabled protection, or return undefined if the protection
+   * is disabled.
+   */
+  findEnabledProtection<TProtectionDescription extends ProtectionDescription>(
+    name: string
+  ): Protection<TProtectionDescription> | undefined;
+
+  /**
+   * Provide access to a named enabled protection
+   * @param name The name of the protection.
+   * @param cb Called if the protection is enabled, with the protection.
+   */
+  withEnabledProtection<TProtectionDescription extends ProtectionDescription>(
+    name: string,
+    cb: (protection: Protection<TProtectionDescription>) => void
+  ): void;
 }

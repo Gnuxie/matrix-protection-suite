@@ -137,6 +137,24 @@ export class AbstractProtectionsConfig<Context = unknown>
   ): boolean {
     return this.enabledProtections.has(protectionDescription.name);
   }
+  public findEnabledProtection<
+    TProtectionDescription extends ProtectionDescription
+  >(name: string): Protection<TProtectionDescription> | undefined {
+    return this.enabledProtections.get(
+      name
+    ) as Protection<TProtectionDescription>;
+  }
+  public withEnabledProtection<
+    TProtectionDescription extends ProtectionDescription
+  >(
+    name: string,
+    cb: (protection: Protection<TProtectionDescription>) => void
+  ): void {
+    const protection = this.findEnabledProtection(name);
+    if (protection !== undefined) {
+      cb(protection as Protection<TProtectionDescription>);
+    }
+  }
 }
 
 export type StubProtectionSettingsMap = Map<
