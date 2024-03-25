@@ -126,6 +126,7 @@ export * from './Protection/Protection';
 export * from './Reporting/EventReport';
 
 export * from './StateTracking/EventBatch';
+export * from './StateTracking/RoomStateBackingStore';
 export * from './StateTracking/SetRoomState';
 export * from './StateTracking/StandardRoomStateRevision';
 export * from './StateTracking/StandardRoomStateRevisionIssuer';
