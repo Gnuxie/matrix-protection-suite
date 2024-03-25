@@ -16,7 +16,9 @@ export * from './Client/RoomUnbanner';
 export * from './ClientManagement/Client';
 export * from './ClientManagement/ClientRooms';
 export * from './ClientManagement/ClientsInRoomMap';
+export * from './ClientManagement/ConstantPeriodBatch';
 export * from './ClientManagement/JoinedRoomsRevision';
+export * from './ClientManagement/RoomEventAcivity';
 export * from './ClientManagement/RoomPauser';
 export * from './ClientManagement/StandardClientRooms';
 
