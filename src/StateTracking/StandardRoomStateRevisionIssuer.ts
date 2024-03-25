@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
@@ -7,6 +7,7 @@ import {
   RoomStateManager,
   RoomStateRevision,
   RoomStateRevisionIssuer,
+  StateChange,
 } from './StateRevisionIssuer';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
@@ -15,6 +16,7 @@ import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
 import { RoomEvent, StateEvent } from '../MatrixTypes/Events';
 import { Redaction, redactionTargetEvent } from '../MatrixTypes/Redaction';
+import { calculateStateChange } from './StateChangeType';
 
 const log = new Logger('StandardRoomStateRevisionIssuer');
 
@@ -50,11 +52,27 @@ export class StandardRoomStateRevisionIssuer
     }
     this.currentBatch.addEvent(event);
   }
-  updateForEvent(event: RoomEvent): void {
+  updateForEvent(event: StateEvent): void {
     if (this.currentRevision.hasEvent(event.event_id)) {
       return;
     }
-    this.addEventToBatch(event);
+    const existingState = this.currentRevision.getStateEvent(
+      event.type,
+      event.state_key
+    );
+    if (existingState === undefined) {
+      this.createRevisionFromChanges([
+        {
+          changeType: calculateStateChange(event, existingState),
+          eventType: event.type,
+          state: event,
+        },
+      ]);
+    } else {
+      // state already exists for the type+key combo
+      // we need to ask the homeserver to determine how state has changed
+      this.addEventToBatch(event);
+    }
   }
 
   updateForRedaction(event: Redaction): void {
@@ -72,6 +90,12 @@ export class StandardRoomStateRevisionIssuer
     this.addEventToBatch(event);
   }
 
+  private createRevisionFromChanges(changes: StateChange[]): void {
+    const previousRevision = this.currentRevision;
+    this.currentRevision = this.currentRevision.reviseFromChanges(changes);
+    this.emit('revision', this.currentRevision, changes, previousRevision);
+  }
+
   private async createBatchedRevision(): Promise<void> {
     const currentRoomStateResult = await this.getRoomState(this.room);
     if (isError(currentRoomStateResult)) {
@@ -81,12 +105,10 @@ export class StandardRoomStateRevisionIssuer
       );
       return;
     }
-    const previousRevision = this.currentRevision;
     const changes = this.currentRevision.changesFromState(
       currentRoomStateResult.ok
     );
-    this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.createRevisionFromChanges(changes);
   }
   unregisterListeners(): void {
     // nothing to do.
