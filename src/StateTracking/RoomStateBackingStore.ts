@@ -5,7 +5,7 @@
 import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
 import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
-import { RoomStateRevision } from './StateRevisionIssuer';
+import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
 
 /**
  * An interface for a persistent store for room state.
@@ -20,18 +20,12 @@ import { RoomStateRevision } from './StateRevisionIssuer';
 export interface RoomStateBackingStore {
   readonly revisionListener: RoomStateBackingStore['handleRevision'];
   /**
-   * A method to call that manually updates the state of the store.
-   * @param revision What is believed by the caller to be the most recent revision
-   * but may not actually be, the implementor needs to check.
-   */
-  updateState(revision: RoomStateRevision): Promise<ActionResult<void>>;
-  /**
    * A self contained version of `updateState` that can be called directly by
    * a revision issuer, with a self contained method to process in the background.
    * @param revision What is believed by the caller to be the most recent revision
    * but may not actually be, the implementor needs to check.
    */
-  handleRevision(revision: RoomStateRevision): void;
+  handleRevision(revision: RoomStateRevision, changes: StateChange[]): void;
   /**
    * Called to fetch room state from the backing store.
    * @param roomID The room we want state for.
