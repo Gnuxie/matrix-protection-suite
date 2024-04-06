@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, Ok, isError } from './Action';
+import { ActionResult, Ok, isOk } from './Action';
 
 export type CreateInstanceFromKey<
   K,
@@ -26,6 +26,13 @@ export class InternedInstanceFactory<
   AdditionalCreationArguments extends unknown[]
 > {
   private readonly instances = new Map<K, V>();
+  /**
+   * If `getInstance` is called concurrently before the factory method that
+   * creates the instance has finished, then the factory method could be called
+   * multiple times concurrently. To prevent this, we use this map to lock
+   * per key when the factory is called.
+   */
+  private readonly factoryLock = new Map<K, Promise<ActionResult<V>>>();
   /**
    * Constructs the `InternedInstanceFactory`.
    * @param createInstanceFromKey A callable that will create new instances
@@ -56,21 +63,22 @@ export class InternedInstanceFactory<
     if (instance !== undefined) {
       return Ok(instance);
     }
-    // then intern the list
-    const initialInstanceResult = await this.createInstanceFromKey(
-      key,
-      ...args
-    );
-    if (isError(initialInstanceResult)) {
-      return initialInstanceResult;
+    const lock = this.factoryLock.get(key);
+    if (lock === undefined) {
+      try {
+        const factoryCallPromise = this.createInstanceFromKey(key, ...args);
+        this.factoryLock.set(key, factoryCallPromise);
+        const initialInstanceResult = await factoryCallPromise;
+        if (isOk(initialInstanceResult)) {
+          this.instances.set(key, initialInstanceResult.ok);
+        }
+        return initialInstanceResult;
+      } finally {
+        this.factoryLock.delete(key);
+      }
+    } else {
+      return await lock;
     }
-    // FIXME: there is potential for race if the same list is asked for in two places
-    // very bad please fix with an await lock.
-    // Problem is that i don't want to stunt startup by locking all the keys.
-    // We need some kind of lock per key :skull:.
-    // Surely there's something else that fixes this it's probably a common problem.
-    this.instances.set(key, initialInstanceResult.ok);
-    return Ok(initialInstanceResult.ok);
   }
 
   public hasInstance(key: K): boolean {
