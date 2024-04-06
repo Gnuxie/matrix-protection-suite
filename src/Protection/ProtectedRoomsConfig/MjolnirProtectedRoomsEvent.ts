@@ -9,14 +9,14 @@
 // </text>
 
 import { StaticDecode, Type } from '@sinclair/typebox';
-import { Permalink } from '../../MatrixTypes/MatrixRoomReference';
 import { Value } from '../../Interface/Value';
+import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 
 export type MjolnirProtectedRoomsEvent = StaticDecode<
   typeof MjolnirProtectedRoomsEvent
 >;
 export const MjolnirProtectedRoomsEvent = Type.Object({
-  rooms: Type.Array(Permalink),
+  rooms: Type.Array(StringRoomID),
 });
 Value.Compile(MjolnirProtectedRoomsEvent);
 

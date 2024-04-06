@@ -92,7 +92,7 @@ export class MjolnirProtectedRoomsConfig
     await this.writeLock.acquireAsync();
     try {
       const result = await this.store.storeAccountData({
-        rooms: [...this.allRooms, room],
+        rooms: [...this.protectedRooms.keys(), room.toRoomIDOrAlias()],
       });
       if (isError(result)) {
         return result.elaborate(
@@ -110,9 +110,9 @@ export class MjolnirProtectedRoomsConfig
     await this.writeLock.acquireAsync();
     try {
       const result = await this.store.storeAccountData({
-        rooms: this.allRooms.filter(
-          (ref) => ref.toRoomIDOrAlias() !== room.toRoomIDOrAlias()
-        ),
+        rooms: this.allRooms
+          .map((ref) => ref.toRoomIDOrAlias())
+          .filter((roomID) => roomID !== room.toRoomIDOrAlias()),
       });
       if (isError(result)) {
         return result.elaborate(
