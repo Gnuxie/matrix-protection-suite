@@ -39,7 +39,6 @@ export const MembershipEventContent = Type.Object({
   avatar_url: Type.Optional(
     Type.String({
       description: 'The avatar URL for this user, if any.',
-      format: 'uri',
     })
   ),
   displayname: Type.Optional(Type.Union([Type.String(), Type.Null()])),
