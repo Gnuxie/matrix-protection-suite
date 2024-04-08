@@ -24,10 +24,13 @@ export class DecodeException extends ActionException {
   constructor(
     message: string,
     exception: unknown,
-    public readonly errors: ValueError[]
+    public readonly errors: ValueError[],
+    suppressLog?: boolean
   ) {
-    super(ActionExceptionKind.Unknown, exception, message);
-    DecodeException.log.error(this.uuid, ...this.errors);
+    super(ActionExceptionKind.Unknown, exception, message, { suppressLog });
+    if (!Boolean(suppressLog)) {
+      DecodeException.log.error(this.uuid, ...this.errors);
+    }
   }
 }
 
@@ -44,7 +47,8 @@ export class Value {
   }
   public static Decode<T extends TSchema, D = StaticDecode<T>>(
     schema: T,
-    value: unknown
+    value: unknown,
+    { suppressLogOnError }: { suppressLogOnError?: boolean } = {}
   ): ActionResult<D, DecodeException> {
     const decoder = this.Compile(schema);
     try {
@@ -53,7 +57,12 @@ export class Value {
       if (e instanceof TypeBoxError) {
         const errors = [...decoder.Errors(value)];
         return ResultError(
-          new DecodeException('Unable to decode an event', e, errors)
+          new DecodeException(
+            'Unable to decode an event',
+            e,
+            errors,
+            suppressLogOnError
+          )
         );
       } else {
         throw e;
