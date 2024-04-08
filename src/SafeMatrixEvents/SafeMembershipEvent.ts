@@ -2,9 +2,13 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, Ok, isOk } from '../Interface/Action';
+import { ActionResult, Ok, isError, isOk } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
-import { MembershipEventContent } from '../MatrixTypes/MembershipEvent';
+import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
+import {
+  BaseMembershipEvent,
+  MembershipEventContent,
+} from '../MatrixTypes/MembershipEvent';
 import { ValuePointer } from '@sinclair/typebox/value';
 
 /**
@@ -94,3 +98,19 @@ export const SafeMembershipEventMirror = Object.freeze({
 });
 
 export type SafeMembershipEventMirror = typeof SafeMembershipEventMirror;
+
+registerDefaultDecoder('m.room.member', (event) => {
+  const baseEventResult = Value.Decode(BaseMembershipEvent, event);
+  if (isError(baseEventResult)) {
+    return baseEventResult;
+  }
+  const safeContentResult = SafeMembershipEventMirror.parse(
+    baseEventResult.ok.content
+  );
+  if (isError(safeContentResult)) {
+    return safeContentResult;
+  }
+  const completeEvent = baseEventResult.ok;
+  completeEvent.content = safeContentResult.ok;
+  return Ok(completeEvent);
+});
