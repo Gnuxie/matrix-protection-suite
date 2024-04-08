@@ -69,6 +69,9 @@ export class StandardUserConsequences implements UserConsequences, Capability {
     const builderMap: ResultForUserinSetBuilder = new Map();
     for (const membershipRevision of setMembership.allRooms) {
       for (const membership of membershipRevision.members()) {
+        if (membership.membership === Membership.Ban) {
+          continue;
+        }
         const access = AccessControl.getAccessForUser(
           revision,
           membership.userID,
