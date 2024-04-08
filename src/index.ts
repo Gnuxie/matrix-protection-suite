@@ -125,6 +125,8 @@ export * from './Protection/Protection';
 
 export * from './Reporting/EventReport';
 
+export * from './SafeMatrixEvents/SafeMembershipEvent';
+
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/RoomStateBackingStore';
 export * from './StateTracking/SetRoomState';
