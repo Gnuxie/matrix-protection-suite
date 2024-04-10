@@ -45,7 +45,7 @@ export class StandardPolicyRoomRevisionIssuer
     this.batcher = new RevisionBatcher(this, policyListManager);
   }
 
-  updateForPolicyEvent(event: PolicyRuleEvent): void {
+  updateForStateEvent(event: PolicyRuleEvent): void {
     if (this.currentRevision.hasEvent(event.event_id)) {
       return;
     }

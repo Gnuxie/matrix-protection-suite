@@ -36,11 +36,31 @@ export class RoomStatePolicyRoomRevisionIssuer
     private readonly roomStateRevisionIssuer: RoomStateRevisionIssuer
   ) {
     super();
+    const stateRevision = roomStateRevisionIssuer.currentRevision;
+    const powerLevels = stateRevision.getStateEvent<PowerLevelsEvent>(
+      'm.room.power_levels',
+      ''
+    );
+    if (powerLevels !== undefined) {
+      this.currentRevision =
+        this.currentRevision.reviseFromPowerLevels(powerLevels);
+    }
+    const shortcodeEvent = stateRevision.getStateEvent<MjolnirShortcodeEvent>(
+      MJOLNIR_SHORTCODE_EVENT_TYPE,
+      ''
+    );
+    if (shortcodeEvent !== undefined) {
+      this.currentRevision =
+        this.currentRevision.reviseFromShortcode(shortcodeEvent);
+    }
+    this.currentRevision = this.currentRevision.reviseFromState(
+      stateRevision.getStateEventsOfTypes(ALL_RULE_TYPES)
+    );
     this.stateRevisionListener = this.listener.bind(this);
     this.roomStateRevisionIssuer.on('revision', this.stateRevisionListener);
   }
 
-  updateForPolicyEvent(event: StateEvent): void {
+  updateForStateEvent(event: StateEvent): void {
     if (this.currentRevision.hasEvent(event.event_id)) {
       return;
     }

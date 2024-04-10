@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { StateEvent } from '../MatrixTypes/Events';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
 import { Redaction } from '../MatrixTypes/Redaction';
 import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';
@@ -59,8 +59,10 @@ export interface PolicyRoomRevisionIssuer extends PolicyListRevisionIssuer {
   room: MatrixRoomID;
   /**
    * Inform the revision issuer of a new event from Matrix.
+   * The policy room revision issuer needs to be aware of policies, power levels,
+   * and sometimes other state events, such as org.matrix.mjolnir.shortcode.
    */
-  updateForPolicyEvent(event: PolicyRuleEvent): void;
+  updateForStateEvent(event: StateEvent): void;
   /**
    * Inform the revision issuer about a redaction event in the room's timeline.
    * @param event The redaction in question.
