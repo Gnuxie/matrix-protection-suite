@@ -11,7 +11,11 @@ import {
   StateRevisionListener,
 } from '../StateTracking//StateRevisionIssuer';
 import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyRoomRevision } from './PolicyListRevision';
+import {
+  MJOLNIR_SHORTCODE_EVENT_TYPE,
+  MjolnirShortcodeEvent,
+  PolicyRoomRevision,
+} from './PolicyListRevision';
 import { ALL_RULE_TYPES, PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { StateEvent } from '../MatrixTypes/Events';
@@ -65,6 +69,14 @@ export class RoomStatePolicyRoomRevisionIssuer
     if (powerLevelsChange !== undefined) {
       this.currentRevision = this.currentRevision.reviseFromPowerLevels(
         powerLevelsChange.state as unknown as PowerLevelsEvent
+      );
+    }
+    const shortcodeChange = stateChanges.find(
+      (change) => change.eventType === MJOLNIR_SHORTCODE_EVENT_TYPE
+    );
+    if (shortcodeChange !== undefined) {
+      this.currentRevision = this.currentRevision.reviseFromShortcode(
+        shortcodeChange.state as unknown as MjolnirShortcodeEvent
       );
     }
     if (this.currentRevision.revisionID !== previousRevision.revisionID) {

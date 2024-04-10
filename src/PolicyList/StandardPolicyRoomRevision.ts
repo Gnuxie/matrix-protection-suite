@@ -15,7 +15,10 @@ import {
   isPolicyTypeObsolete,
   normalisePolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
-import { PolicyRoomRevision } from './PolicyListRevision';
+import {
+  MjolnirShortcodeEvent,
+  PolicyRoomRevision,
+} from './PolicyListRevision';
 import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import {
@@ -59,6 +62,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   public constructor(
     public readonly room: MatrixRoomID,
     public readonly revisionID: Revision,
+    public readonly shortcode: undefined | string,
     /**
      * A map of state events indexed first by state type and then state keys.
      */
@@ -77,6 +81,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     return new StandardPolicyRoomRevision(
       room,
       new Revision(),
+      undefined,
       PersistentMap(),
       PersistentMap(),
       undefined
@@ -208,6 +213,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     return new StandardPolicyRoomRevision(
       this.room,
       new Revision(),
+      this.shortcode,
       nextPolicyRules,
       nextPolicyRulesByEventID,
       this.powerLevelsEvent
@@ -347,9 +353,20 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     return new StandardPolicyRoomRevision(
       this.room,
       new Revision(),
+      this.shortcode,
       this.policyRules,
       this.policyRuleByEventId,
       powerLevels
+    );
+  }
+  public reviseFromShortcode(event: MjolnirShortcodeEvent): PolicyRoomRevision {
+    return new StandardPolicyRoomRevision(
+      this.room,
+      new Revision(),
+      event.content.shortcode,
+      this.policyRules,
+      this.policyRuleByEventId,
+      this.powerLevelsEvent
     );
   }
 }

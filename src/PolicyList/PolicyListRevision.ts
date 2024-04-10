@@ -8,6 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { StaticDecode, Type } from '@sinclair/typebox';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
@@ -15,11 +16,28 @@ import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
+import { StateEvent } from '../MatrixTypes/Events';
+import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
+import { Value } from '../Interface/Value';
 
 /** MSC3784 support. Please note that policy lists predate room types. So there will be lists in the wild without this type. */
 export const POLICY_ROOM_TYPE = 'support.feline.policy.lists.msc.v1';
 export const POLICY_ROOM_TYPE_VARIANTS = [POLICY_ROOM_TYPE];
-export const SHORTCODE_EVENT_TYPE = 'org.matrix.mjolnir.shortcode';
+export const MJOLNIR_SHORTCODE_EVENT_TYPE = 'org.matrix.mjolnir.shortcode';
+
+export type MjolnirShortcodeEventContent = StaticDecode<
+  typeof MjolnirShortcodeEventContent
+>;
+export const MjolnirShortcodeEventContent = Type.Object({
+  shortcode: Type.Optional(Type.String()),
+});
+
+export type MjolnirShortcodeEvent = StaticDecode<typeof MjolnirShortcodeEvent>;
+export const MjolnirShortcodeEvent = StateEvent(MjolnirShortcodeEventContent);
+
+registerDefaultDecoder(MJOLNIR_SHORTCODE_EVENT_TYPE, (event) =>
+  Value.Decode(MjolnirShortcodeEvent, event)
+);
 
 /**
  * An interface for reading rules from a `PolicyListRevision`.
@@ -84,6 +102,10 @@ export interface PolicyListRevision extends PolicyListRevisionView {
  */
 export interface PolicyRoomRevision extends PolicyListRevision {
   readonly room: MatrixRoomID;
+  /**
+   * A shortcode that Mjolnir has associated wit the room.
+   */
+  readonly shortcode?: string;
   reviseFromChanges(changes: PolicyRuleChange[]): PolicyRoomRevision;
   /**
    * Create a new revision from the state of the associated Matrix room.
@@ -111,4 +133,5 @@ export interface PolicyRoomRevision extends PolicyListRevision {
    */
   isAbleToEdit(who: StringUserID, policy: PolicyRuleType): boolean;
   reviseFromPowerLevels(powerLevels: PowerLevelsEvent): PolicyRoomRevision;
+  reviseFromShortcode(event: MjolnirShortcodeEvent): PolicyRoomRevision;
 }
