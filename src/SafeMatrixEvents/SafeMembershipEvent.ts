@@ -25,6 +25,10 @@ export interface SafeMembershipEventContent extends MembershipEventContent {
   [SafeMembershipEventContentKey]: true;
 }
 
+export type SafeMembershipEvent = Omit<BaseMembershipEvent, 'content'> & {
+  content: SafeMembershipEventContent;
+};
+
 export const SafeMembershipEventMirror = Object.freeze({
   getUnsafeContent(
     content: SafeMembershipEventContent
@@ -95,22 +99,26 @@ export const SafeMembershipEventMirror = Object.freeze({
       );
     }
   },
+
+  parseEvent(
+    event: unknown
+  ): ActionResult<SafeMembershipEvent, DecodeException> {
+    const baseEventResult = Value.Decode(BaseMembershipEvent, event);
+    if (isError(baseEventResult)) {
+      return baseEventResult;
+    }
+    const safeContentResult = SafeMembershipEventMirror.parse(
+      baseEventResult.ok.content
+    );
+    if (isError(safeContentResult)) {
+      return safeContentResult;
+    }
+    const completeEvent = baseEventResult.ok;
+    completeEvent.content = safeContentResult.ok;
+    return Ok(completeEvent as SafeMembershipEvent);
+  },
 });
 
 export type SafeMembershipEventMirror = typeof SafeMembershipEventMirror;
 
-registerDefaultDecoder('m.room.member', (event) => {
-  const baseEventResult = Value.Decode(BaseMembershipEvent, event);
-  if (isError(baseEventResult)) {
-    return baseEventResult;
-  }
-  const safeContentResult = SafeMembershipEventMirror.parse(
-    baseEventResult.ok.content
-  );
-  if (isError(safeContentResult)) {
-    return safeContentResult;
-  }
-  const completeEvent = baseEventResult.ok;
-  completeEvent.content = safeContentResult.ok;
-  return Ok(completeEvent);
-});
+registerDefaultDecoder('m.room.member', SafeMembershipEventMirror.parseEvent);

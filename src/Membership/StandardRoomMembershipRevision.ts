@@ -3,12 +3,8 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { StaticDecode } from '@sinclair/typebox';
-import { Value } from '../Interface/Value';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import {
-  MembershipEvent,
-  MembershipEventContent,
-} from '../MatrixTypes/MembershipEvent';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import {
   StringEventID,
   StringUserID,
@@ -21,6 +17,7 @@ import {
 import { RoomMembershipRevision } from './MembershipRevision';
 import { Map as PersistentMap } from 'immutable';
 import { Logger } from '../Logging/Logger';
+import { SafeMembershipEventMirror } from '../SafeMatrixEvents/SafeMembershipEvent';
 
 const log = new Logger('StandardRoomMembershipRevision');
 
@@ -73,12 +70,16 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
       // interestingly, if the parser for MembershipEvent eagerly parsed
       // previous_content and there was an error in the previous_content,
       // but not the top level. Then there would be a very bad situation.
+      // So we need SafeMembershipEventMirror that can parse unsigned for us
+      // in the same way. Perhaps there needs to be a generic SafeMatrixEvent
+      // utility to use as a base though.
       const citedPreviousMembership =
         event.unsigned?.prev_content === undefined
           ? undefined
-          : Value.Decode(
-              MembershipEventContent,
-              event.unsigned.prev_content
+          : event.unsigned?.prev_content === null
+          ? undefined
+          : SafeMembershipEventMirror.parse(
+              event.unsigned.prev_content as Record<string, unknown>
             ).match(
               (ok) => ok,
               (error) => {
