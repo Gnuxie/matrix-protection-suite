@@ -22,7 +22,6 @@ import {
 } from '../Protection/ProtectedRoomsSet';
 import { FakeProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
 import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
-import { FakeProtectionsConfig } from '../Protection/ProtectionsConfig/FakeProtectionsConfig';
 import { FakeRoomStateManager } from './FakeRoomStateManager';
 import { StandardSetMembership } from '../Membership/StandardSetMembershp';
 import { FakeRoomMembershipManager } from '../Membership/FakeRoomMembershipManager';
@@ -32,6 +31,7 @@ import { FakePolicyListConfig } from '../Protection/PolicyListConfig/FakePolicyL
 import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
 import { FakeRoomMembershipRevisionIssuer } from '../Membership/FakeRoomMembershipRevisionIssuer';
 import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
+import { FakeProtectionsManager } from '../Protection/ProtectionsManager/FakeProtectionsManager';
 
 // TODO:
 // all describe* methods need to return description objects, not concrete
@@ -91,7 +91,7 @@ export async function describeProtectedRoomsSet({
       listDescriptions.map((description) => description.policyRevisionIssuer)
     ),
     protectedRoomsConfig,
-    new FakeProtectionsConfig(),
+    new FakeProtectionsManager(),
     setMembership.ok,
     setRoomState.ok,
     clientUserID

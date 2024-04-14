@@ -18,13 +18,13 @@ import { Protection, ProtectionDescription } from '../Protection';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import {
   ProtectionFailedToStartCB,
-  ProtectionsConfig,
-} from './ProtectionsConfig';
+  ProtectionsManager,
+} from './ProtectionsManager';
 
-export class AbstractProtectionsConfig<Context = unknown>
+export class AbstractProtectionsManager<Context = unknown>
   implements
     Omit<
-      ProtectionsConfig,
+      ProtectionsManager,
       | 'addProtection'
       | 'removeProtection'
       | 'loadProtections'
@@ -162,9 +162,9 @@ export type StubProtectionSettingsMap = Map<
   UnknownSettings<string>
 >;
 
-export class FakeProtectionsConfig<Context = unknown>
-  extends AbstractProtectionsConfig<Context>
-  implements ProtectionsConfig
+export class FakeProtectionsManager<Context = unknown>
+  extends AbstractProtectionsManager<Context>
+  implements ProtectionsManager
 {
   public constructor(
     private readonly settings: StubProtectionSettingsMap = new Map()

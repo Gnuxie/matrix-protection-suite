@@ -25,12 +25,12 @@ import {
 } from '../StateTracking/StateRevisionIssuer';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
-import { ProtectionsConfig } from './ProtectionsConfig/ProtectionsConfig';
+import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
   readonly protectedRoomsConfig: ProtectedRoomsConfig;
-  readonly protections: ProtectionsConfig;
+  readonly protections: ProtectionsManager;
   readonly setMembership: SetMembership;
   readonly setRoomState: SetRoomState;
   readonly userID: StringUserID;
@@ -50,7 +50,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
   constructor(
     public readonly issuerManager: PolicyListConfig,
     public readonly protectedRoomsConfig: ProtectedRoomsConfig,
-    public readonly protections: ProtectionsConfig,
+    public readonly protections: ProtectionsManager,
     public readonly setMembership: SetMembership,
     public readonly setRoomState: SetRoomState,
     public readonly userID: StringUserID
