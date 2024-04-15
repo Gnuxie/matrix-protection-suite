@@ -126,6 +126,12 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
         change.userID,
         change
       );
+      const existingMembership = this.membershipForUser(change.userID);
+      if (existingMembership !== undefined) {
+        nextMembershipByEventID = nextMembershipByEventID.delete(
+          existingMembership.eventID
+        );
+      }
       nextMembershipByEventID = nextMembershipByEventID.set(
         change.eventID,
         change

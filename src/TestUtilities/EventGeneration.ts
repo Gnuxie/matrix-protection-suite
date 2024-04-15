@@ -12,8 +12,10 @@ import {
   MatrixRoomReference,
 } from '../MatrixTypes/MatrixRoomReference';
 import {
+  StringEventID,
   StringRoomID,
   StringUserID,
+  isStringEventID,
   isStringRoomID,
   isStringUserID,
 } from '../MatrixTypes/StringlyTypedMatrix';
@@ -66,7 +68,7 @@ export function makePolicyRuleUserEvent({
   });
   const rawEventJSON = {
     room_id,
-    event_id: `$${randomUUID()}:example.com`,
+    event_id: randomEventID(),
     origin_server_ts: Date.now(),
     state_key: description.state_key,
     type: description.type,
@@ -108,4 +110,12 @@ export function randomUserID(): StringUserID {
     throw new TypeError(`UserID generator is wrong`);
   }
   return userID;
+}
+
+export function randomEventID(): StringEventID {
+  const eventID = `$${randomUUID()}:example.com`;
+  if (!isStringEventID(eventID)) {
+    throw new TypeError(`EventID generator is wrong`);
+  }
+  return eventID;
 }
