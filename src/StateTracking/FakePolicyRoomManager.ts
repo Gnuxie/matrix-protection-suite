@@ -46,7 +46,7 @@ export class FakePolicyRoomManager implements PolicyRoomManager {
     const issuer = this.policyRoomRevisionIssuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       return ActionError.Result(
-        `Canont find the room ${room.toRoomIDOrAlias()}`
+        `Cannot find the room ${room.toRoomIDOrAlias()}`
       );
     }
     return Ok(issuer);

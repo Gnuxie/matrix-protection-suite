@@ -18,6 +18,20 @@ import {
   MatrixRoomReference,
 } from '../../MatrixTypes/MatrixRoomReference';
 
+async function resolveRoomFake(roomID: MatrixRoomReference | string) {
+  if (typeof roomID === 'string') {
+    if (!isStringRoomID(roomID)) {
+      throw new TypeError(`Fake can't deal with aliases.`);
+    } else {
+      return Ok(MatrixRoomReference.fromRoomID(roomID));
+    }
+  } else if (roomID instanceof MatrixRoomAlias) {
+    throw new TypeError(`Fake can't deal with aliases.`);
+  } else {
+    return Ok(roomID);
+  }
+}
+
 test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that already have policies in them', async function () {
   const targetUser = '@spam:example.com';
   const policyRoom = describeRoom({
@@ -36,18 +50,9 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
       references: [policyRoom.policyRevisionIssuer.room],
     });
   const fakeRoomJoiner = createMock<RoomJoiner>({
-    resolveRoom: async (roomID) => {
-      if (typeof roomID === 'string') {
-        if (!isStringRoomID(roomID)) {
-          throw new TypeError(`Fake can't deal with aliases.`);
-        } else {
-          return Ok(MatrixRoomReference.fromRoomID(roomID));
-        }
-      } else if (roomID instanceof MatrixRoomAlias) {
-        throw new TypeError(`Fake can't deal with aliases.`);
-      } else {
-        return Ok(roomID);
-      }
+    resolveRoom: resolveRoomFake,
+    joinRoom: async (roomID) => {
+      return await resolveRoomFake(roomID);
     },
   });
   const policyRoomsConfigResult =
