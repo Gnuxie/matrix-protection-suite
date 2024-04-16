@@ -124,6 +124,13 @@ export interface Protection<TProtectionDescription> {
   ): Promise<ActionResult<void>>;
 
   handleEventReport?(report: EventReport): Promise<ActionResult<void>>;
+
+  /**
+   * Called when the protection has been disabled.
+   * This means that it is also called when the protection settings have changed
+   * (since the protection will be disabled and re-enabled).
+   */
+  handleProtectionDisable?(): void;
 }
 
 export class AbstractProtection<TProtectionDescription>

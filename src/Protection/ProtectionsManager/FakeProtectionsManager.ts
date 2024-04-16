@@ -9,6 +9,7 @@
 // </text>
 
 import { ActionResult, isError, Ok } from '../../Interface/Action';
+import { Logger } from '../../Logging/Logger';
 import {
   CapabilityProviderSet,
   initializeCapabilitySet,
@@ -20,6 +21,8 @@ import {
   ProtectionFailedToStartCB,
   ProtectionsManager,
 } from './ProtectionsManager';
+
+const log = new Logger('AbstractProtectionsManager');
 
 export class AbstractProtectionsManager<Context = unknown>
   implements
@@ -66,7 +69,18 @@ export class AbstractProtectionsManager<Context = unknown>
   protected removeProtectionSync(
     protectionDescription: ProtectionDescription
   ): void {
+    const protection = this.enabledProtections.get(protectionDescription.name);
     this.enabledProtections.delete(protectionDescription.name);
+    if (protection !== undefined) {
+      try {
+        protection.handleProtectionDisable?.();
+      } catch (ex) {
+        log.error(
+          `Caught unhandled exception while disabling ${protectionDescription.name}:`,
+          ex
+        );
+      }
+    }
   }
 
   public get allProtections() {
