@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
+import { Logger } from '../../Logging/Logger';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
@@ -12,6 +13,7 @@ import {
 } from '../DirectPropagationPolicyListRevisionIssuer';
 import { PolicyListConfig, PropagationType } from './PolicyListConfig';
 
+const log = new Logger('AbstractPolicyListConfig');
 export class AbstractPolicyListConfig implements PolicyListConfig {
   protected constructor(
     public readonly policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
@@ -26,6 +28,15 @@ export class AbstractPolicyListConfig implements PolicyListConfig {
       room,
       propagation: PropagationType.Direct,
     }));
+  }
+
+  logCurrentConfig(): void {
+    log.info(
+      `current config`,
+      JSON.stringify(
+        this.allWatchedLists.map((room) => room.room.toPermalink())
+      )
+    );
   }
 
   public async watchList<T>(

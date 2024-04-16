@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { ActionResult } from '../../Interface/Action';
+import { LoggableConfig } from '../../Interface/LoggableConfig';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyListRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
 
@@ -12,7 +13,7 @@ export interface PolicyRoomWatchProfile<T = unknown> {
   options?: T;
 }
 
-export interface PolicyListConfig {
+export interface PolicyListConfig extends LoggableConfig {
   readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
   watchList<T>(
     propagation: string,

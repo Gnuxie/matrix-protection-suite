@@ -9,6 +9,7 @@
 // </text>
 
 import { ActionResult } from '../../Interface/Action';
+import { LoggableConfig } from '../../Interface/LoggableConfig';
 import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectionDescription } from '../Protection';
 
@@ -38,8 +39,7 @@ export type KnownEnabledProtections = {
  *
  * Settings should be loaded with yet another distinct config provider.
  */
-export interface ProtectionsConfig {
-  logCurrentConfig(): void;
+export interface ProtectionsConfig extends LoggableConfig {
   enableProtection(
     protectionDescription: ProtectionDescription,
     capabilityProviderSet: CapabilityProviderSet

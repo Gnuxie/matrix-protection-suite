@@ -9,6 +9,7 @@
 // </text>
 
 import { ActionResult, Ok, isError, isOk } from '../../Interface/Action';
+import { LoggableConfigTracker } from '../../Interface/LoggableConfig';
 import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { SchemedDataManager } from '../../Interface/SchemedMatrixData';
 import { Logger } from '../../Logging/Logger';
@@ -58,7 +59,7 @@ async function loadProtecitons(
   };
   const migratedData = await migrateData();
   if (isError(migratedData)) {
-    log.error(`Unable to migreate raw data `, rawData, migratedData.error);
+    log.error(`Unable to migrate raw data `, rawData, migratedData.error);
     return migratedData;
   }
   const knownEnabledProtections: KnownEnabledProtections[] = [];
@@ -117,13 +118,15 @@ async function storeProtections(
 export class MjolnirProtectionsConfig implements ProtectionsConfig {
   private constructor(
     private readonly store: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
+    logTracker: LoggableConfigTracker,
     private info: ProtectionsInfo,
     private migrationHandler?: SchemedDataManager<MjolnirEnabledProtectionsEvent>
   ) {
-    // nothing to do.
+    logTracker.addLoggableConfig(this);
   }
   public static async create(
     store: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
+    logTracker: LoggableConfigTracker,
     {
       migrationHandler,
       /**
@@ -146,12 +149,17 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
     }
     applyMissingProtectionCB(protectionsInfo.ok, missingProtectionCB);
     return Ok(
-      new MjolnirProtectionsConfig(store, protectionsInfo.ok, migrationHandler)
+      new MjolnirProtectionsConfig(
+        store,
+        logTracker,
+        protectionsInfo.ok,
+        migrationHandler
+      )
     );
   }
 
   logCurrentConfig(): void {
-    log.info(`Current data:`, this.info);
+    log.info(`current config:`, this.info);
   }
 
   public async enableProtection<

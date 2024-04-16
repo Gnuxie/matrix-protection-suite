@@ -4,11 +4,6 @@
 
 import AwaitLock from 'await-lock';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
-import {
-  ActionException,
-  ActionExceptionKind,
-} from '../../Interface/ActionException';
-import { MultipleErrors } from '../../Interface/MultipleErrors';
 import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
@@ -20,6 +15,10 @@ import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
 import { AbstractPolicyListConfig } from './FakePolicyListConfig';
 import { PolicyListConfig, PropagationType } from './PolicyListConfig';
 import { RoomJoiner } from '../../Client/RoomJoiner';
+import { Logger } from '../../Logging/Logger';
+import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
+
+const log = new Logger('MjolnirPolicyRoomsConfig');
 
 export class MjolnirPolicyRoomsConfig
   extends AbstractPolicyListConfig
@@ -46,59 +45,30 @@ export class MjolnirPolicyRoomsConfig
       return watchedListsResult;
     }
     const references = watchedListsResult.ok?.references ?? [];
-    const issuers = await Promise.all(
-      references.map(async (room) => {
-        const resolvedRoomResult = await roomJoiner.resolveRoom(room);
-        if (isError(resolvedRoomResult)) {
-          return resolvedRoomResult;
-        }
-        return policyRoomManager.getPolicyRoomRevisionIssuer(
-          resolvedRoomResult.ok
+    const issuers: PolicyRoomRevisionIssuer[] = [];
+    for (const reference of references) {
+      const joinResult = await roomJoiner.joinRoom(reference);
+      if (isError(joinResult)) {
+        log.info(`raw app data:`, watchedListsResult.ok);
+        return joinResult.elaborate(
+          `Could not join a watched list ${reference.toRoomIDOrAlias()}`
         );
-      })
-    ).then(
-      (results) =>
-        results.every((result) => result.isOkay)
-          ? Ok(
-              results.map((result) => {
-                if (isError(result)) {
-                  throw new TypeError(
-                    'Should be impossible typescript needs to infer array types from filter operations'
-                  );
-                }
-                return result.ok;
-              })
-            )
-          : MultipleErrors.Result(`Could not load MjolnirPolicyRoomsConfig`, {
-              errors: results
-                .filter((value) => isError(value))
-                .map((value) => {
-                  if (isError(value)) {
-                    return value.error;
-                  }
-                  throw new TypeError(
-                    'Should be impossible, typescript needs to infer array types from filter operations'
-                  );
-                }),
-            }),
-      (exception) =>
-        ActionException.Result(`Could not load MjolnirPolicyRoomsConfig`, {
-          // FIXME: Not sure what to do about this tbh :/
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          exception,
-          exceptionKind: ActionExceptionKind.Unknown,
-        })
-    );
-    if (isError(issuers)) {
-      return issuers;
+      }
+      const issuerResult = await policyRoomManager.getPolicyRoomRevisionIssuer(
+        joinResult.ok
+      );
+      if (isError(issuerResult)) {
+        return issuerResult;
+      }
+      issuers.push(issuerResult.ok);
     }
     return Ok(
       new MjolnirPolicyRoomsConfig(
         store,
-        new StandardDirectPropagationPolicyListRevisionIssuer(issuers.ok),
+        new StandardDirectPropagationPolicyListRevisionIssuer(issuers),
         policyRoomManager,
         roomJoiner,
-        new Set(issuers.ok.map((revision) => revision.currentRevision.room))
+        new Set(issuers.map((revision) => revision.currentRevision.room))
       )
     );
   }
