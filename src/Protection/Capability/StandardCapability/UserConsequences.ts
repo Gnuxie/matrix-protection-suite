@@ -18,9 +18,7 @@ import {
 import { ActionResult } from '../../../Interface/Action';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Capability } from '../CapabilityProvider';
-import { RoomSetResult } from './RoomSetResult';
-
-export type ResultForUserInSetMap = Map<StringUserID, RoomSetResult>;
+import { ResultForUsersInSet, RoomSetResult } from './RoomSetResult';
 
 export interface UserConsequences extends Capability {
   consequenceForUserInRoom(
@@ -30,11 +28,11 @@ export interface UserConsequences extends Capability {
   ): Promise<ActionResult<void>>;
   consequenceForUserInRoomSet(
     revision: PolicyListRevision
-  ): Promise<ActionResult<ResultForUserInSetMap>>;
+  ): Promise<ActionResult<ResultForUsersInSet>>;
   unbanUserFromRoomSet(
     userID: StringUserID,
     reason: string
-  ): Promise<ActionResult<ResultForUserInSetMap>>;
+  ): Promise<ActionResult<RoomSetResult>>;
 }
 export const UserConsequences = Type.Composite([
   Type.Object({

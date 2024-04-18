@@ -20,35 +20,14 @@ import { SetMembership } from '../../../Membership/SetMembership';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
-import { RoomSetResultBuilder } from './RoomSetResult';
-import { ResultForUserInSetMap, UserConsequences } from './UserConsequences';
+import {
+  ResultForUsersInSetBuilder,
+  ResultForUsersInSet,
+  RoomSetResultBuilder,
+  RoomSetResult,
+} from './RoomSetResult';
+import { UserConsequences } from './UserConsequences';
 import './UserConsequences'; // we need this so the interface is loaded.
-
-type ResultForUserinSetBuilder = Map<StringUserID, RoomSetResultBuilder>;
-
-function setMemberBanResult(
-  map: ResultForUserinSetBuilder,
-  userID: StringUserID,
-  roomID: StringRoomID,
-  result: ActionResult<void>
-): void {
-  const userEntry =
-    map.get(userID) ??
-    ((roomSetResultBuilder) => (
-      map.set(userID, roomSetResultBuilder), roomSetResultBuilder
-    ))(new RoomSetResultBuilder());
-  userEntry.addResult(roomID, result);
-}
-
-function buildResult(
-  builderMap: ResultForUserinSetBuilder
-): ResultForUserInSetMap {
-  const map: ResultForUserInSetMap = new Map();
-  for (const [userID, builder] of builderMap.entries()) {
-    map.set(userID, builder.getResult());
-  }
-  return map;
-}
 
 export class StandardUserConsequences implements UserConsequences, Capability {
   public readonly requiredPermissions = ['ban'];
@@ -65,8 +44,8 @@ export class StandardUserConsequences implements UserConsequences, Capability {
     revision: PolicyListRevision,
     setMembership: SetMembership,
     consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
-  ): Promise<ResultForUserInSetMap> {
-    const builderMap: ResultForUserinSetBuilder = new Map();
+  ): Promise<ResultForUsersInSet> {
+    const resultBuilder = new ResultForUsersInSetBuilder();
     for (const membershipRevision of setMembership.allRooms) {
       for (const membership of membershipRevision.members()) {
         if (membership.membership === Membership.Ban) {
@@ -83,8 +62,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
             membership.userID,
             access.rule?.reason ?? '<no reason supplied>'
           );
-          setMemberBanResult(
-            builderMap,
+          resultBuilder.addResult(
             membership.userID,
             membership.roomID,
             consequenceResult
@@ -92,7 +70,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
         }
       }
     }
-    return buildResult(builderMap);
+    return resultBuilder.getResult();
   }
   public async consequenceForUserInRoom(
     roomID: StringRoomID,
@@ -103,7 +81,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   }
   public async consequenceForUserInRoomSet(
     revision: PolicyListRevision
-  ): Promise<ActionResult<ResultForUserInSetMap>> {
+  ): Promise<ActionResult<ResultForUsersInSet>> {
     return Ok(
       await StandardUserConsequences.applyPolicyRevisionToSetMembership(
         revision,
@@ -115,17 +93,15 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   public async unbanUserFromRoomSet(
     userID: StringUserID,
     reason: string
-  ): Promise<ActionResult<ResultForUserInSetMap>> {
-    const builderMap: ResultForUserinSetBuilder = new Map();
+  ): Promise<ActionResult<RoomSetResult>> {
+    const resultBuilder = new RoomSetResultBuilder();
     for (const membershipRevision of this.setMembership.allRooms) {
       const membership = membershipRevision.membershipForUser(userID);
       if (
         membership !== undefined &&
         membership.membership === Membership.Ban
       ) {
-        setMemberBanResult(
-          builderMap,
-          userID,
+        resultBuilder.addResult(
           membershipRevision.room.toRoomIDOrAlias(),
           await this.roomUnbanner.unbanUser(
             membershipRevision.room,
@@ -135,7 +111,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
         );
       }
     }
-    return Ok(buildResult(builderMap));
+    return Ok(resultBuilder.getResult());
   }
 }
 
