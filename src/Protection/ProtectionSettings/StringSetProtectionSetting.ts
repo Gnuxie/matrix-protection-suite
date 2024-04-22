@@ -8,13 +8,13 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { DecodeType, Type } from '@sinclair/typebox';
+import { TDecodeType, Type } from '@sinclair/typebox';
 import { ActionError, ActionResult, isError } from '../../Interface/Action';
 import { CollectionProtectionSetting } from './ProtectionSetting';
 import { Value } from '../../Interface/Value';
 import { SetProtectionSetting } from './SetProtectionSetting';
 
-type StringArray = DecodeType<typeof StringArray>;
+type StringArray = TDecodeType<typeof StringArray>;
 const StringArray = Type.Array(Type.String());
 
 export class StringSetProtectionSetting<

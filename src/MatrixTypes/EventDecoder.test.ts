@@ -42,7 +42,9 @@ test('Parsing error information is genuinly useful', function () {
       'The decode result should be decode exception at this point'
     );
   }
-  expect(decodeResult.error.errors.length).toBe(1);
+  // We get a duplicate from the Intersect schema
+  // https://github.com/sinclairzx81/typebox/issues/825#issuecomment-2070638733
+  expect(decodeResult.error.errors.length).toBe(2);
 });
 
 test('Policy List event with leftover reason', function () {

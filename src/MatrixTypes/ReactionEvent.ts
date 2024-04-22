@@ -8,13 +8,14 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { StringEventID } from './StringlyTypedMatrix';
 import { RoomEvent } from './Events';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
+import { EDStatic } from '../Interface/Static';
 
-export type ReactionContent = StaticDecode<typeof ReactionContent>;
+export type ReactionContent = EDStatic<typeof ReactionContent>;
 export const ReactionContent = Type.Object({
   ['m.relates_to']: Type.Optional(
     Type.Object({
@@ -31,8 +32,8 @@ export const ReactionContent = Type.Object({
   ),
 });
 
-export type ReactionEvent = StaticDecode<typeof ReactionEvent>;
-export const ReactionEvent = Type.Composite([
+export type ReactionEvent = EDStatic<typeof ReactionEvent>;
+export const ReactionEvent = Type.Intersect([
   Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
   Type.Object({
     content: Type.Optional(ReactionContent),

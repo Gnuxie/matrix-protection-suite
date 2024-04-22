@@ -9,12 +9,13 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { Static, StaticDecode, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { StateEvent, StrippedStateEvent, UnsignedData } from './Events';
 import { StringUserID } from './StringlyTypedMatrix';
+import { EDStatic } from '../Interface/Static';
 
-export type MembershipEventUnsigned = Static<typeof MembershipEventUnsigned>;
-export const MembershipEventUnsigned = Type.Composite([
+export type MembershipEventUnsigned = EDStatic<typeof MembershipEventUnsigned>;
+export const MembershipEventUnsigned = Type.Intersect([
   UnsignedData,
   Type.Object({
     invite_room_state: Type.Optional(
@@ -32,9 +33,7 @@ export const MembershipEventUnsigned = Type.Composite([
   }),
 ]);
 
-export type MembershipEventContent = StaticDecode<
-  typeof MembershipEventContent
->;
+export type MembershipEventContent = EDStatic<typeof MembershipEventContent>;
 export const MembershipEventContent = Type.Object({
   avatar_url: Type.Optional(
     Type.String({
@@ -90,8 +89,8 @@ export const MembershipEventContent = Type.Object({
   ),
 });
 
-export type BaseMembershipEvent = StaticDecode<typeof BaseMembershipEvent>;
-export const BaseMembershipEvent = Type.Composite([
+export type BaseMembershipEvent = EDStatic<typeof BaseMembershipEvent>;
+export const BaseMembershipEvent = Type.Intersect([
   Type.Omit(StateEvent(Type.Object({})), ['state_key', 'unsigned', 'type']),
   Type.Object({
     state_key: StringUserID,
@@ -100,8 +99,8 @@ export const BaseMembershipEvent = Type.Composite([
   }),
 ]);
 
-export type MembershipEvent = StaticDecode<typeof MembershipEvent>;
-export const MembershipEvent = Type.Composite([
+export type MembershipEvent = EDStatic<typeof MembershipEvent>;
+export const MembershipEvent = Type.Intersect([
   Type.Omit(BaseMembershipEvent, ['content']),
   Type.Object({
     content: MembershipEventContent,

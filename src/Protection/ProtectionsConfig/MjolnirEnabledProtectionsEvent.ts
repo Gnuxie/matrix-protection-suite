@@ -12,6 +12,7 @@ import { StaticDecode, Type } from '@sinclair/typebox';
 import { Value } from '../../Interface/Value';
 import { StateEvent } from '../../MatrixTypes/Events';
 import { DRAUPNIR_SCHEMA_VERSION_KEY } from '../../Interface/SchemedMatrixData';
+import { EDStatic } from '../../Interface/Static';
 
 export type MjolnirEnabledProtectionsEvent = StaticDecode<
   typeof MjolnirEnabledProtectionsEvent
@@ -27,7 +28,7 @@ export const MjolnirEnabledProtectionsEventType =
 
 export const MjolnirProtectionSettingsEventType = 'org.matrix.mjolnir.setting';
 
-export type MjolnirProtectionSettingsEventContent = StaticDecode<
+export type MjolnirProtectionSettingsEventContent = EDStatic<
   typeof MjolnirProtectionSettingsEventContent
 >;
 
@@ -36,11 +37,11 @@ export const MjolnirProtectionSettingsEventContent = Type.Record(
   Type.Unknown()
 );
 
-export type MjolnirProtectionSettingsEvent = StaticDecode<
+export type MjolnirProtectionSettingsEvent = EDStatic<
   typeof MjolnirProtectionSettingsEvent
 >;
 
-export const MjolnirProtectionSettingsEvent = Type.Composite([
+export const MjolnirProtectionSettingsEvent = Type.Intersect([
   Type.Omit(StateEvent(MjolnirProtectionSettingsEventContent), ['type']),
   Type.Object({
     type: Type.Literal(MjolnirProtectionSettingsEventType),

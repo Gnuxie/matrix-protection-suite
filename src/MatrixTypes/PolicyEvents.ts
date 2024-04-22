@@ -8,10 +8,11 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { Static, StaticDecode, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { EmptyContent, StateEvent } from './Events';
 import { Value } from '../Interface/Value';
 import { registerDefaultDecoder } from './EventDecoder';
+import { EDStatic } from '../Interface/Static';
 
 export enum PolicyRuleType {
   /// `entity` is to be parsed as a glob of users IDs
@@ -104,7 +105,7 @@ export function isPolicyTypeObsolete(
   }
 }
 
-export type UnredactedPolicyContent = Static<typeof UnredactedPolicyContent>;
+export type UnredactedPolicyContent = EDStatic<typeof UnredactedPolicyContent>;
 export const UnredactedPolicyContent = Type.Object({
   entity: Type.String({
     description:
@@ -119,17 +120,17 @@ export const UnredactedPolicyContent = Type.Object({
   }),
 });
 
-export type RedactablePolicyContent = Static<typeof RedactablePolicyContent>;
+export type RedactablePolicyContent = EDStatic<typeof RedactablePolicyContent>;
 export const RedactablePolicyContent = Type.Union([
   UnredactedPolicyContent,
   EmptyContent,
 ]);
 
-export type GeneircPolicyRuleEvent = StaticDecode<typeof PolicyRuleEvent>;
+export type GeneircPolicyRuleEvent = EDStatic<typeof PolicyRuleEvent>;
 export const GeneircPolicyRuleEvent = StateEvent(RedactablePolicyContent);
 
-export type PolicyRuleUser = StaticDecode<typeof PolicyRuleUser>;
-export const PolicyRuleUser = Type.Composite([
+export type PolicyRuleUser = EDStatic<typeof PolicyRuleUser>;
+export const PolicyRuleUser = Type.Intersect([
   GeneircPolicyRuleEvent,
   Type.Object({
     state_key: Type.Optional(
@@ -141,8 +142,8 @@ export const PolicyRuleUser = Type.Composite([
   }),
 ]);
 
-export type PolicyRuleServer = StaticDecode<typeof PolicyRuleServer>;
-export const PolicyRuleServer = Type.Composite([
+export type PolicyRuleServer = EDStatic<typeof PolicyRuleServer>;
+export const PolicyRuleServer = Type.Intersect([
   GeneircPolicyRuleEvent,
   Type.Object({
     state_key: Type.Optional(
@@ -154,8 +155,8 @@ export const PolicyRuleServer = Type.Composite([
   }),
 ]);
 
-export type PolicyRuleRoom = StaticDecode<typeof PolicyRuleRoom>;
-export const PolicyRuleRoom = Type.Composite([
+export type PolicyRuleRoom = EDStatic<typeof PolicyRuleRoom>;
+export const PolicyRuleRoom = Type.Intersect([
   GeneircPolicyRuleEvent,
   Type.Object({
     state_key: Type.Optional(
@@ -167,7 +168,7 @@ export const PolicyRuleRoom = Type.Composite([
   }),
 ]);
 
-export type PolicyRuleEvent = StaticDecode<typeof PolicyRuleEvent>;
+export type PolicyRuleEvent = EDStatic<typeof PolicyRuleEvent>;
 export const PolicyRuleEvent = Type.Union([
   PolicyRuleUser,
   PolicyRuleServer,

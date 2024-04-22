@@ -13,6 +13,7 @@ import { StaticDecode, Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
+import { EDStatic } from '../Interface/Static';
 
 export type PowerLevelsEventContent = StaticDecode<
   typeof PowerLevelsEventContent
@@ -77,8 +78,8 @@ export const PowerLevelsEventContent = Type.Object({
   ),
 });
 
-export type PowerLevelsEvent = StaticDecode<typeof PowerLevelsEvent>;
-export const PowerLevelsEvent = Type.Composite([
+export type PowerLevelsEvent = EDStatic<typeof PowerLevelsEvent>;
+export const PowerLevelsEvent = Type.Intersect([
   Type.Omit(StateEvent(PowerLevelsEventContent), ['state_key', 'type']),
   Type.Object({
     state_key: Type.String({

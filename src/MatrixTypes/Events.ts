@@ -7,16 +7,18 @@
 // This modified file incorporates work from matrix-spec
 // https://github.com/matrix-org/matrix-spec
 // </text>
-import { Static, StaticDecode, TSchema, Type } from '@sinclair/typebox';
+import { TSchema, Type } from '@sinclair/typebox';
 import {
   StringEventID,
   StringRoomID,
   StringUserID,
 } from './StringlyTypedMatrix';
-export const EmptyContent = Type.Object({}, { additionalProperties: false });
-export type EmptyContent = StaticDecode<typeof EmptyContent>;
+import { EDStatic } from '../Interface/Static';
 
-export type Event<Content extends TSchema = typeof EmptyContent> = Static<
+export const EmptyContent = Type.Object({}, { additionalProperties: false });
+export type EmptyContent = EDStatic<typeof EmptyContent>;
+
+export type Event<Content extends TSchema = typeof EmptyContent> = EDStatic<
   ReturnType<typeof Event<Content>>
 >;
 export const Event = <Content extends TSchema>(Content: Content) =>
@@ -28,7 +30,7 @@ export const Event = <Content extends TSchema>(Content: Content) =>
     }),
   });
 
-export type UnsignedData = Static<typeof UnsignedData>;
+export type UnsignedData = EDStatic<typeof UnsignedData>;
 export const UnsignedData = Type.Object({
   age: Type.Optional(
     Type.Number({
@@ -49,9 +51,9 @@ export const UnsignedData = Type.Object({
 });
 
 export type SyncRoomEvent<Content extends TSchema = typeof EmptyContent> =
-  Static<ReturnType<typeof SyncRoomEvent<Content>>>;
+  EDStatic<ReturnType<typeof SyncRoomEvent<Content>>>;
 export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Composite([
+  Type.Intersect([
     Event(Content),
     Type.Object({
       event_id: StringEventID,
@@ -65,10 +67,11 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
     }),
   ]);
 
-export type RoomEvent<Content extends TSchema = typeof EmptyContent> =
-  StaticDecode<ReturnType<typeof RoomEvent<Content>>>;
+export type RoomEvent<Content extends TSchema = typeof EmptyContent> = EDStatic<
+  ReturnType<typeof RoomEvent<Content>>
+>;
 export const RoomEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Composite([
+  Type.Intersect([
     SyncRoomEvent(Content),
     Type.Object({
       room_id: StringRoomID,
@@ -83,16 +86,16 @@ const StateKey = Type.Object({
 });
 
 export type SyncStateEvent<Content extends TSchema = typeof EmptyContent> =
-  StaticDecode<ReturnType<typeof SyncStateEvent<Content>>>;
+  EDStatic<ReturnType<typeof SyncStateEvent<Content>>>;
 export const SyncStateEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Composite([SyncRoomEvent(Content), StateKey]);
+  Type.Intersect([SyncRoomEvent(Content), StateKey]);
 
 export type StateEvent<Content extends TSchema = typeof EmptyContent> =
-  StaticDecode<ReturnType<typeof StateEvent<Content>>>;
+  EDStatic<ReturnType<typeof StateEvent<Content>>>;
 export const StateEvent = <Content extends TSchema>(Content: Content) =>
-  Type.Composite([RoomEvent(Content), StateKey]);
+  Type.Intersect([RoomEvent(Content), StateKey]);
 
-export type StrippedStateEvent = StaticDecode<typeof StrippedStateEvent>;
+export type StrippedStateEvent = EDStatic<typeof StrippedStateEvent>;
 export const StrippedStateEvent = Type.Object({
   content: Type.Unknown(),
   state_key: Type.String({ description: 'The `state_key` for the event.' }),

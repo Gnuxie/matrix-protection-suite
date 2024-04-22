@@ -8,12 +8,13 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { Static, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
+import { EDStatic } from '../Interface/Static';
 
-export type ServerACLContent = Static<typeof ServerACLContent>;
+export type ServerACLContent = EDStatic<typeof ServerACLContent>;
 export const ServerACLContent = Type.Optional(
   Type.Object({
     allow_ip_literals: Type.Optional(
@@ -37,8 +38,8 @@ export const ServerACLContent = Type.Optional(
   })
 );
 
-export type ServerACLEvent = Static<typeof ServerACLEvent>;
-export const ServerACLEvent = Type.Composite([
+export type ServerACLEvent = EDStatic<typeof ServerACLEvent>;
+export const ServerACLEvent = Type.Intersect([
   StateEvent(ServerACLContent),
   Type.Object({
     state_key: Type.Optional(

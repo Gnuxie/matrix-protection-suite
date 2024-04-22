@@ -32,6 +32,7 @@ export * from './Interface/PersistentMatrixData';
 export * from './Interface/RoomUpdateError';
 export * from './Interface/SchemedMatrixData';
 export * from './Interface/SimpleChangeType';
+export * from './Interface/Static';
 export * from './Interface/Task';
 export * from './Interface/Value';
 

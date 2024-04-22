@@ -8,12 +8,13 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { Static, StaticDecode, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { EmptyContent, RoomEvent } from './Events';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
+import { EDStatic } from '../Interface/Static';
 
-export type MessageContent = Static<typeof MessageContent>;
+export type MessageContent = EDStatic<typeof MessageContent>;
 export const MessageContent = Type.Object({
   body: Type.String({
     description: 'The textual representation of this message.',
@@ -23,7 +24,7 @@ export const MessageContent = Type.Object({
   }),
 });
 
-export type TextMessageContent = Static<typeof TextMessageContent>;
+export type TextMessageContent = EDStatic<typeof TextMessageContent>;
 export const TextMessageContent = Type.Object({
   body: Type.String({ description: 'The body of the message.' }),
   msgtype: Type.Literal('m.text'),
@@ -41,7 +42,7 @@ export const TextMessageContent = Type.Object({
   ),
 });
 
-export type NoticeMessageContent = Static<typeof NoticeMessageContent>;
+export type NoticeMessageContent = EDStatic<typeof NoticeMessageContent>;
 export const NoticeMessageContent = Type.Object({
   body: Type.String({ description: 'The notice text to send.' }),
   msgtype: Type.Literal('m.notice'),
@@ -59,7 +60,7 @@ export const NoticeMessageContent = Type.Object({
   ),
 });
 
-export type ThumbnailInfo = Static<typeof ThumbnailInfo>;
+export type ThumbnailInfo = EDStatic<typeof ThumbnailInfo>;
 export const ThumbnailInfo = Type.Object({
   h: Type.Optional(
     Type.Number({
@@ -83,7 +84,7 @@ export const ThumbnailInfo = Type.Object({
   ),
 });
 
-export type ImageInfo = Static<typeof ImageInfo>;
+export type ImageInfo = EDStatic<typeof ImageInfo>;
 export const ImageInfo = Type.Object({
   h: Type.Optional(
     Type.Number({
@@ -115,7 +116,7 @@ export const ImageInfo = Type.Object({
   thumbnail_info: Type.Optional(ThumbnailInfo),
 });
 
-export type ImageMessageContent = Static<typeof ImageMessageContent>;
+export type ImageMessageContent = EDStatic<typeof ImageMessageContent>;
 export const ImageMessageContent = Type.Object({
   body: Type.String({
     description:
@@ -132,7 +133,7 @@ export const ImageMessageContent = Type.Object({
   file: Type.Optional(Type.Unknown()),
 });
 
-export type VideoMessageContent = Static<typeof VideoMessageContent>;
+export type VideoMessageContent = EDStatic<typeof VideoMessageContent>;
 export const VideoMessageContent = Type.Object({
   body: Type.String({
     description:
@@ -179,7 +180,7 @@ export const VideoMessageContent = Type.Object({
   file: Type.Optional(Type.Unknown()),
 });
 
-export type AudioMessageContent = Static<typeof AudioMessageContent>;
+export type AudioMessageContent = EDStatic<typeof AudioMessageContent>;
 export const AudioMessageContent = Type.Object({
   body: Type.String({
     description:
@@ -223,8 +224,8 @@ export const AudioMessageContent = Type.Object({
 // and makes them available to the consumer.
 // and it'll have to do the same for m.room.message.
 // Thanks guys.
-export type RoomMessage = StaticDecode<typeof RoomMessage>;
-export const RoomMessage = Type.Composite([
+export type RoomMessage = EDStatic<typeof RoomMessage>;
+export const RoomMessage = Type.Intersect([
   Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
   Type.Object({
     content: Type.Union([

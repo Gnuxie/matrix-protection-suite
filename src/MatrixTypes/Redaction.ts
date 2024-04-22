@@ -8,13 +8,14 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 import { RoomEvent } from './Events';
 import { StringEventID } from './StringlyTypedMatrix';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
+import { EDStatic } from '../Interface/Static';
 
-export type RedactionContent = StaticDecode<typeof RedactionContent>;
+export type RedactionContent = EDStatic<typeof RedactionContent>;
 export const RedactionContent = Type.Object({
   redacts: Type.Optional(
     Type.Union([StringEventID], {
@@ -27,8 +28,8 @@ export const RedactionContent = Type.Object({
   ),
 });
 
-export type Redaction = StaticDecode<typeof Redaction>;
-export const Redaction = Type.Composite([
+export type Redaction = EDStatic<typeof Redaction>;
+export const Redaction = Type.Intersect([
   Type.Omit(RoomEvent(RedactionContent), ['type']),
   Type.Object({
     redacts: Type.Optional(

@@ -40,10 +40,13 @@ export class Value {
     const entry = this.compiledSchema.get(schema);
     if (entry === undefined) {
       const compiledCheck = TypeCompiler.Compile(schema);
-      this.compiledSchema.set(schema, compiledCheck);
+      this.compiledSchema.set(
+        schema,
+        compiledCheck as unknown as TypeCheck<TSchema>
+      );
       return compiledCheck;
     }
-    return entry as TypeCheck<T>;
+    return entry as unknown as TypeCheck<T>;
   }
   public static Decode<T extends TSchema, D = StaticDecode<T>>(
     schema: T,
