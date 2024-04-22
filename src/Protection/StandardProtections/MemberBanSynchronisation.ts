@@ -18,7 +18,6 @@ import {
   describeProtection,
 } from '../Protection';
 import {
-  Membership,
   MembershipChange,
   MembershipChangeType,
 } from '../../Membership/MembershipChange';
@@ -27,11 +26,6 @@ import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
-import { StringUserID } from '../../MatrixTypes/StringlyTypedMatrix';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
-import { RoomEvent } from '../../MatrixTypes/Events';
-import { Value } from '../../Interface/Value';
-import { MembershipEvent } from '../../MatrixTypes/MembershipEvent';
 import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
@@ -104,34 +98,6 @@ export class MemberBanSynchronisationProtection
     } else {
       return Ok(undefined);
     }
-  }
-  public async handleTimelineEvent(
-    room: MatrixRoomID,
-    event: RoomEvent
-  ): Promise<ActionResult<void>> {
-    if (event.type === 'm.room.member' && Value.Check(MembershipEvent, event)) {
-      switch (event.content.membership) {
-        case Membership.Ban:
-        case Membership.Leave:
-          return Ok(undefined);
-      }
-      const directIssuer =
-        this.protectedRoomsSet.issuerManager.policyListRevisionIssuer;
-      const applicableRule =
-        directIssuer.currentRevision.findRuleMatchingEntity(
-          event.state_key,
-          PolicyRuleType.User,
-          Recommendation.Ban
-        );
-      if (applicableRule !== undefined) {
-        return await this.userConsequences.consequenceForUserInRoom(
-          room.toRoomIDOrAlias(),
-          event.state_key as StringUserID,
-          applicableRule.reason
-        );
-      }
-    }
-    return Ok(undefined);
   }
 
   public async synchroniseWithRevision(

@@ -11,10 +11,7 @@ import {
   randomUserID,
 } from '../../TestUtilities/EventGeneration';
 import { StringUserID } from '../../MatrixTypes/StringlyTypedMatrix';
-import {
-  describeProtectedRoomsSet,
-  describeRoomMember,
-} from '../../StateTracking/DeclareRoomState';
+import { describeProtectedRoomsSet } from '../../StateTracking/DeclareRoomState';
 import {
   Membership,
   MembershipChangeType,
@@ -54,61 +51,6 @@ function createMemberBanSynchronisationProtection(
   // programming.
   return protectionResult.ok as unknown as MemberBanSynchronisationProtection;
 }
-
-// handleTimelineEvent
-test('A membership event recieved from the timeline that matches an existing policy should be acted upon, later this can be made a setting but it should be on by default.', async function () {
-  const spammerToBanUserID = `@spam:example.com` as StringUserID;
-  const policyRoom = randomRoomID([]);
-  const protectedRoom = randomRoomID([]);
-  const { protectedRoomsSet } = await describeProtectedRoomsSet({
-    rooms: [
-      {
-        room: protectedRoom,
-      },
-    ],
-    lists: [
-      {
-        room: policyRoom,
-        policyDescriptions: [
-          {
-            entity: spammerToBanUserID,
-            type: PolicyRuleType.User,
-            reason: 'spam',
-          },
-        ],
-      },
-    ],
-  });
-
-  const userConsequences = createMock<UserConsequences>();
-  const consequenceSpy = jest.spyOn(
-    userConsequences,
-    'consequenceForUserInRoom'
-  );
-
-  const protection = createMemberBanSynchronisationProtection(
-    { userConsequences },
-    protectedRoomsSet
-  );
-
-  if (protection.handleTimelineEvent === undefined) {
-    throw new TypeError(
-      `Protection should have the method to handle a timeline event defined, is this test out of date?`
-    );
-  }
-  const protectionHandlerResult = await protection.handleTimelineEvent.call(
-    protection,
-    protectedRoom,
-    describeRoomMember({
-      sender: spammerToBanUserID,
-      target: spammerToBanUserID,
-      room_id: protectedRoom.toRoomIDOrAlias(),
-      membership: Membership.Join,
-    })
-  );
-  expect(isOk(protectionHandlerResult)).toBeTruthy();
-  expect(consequenceSpy).toBeCalled();
-});
 
 // handleMembershipChange
 test('Membership changes that should result in a ban when matching an existing policy', async function () {
