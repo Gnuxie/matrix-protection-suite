@@ -32,6 +32,7 @@ import { Logger } from '../Logging/Logger';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
+import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
@@ -336,15 +337,11 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
 
   public isAbleToEdit(who: StringUserID, policy: PolicyRuleType): boolean {
     const powerLevelsContent = this.powerLevelsEvent?.content;
-    const userPowerLevel =
-      powerLevelsContent?.users?.[who] ??
-      powerLevelsContent?.users_default ??
-      0;
-    const rulePowerLevel =
-      powerLevelsContent?.events?.[policy] ??
-      powerLevelsContent?.state_default ??
-      50;
-    return userPowerLevel >= rulePowerLevel;
+    return PowerLevelsMirror.isUserAbleToSendState(
+      who,
+      policy,
+      powerLevelsContent
+    );
   }
 
   public reviseFromPowerLevels(

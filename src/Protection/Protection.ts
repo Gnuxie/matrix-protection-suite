@@ -39,6 +39,7 @@ import {
 } from './Capability/CapabilitySet';
 import { findCapabilityInterfaceSet } from './Capability/CapabilityInterface';
 import { findCapabilityProviderSet } from './Capability/CapabilityProvider';
+import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
 
 /**
  * @param description The description for the protection being constructed.
@@ -91,7 +92,7 @@ export interface ProtectionDescription<
 export interface Protection<TProtectionDescription> {
   readonly description: TProtectionDescription;
   readonly requiredEventPermissions: string[];
-  readonly requiredPermissions: string[];
+  readonly requiredPermissions: PowerLevelPermission[];
 
   /*
    * Handle a single timeline event from a protected room, to decide if we need to
@@ -131,6 +132,12 @@ export interface Protection<TProtectionDescription> {
    * (since the protection will be disabled and re-enabled).
    */
   handleProtectionDisable?(): void;
+
+  /**
+   * Called when the permission requirements of the protection have been met
+   * within a protected room.
+   */
+  handlePermissionRequirementsMet?(room: MatrixRoomID): void;
 }
 
 export class AbstractProtection<TProtectionDescription>
@@ -141,7 +148,7 @@ export class AbstractProtection<TProtectionDescription>
     protected readonly capabilitySet: CapabilitySet,
     protected readonly protectedRoomsSet: ProtectedRoomsSet,
     private readonly clientEventPermissions: string[],
-    private readonly clientPermissions: string[]
+    private readonly clientPermissions: PowerLevelPermission[]
   ) {
     // nothing to do.
   }
@@ -153,7 +160,7 @@ export class AbstractProtection<TProtectionDescription>
     ];
   }
 
-  public get requiredPermissions(): string[] {
+  public get requiredPermissions(): PowerLevelPermission[] {
     return [
       ...this.clientPermissions,
       ...capabilitySetPermissions(this.capabilitySet),

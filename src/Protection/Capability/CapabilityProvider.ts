@@ -19,6 +19,7 @@ import {
   CapabilitySet,
   GenericCapabilityDescription,
 } from './CapabilitySet';
+import { PowerLevelPermission } from '../../Client/PowerLevelsMirror';
 
 /**
  * We don't want to give protections access to the capability provider
@@ -40,7 +41,7 @@ export interface CapabilityProviderDescription<Context = unknown> {
 }
 
 export interface Capability {
-  readonly requiredPermissions: string[];
+  readonly requiredPermissions: PowerLevelPermission[];
   readonly requiredEventPermissions: string[];
 }
 

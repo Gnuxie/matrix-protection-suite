@@ -8,6 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { PowerLevelPermission } from '../../../Client/PowerLevelsMirror';
 import { RoomBanner } from '../../../Client/RoomBanner';
 import { RoomUnbanner } from '../../../Client/RoomUnbanner';
 import { ActionResult, Ok } from '../../../Interface/Action';
@@ -30,7 +31,7 @@ import { UserConsequences } from './UserConsequences';
 import './UserConsequences'; // we need this so the interface is loaded.
 
 export class StandardUserConsequences implements UserConsequences, Capability {
-  public readonly requiredPermissions = ['ban'];
+  public readonly requiredPermissions = [PowerLevelPermission.Ban];
   public readonly requiredEventPermissions = [];
   public constructor(
     private readonly roomBanner: RoomBanner,

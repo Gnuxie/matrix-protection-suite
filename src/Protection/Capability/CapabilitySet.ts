@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { PowerLevelPermission } from '../../Client/PowerLevelsMirror';
 import { DescriptionMeta } from '../DescriptionMeta';
 import { CapabilityInterfaceDescription } from './CapabilityInterface';
 import {
@@ -55,9 +56,11 @@ export function capabilitySetEventPermissions(set: CapabilitySet): string[] {
   );
 }
 
-export function capabilitySetPermissions(set: CapabilitySet): string[] {
+export function capabilitySetPermissions(
+  set: CapabilitySet
+): PowerLevelPermission[] {
   return Object.entries(set).reduce(
     (acc, [_name, capability]) => [...acc, ...capability.requiredPermissions],
-    [] as string[]
+    [] as PowerLevelPermission[]
   );
 }
