@@ -18,7 +18,7 @@ export interface RoomSetResult extends SetResult {
 }
 
 export class RoomSetResultBuilder {
-  private isEveryResultOk = false;
+  private isEveryResultOk = true;
   private numberOfFailedResults = 0;
   private map = new Map<StringRoomID, ActionResult<void>>();
 
@@ -48,7 +48,7 @@ export interface ResultForUsersInSet extends SetResult {
 }
 
 export class ResultForUsersInSetBuilder {
-  private isEveryResultOk = false;
+  private isEveryResultOk = true;
   private numberOfFailedResults = 0;
   private map = new Map<StringUserID, RoomSetResultBuilder>();
 
