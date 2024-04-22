@@ -26,6 +26,9 @@ import {
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
 import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
+import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
+import { Protection, ProtectionDescription } from './Protection';
+import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
@@ -38,6 +41,13 @@ export interface ProtectedRoomsSet {
   handleEventReport(report: EventReport): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
 }
+
+export type HandleMissingProtectionPermissions = (
+  roomID: StringRoomID,
+  eventPermissions: string[],
+  permissions: string[],
+  protection: Protection<ProtectionDescription>
+) => void;
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
   private readonly membershipChangeListener: SetMembershipListener =
@@ -53,7 +63,8 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     public readonly protections: ProtectionsManager,
     public readonly setMembership: SetMembership,
     public readonly setRoomState: SetRoomState,
-    public readonly userID: StringUserID
+    public readonly userID: StringUserID,
+    private readonly handleMissingProtectionPermissions?: HandleMissingProtectionPermissions
   ) {
     setMembership.on('membership', this.membershipChangeListener);
     setRoomState.on('revision', this.stateChangeListener);
@@ -126,12 +137,60 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     }
   }
 
+  private powerLevelsChange(
+    nextRevision: RoomStateRevision,
+    previousRevision: RoomStateRevision
+  ): void {
+    const previousPowerLevels =
+      previousRevision.getStateEvent<PowerLevelsEvent>(
+        'm.room.power_levels',
+        ''
+      );
+    const nextPowerLevels = nextRevision.getStateEvent<PowerLevelsEvent>(
+      'm.room.power_levels',
+      ''
+    );
+    for (const protection of this.protections.allProtections) {
+      const {
+        isPrivilidgedInNextPowerLevels,
+        isPrivilidgedInPriorPowerLevels,
+        missingStatePermissions,
+        missingPermissions,
+      } = PowerLevelsMirror.calculateNewMissingPermissions(
+        this.userID,
+        protection.requiredEventPermissions,
+        protection.requiredPermissions,
+        {
+          nextPowerLevelsContent: nextPowerLevels?.content,
+          previousPowerLevelsContent: previousPowerLevels?.content,
+        }
+      );
+      if (!isPrivilidgedInNextPowerLevels) {
+        this.handleMissingProtectionPermissions?.(
+          nextRevision.room.toRoomIDOrAlias(),
+          missingStatePermissions,
+          missingPermissions,
+          protection
+        );
+      }
+      if (isPrivilidgedInNextPowerLevels && !isPrivilidgedInPriorPowerLevels) {
+        protection.handlePermissionRequirementsMet?.(nextRevision.room);
+      }
+    }
+  }
+
   private stateRevisionChangeListener(
     _roomID: StringRoomID,
     nextRevision: RoomStateRevision,
     changes: StateChange[],
-    _previousRevision: RoomStateRevision
+    previousRevision: RoomStateRevision
   ): void {
+    const powerLevelsEvent = changes.find(
+      (change) => change.eventType === 'm.room.power_levels'
+    );
+    if (powerLevelsEvent !== undefined) {
+      this.powerLevelsChange(nextRevision, previousRevision);
+    }
     for (const protection of this.protections.allProtections) {
       if (protection.handleStateChange === undefined) {
         continue;
