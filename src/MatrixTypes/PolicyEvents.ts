@@ -9,7 +9,7 @@
 // </text>
 
 import { Static, StaticDecode, Type } from '@sinclair/typebox';
-import { StateEvent } from './Events';
+import { EmptyContent, StateEvent } from './Events';
 import { Value } from '../Interface/Value';
 import { registerDefaultDecoder } from './EventDecoder';
 
@@ -122,7 +122,7 @@ export const UnredactedPolicyContent = Type.Object({
 export type RedactablePolicyContent = Static<typeof RedactablePolicyContent>;
 export const RedactablePolicyContent = Type.Union([
   UnredactedPolicyContent,
-  Type.Object({}, { description: 'redaction content or dummy content' }),
+  EmptyContent,
 ]);
 
 export type GeneircPolicyRuleEvent = StaticDecode<typeof PolicyRuleEvent>;

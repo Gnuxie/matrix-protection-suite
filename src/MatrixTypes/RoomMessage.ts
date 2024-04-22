@@ -9,7 +9,7 @@
 // </text>
 
 import { Static, StaticDecode, Type } from '@sinclair/typebox';
-import { RoomEvent } from './Events';
+import { EmptyContent, RoomEvent } from './Events';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
 
@@ -233,7 +233,7 @@ export const RoomMessage = Type.Composite([
       ImageMessageContent,
       VideoMessageContent,
       AudioMessageContent,
-      Type.Object({}),
+      EmptyContent,
     ]),
     type: Type.Literal('m.room.message'),
   }),

@@ -13,10 +13,10 @@ import {
   StringRoomID,
   StringUserID,
 } from './StringlyTypedMatrix';
+export const EmptyContent = Type.Object({}, { additionalProperties: false });
+export type EmptyContent = StaticDecode<typeof EmptyContent>;
 
-const TContent = Type.Object({});
-
-export type Event<Content extends TSchema = typeof TContent> = Static<
+export type Event<Content extends TSchema = typeof EmptyContent> = Static<
   ReturnType<typeof Event<Content>>
 >;
 export const Event = <Content extends TSchema>(Content: Content) =>
@@ -48,9 +48,8 @@ export const UnsignedData = Type.Object({
   prev_content: Type.Optional(Type.Unknown()),
 });
 
-export type SyncRoomEvent<Content extends TSchema = typeof TContent> = Static<
-  ReturnType<typeof SyncRoomEvent<Content>>
->;
+export type SyncRoomEvent<Content extends TSchema = typeof EmptyContent> =
+  Static<ReturnType<typeof SyncRoomEvent<Content>>>;
 export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
   Type.Composite([
     Event(Content),
@@ -66,9 +65,8 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
     }),
   ]);
 
-export type RoomEvent<Content extends TSchema = typeof TContent> = StaticDecode<
-  ReturnType<typeof RoomEvent<Content>>
->;
+export type RoomEvent<Content extends TSchema = typeof EmptyContent> =
+  StaticDecode<ReturnType<typeof RoomEvent<Content>>>;
 export const RoomEvent = <Content extends TSchema>(Content: Content) =>
   Type.Composite([
     SyncRoomEvent(Content),
@@ -84,12 +82,12 @@ const StateKey = Type.Object({
   }),
 });
 
-export type SyncStateEvent<Content extends TSchema = typeof TContent> =
+export type SyncStateEvent<Content extends TSchema = typeof EmptyContent> =
   StaticDecode<ReturnType<typeof SyncStateEvent<Content>>>;
 export const SyncStateEvent = <Content extends TSchema>(Content: Content) =>
   Type.Composite([SyncRoomEvent(Content), StateKey]);
 
-export type StateEvent<Content extends TSchema = typeof TContent> =
+export type StateEvent<Content extends TSchema = typeof EmptyContent> =
   StaticDecode<ReturnType<typeof StateEvent<Content>>>;
 export const StateEvent = <Content extends TSchema>(Content: Content) =>
   Type.Composite([RoomEvent(Content), StateKey]);

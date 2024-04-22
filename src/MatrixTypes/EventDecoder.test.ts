@@ -3,9 +3,10 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { isError, isOk } from '../Interface/Action';
-import { DecodeException } from '../Interface/Value';
+import { DecodeException, Value } from '../Interface/Value';
 import { randomRawEvent, randomRoomID } from '../TestUtilities/EventGeneration';
 import { DefaultEventDecoder } from './EventDecoder';
+import { PolicyRuleEvent } from './PolicyEvents';
 
 test('Raw events are parsed correctly', function () {
   const room = randomRoomID(['example.org']);
@@ -42,4 +43,27 @@ test('Parsing error information is genuinly useful', function () {
     );
   }
   expect(decodeResult.error.errors.length).toBe(1);
+});
+
+test('Policy List event with leftover reason', function () {
+  const rawEvent = {
+    content: {
+      reason: 'not a scammer, no idea what he was thinking',
+    },
+    origin_server_ts: 1693351663899,
+    room_id: '!QzNmKfDhzCQFDqmUhl:matrix.org',
+    sender: '@anti-scam:matrix.org',
+    state_key: 'rule:@stoere:projectsegfau.lt',
+    type: 'm.policy.rule.user',
+    unsigned: {
+      replaces_state: '$oyUATFoZDKOF6csFDXBWAkv38-VCLuMw3UTwVcNT6D0',
+      age: 20453623176,
+    },
+    event_id: '$1bcs953wT9lf_aXNEjxPOS9I94GvZvWs-TdXJTxDn6w',
+    user_id: '@anti-scam:matrix.org',
+    age: 20453623176,
+    replaces_state: '$oyUATFoZDKOF6csFDXBWAkv38-VCLuMw3UTwVcNT6D0',
+  };
+  const result = Value.Decode(PolicyRuleEvent, rawEvent);
+  expect(result.isOkay).toBeFalsy();
 });
