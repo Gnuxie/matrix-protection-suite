@@ -26,7 +26,7 @@ export interface ServerConsequences extends Capability {
     reason: string
   ): Promise<ActionResult<RoomSetResult>>;
 }
-export const ServerConsequences = Type.Composite([
+export const ServerConsequences = Type.Intersect([
   Type.Object({
     consequenceForUserInRoom: CapabilityMethodSchema,
     consequenceForUserInRoomSet: CapabilityMethodSchema,

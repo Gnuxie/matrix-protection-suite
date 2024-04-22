@@ -20,7 +20,7 @@ export interface EventConsequences extends Capability {
   ): Promise<ActionResult<void>>;
 }
 
-export const EventConsequences = Type.Composite([
+export const EventConsequences = Type.Intersect([
   Type.Object({
     consequenceForEvent: CapabilityMethodSchema,
   }),
