@@ -23,7 +23,8 @@ import './ServerConsequences'; // we need this so the interface is loaded.
 
 export class ServerACLConequences implements ServerConsequences, Capability {
   public readonly requiredPermissions = [];
-  public readonly requiredEventPermissions = ['m.room.server_acl'];
+  public readonly requiredEventPermissions = [];
+  public readonly requiredStatePermissions = ['m.room.server_acl'];
   /** The name of the server we are operating from, so that we don't brick ourselves */
   private readonly serverName: string;
 

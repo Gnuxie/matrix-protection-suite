@@ -46,13 +46,7 @@ export class ServerBanSynchronisationProtection
     capabilities: Capabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
-    super(
-      description,
-      capabilities,
-      protectedRoomsSet,
-      ['m.room.server_acl'],
-      []
-    );
+    super(description, capabilities, protectedRoomsSet, {});
     this.serverConsequences = capabilities.serverConsequences;
   }
 

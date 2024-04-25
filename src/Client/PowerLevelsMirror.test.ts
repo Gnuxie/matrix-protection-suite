@@ -9,15 +9,16 @@ import { PowerLevelPermission, PowerLevelsMirror } from './PowerLevelsMirror';
 test('What happens when we are missing all permissions', function () {
   const userID = randomUserID();
   const powerLevelscontent: PowerLevelsEventContent = {};
-  const result = PowerLevelsMirror.calculateNewMissingPermissions(
-    userID,
-    ['m.room.server_acl'],
-    [PowerLevelPermission.Ban, PowerLevelPermission.Redact],
-    {
-      nextPowerLevelsContent: powerLevelscontent,
-      previousPowerLevelsContent: powerLevelscontent,
-    }
-  );
+  const result = PowerLevelsMirror.calculateNewMissingPermissions(userID, {
+    nextPowerLevelsContent: powerLevelscontent,
+    previousPowerLevelsContent: powerLevelscontent,
+    requiredStatePermissions: ['m.room.server_acl'],
+    requiredPermissions: [
+      PowerLevelPermission.Ban,
+      PowerLevelPermission.Redact,
+    ],
+    requiredEventPermissions: [],
+  });
   expect(result.isPrivilidgedInNextPowerLevels).toBe(false);
   expect(result.isPrivilidgedInPriorPowerLevels).toBe(false);
   expect(result.missingStatePermissions.length).toBe(1);

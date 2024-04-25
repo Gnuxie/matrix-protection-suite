@@ -48,7 +48,7 @@ export class MemberBanSynchronisationProtection
     capabilities: MemberBanSynchronisationProtectionCapabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
-    super(description, capabilities, protectedRoomsSet, [], []);
+    super(description, capabilities, protectedRoomsSet, {});
     this.userConsequences = capabilities.userConsequences;
   }
 
