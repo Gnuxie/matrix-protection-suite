@@ -14,11 +14,11 @@ import { RoomSetResult } from './RoomSetResult';
 export type ResultForServerInSetMap = Map<StringRoomID, ActionResult<void>>;
 
 export interface ServerConsequences extends Capability {
-  consequenceForServerInRoom(
+  consequenceForServersInRoom(
     roomID: StringRoomID,
     revision: PolicyListRevision
   ): Promise<ActionResult<void>>;
-  consequenceForServerInRoomSet(
+  consequenceForServersInRoomSet(
     revision: PolicyListRevision
   ): Promise<ActionResult<RoomSetResult>>;
   unbanServerFromRoomSet(
@@ -28,9 +28,9 @@ export interface ServerConsequences extends Capability {
 }
 export const ServerConsequences = Type.Intersect([
   Type.Object({
-    consequenceForUserInRoom: CapabilityMethodSchema,
-    consequenceForUserInRoomSet: CapabilityMethodSchema,
-    unbanUserFromRoomSet: CapabilityMethodSchema,
+    consequenceForServersInRoom: CapabilityMethodSchema,
+    consequenceForServersInRoomSet: CapabilityMethodSchema,
+    unbanServerFromRoomSet: CapabilityMethodSchema,
   }),
   Capability,
 ]);

@@ -13,28 +13,28 @@ export interface SetResult {
   readonly numberOfFailedResults: number;
 }
 
-export interface RoomSetResult extends SetResult {
-  readonly map: Map<StringRoomID, ActionResult<void>>;
+export interface StringTypeResult<T extends string> extends SetResult {
+  readonly map: Map<T, ActionResult<void>>;
 }
 
-export class RoomSetResultBuilder {
+export class StringTypeResultBuilder<T extends string> {
   private isEveryResultOk = true;
   private numberOfFailedResults = 0;
-  private map = new Map<StringRoomID, ActionResult<void>>();
+  private map = new Map<T, ActionResult<void>>();
 
   public addResult(
-    roomID: StringRoomID,
+    key: T,
     result: ActionResult<void>
-  ): RoomSetResultBuilder {
+  ): StringTypeResultBuilder<T> {
     if (isError(result)) {
       this.numberOfFailedResults += 1;
       this.isEveryResultOk = false;
     }
-    this.map.set(roomID, result);
+    this.map.set(key, result);
     return this;
   }
 
-  public getResult(): RoomSetResult {
+  public getResult(): StringTypeResult<T> {
     return {
       isEveryResultOk: this.isEveryResultOk,
       numberOfFailedResults: this.numberOfFailedResults,
@@ -42,6 +42,15 @@ export class RoomSetResultBuilder {
     };
   }
 }
+
+export type RoomSetResult = StringTypeResult<StringRoomID>;
+export type RoomSetResultBuilder = StringTypeResultBuilder<StringRoomID>;
+export const RoomSetResultBuilder = StringTypeResultBuilder<StringRoomID>;
+
+export type ResultForUsersInRoom = StringTypeResult<StringUserID>;
+export type ResultForUsersInRoomBuilder = StringTypeResultBuilder<StringUserID>;
+export const ResultForUsersInRoomBuilder =
+  StringTypeResultBuilder<StringUserID>;
 
 export interface ResultForUsersInSet extends SetResult {
   readonly map: Map<StringUserID, RoomSetResult>;

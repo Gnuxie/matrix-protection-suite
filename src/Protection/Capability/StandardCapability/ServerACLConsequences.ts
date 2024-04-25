@@ -83,13 +83,13 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     }
     return Ok(resultBuilder.getResult());
   }
-  public async consequenceForServerInRoom(
+  public async consequenceForServersInRoom(
     roomID: StringRoomID,
     revision: PolicyListRevision
   ): Promise<ActionResult<void>> {
     return await this.applyPolicyRevisionToRoom(roomID, revision);
   }
-  public async consequenceForServerInRoomSet(
+  public async consequenceForServersInRoomSet(
     revision: PolicyListRevision
   ): Promise<ActionResult<RoomSetResult>> {
     return await this.applyPolicyRevisionToSet(revision);

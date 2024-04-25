@@ -18,7 +18,11 @@ import {
 import { ActionResult } from '../../../Interface/Action';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Capability } from '../CapabilityProvider';
-import { ResultForUsersInSet, RoomSetResult } from './RoomSetResult';
+import {
+  ResultForUsersInRoom,
+  ResultForUsersInSet,
+  RoomSetResult,
+} from './RoomSetResult';
 
 export interface UserConsequences extends Capability {
   consequenceForUserInRoom(
@@ -26,7 +30,11 @@ export interface UserConsequences extends Capability {
     user: StringUserID,
     reason: string
   ): Promise<ActionResult<void>>;
-  consequenceForUserInRoomSet(
+  consequenceForUsersInRoom(
+    roomID: StringRoomID,
+    revision: PolicyListRevision
+  ): Promise<ActionResult<ResultForUsersInRoom>>;
+  consequenceForUsersInRoomSet(
     revision: PolicyListRevision
   ): Promise<ActionResult<ResultForUsersInSet>>;
   unbanUserFromRoomSet(
@@ -37,7 +45,8 @@ export interface UserConsequences extends Capability {
 export const UserConsequences = Type.Intersect([
   Type.Object({
     consequenceForUserInRoom: CapabilityMethodSchema,
-    consequenceForUserInRoomSet: CapabilityMethodSchema,
+    consequenceForUsersInRoomSet: CapabilityMethodSchema,
+    consequenceForUsersInRoom: CapabilityMethodSchema,
     unbanUserFromRoomSet: CapabilityMethodSchema,
   }),
   Capability,

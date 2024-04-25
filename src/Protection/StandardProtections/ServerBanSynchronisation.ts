@@ -65,7 +65,7 @@ export class ServerBanSynchronisationProtection
         `How is it possible for there to be more than one server_acl event change in the same revision?`
       );
     }
-    return await this.serverConsequences.consequenceForServerInRoom(
+    return await this.serverConsequences.consequenceForServersInRoom(
       revision.room.toRoomIDOrAlias(),
       this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
         .currentRevision
@@ -82,7 +82,7 @@ export class ServerBanSynchronisationProtection
     if (serverPolicyChanges.length === 0) {
       return Ok(undefined);
     }
-    const result = await this.serverConsequences.consequenceForServerInRoomSet(
+    const result = await this.serverConsequences.consequenceForServersInRoomSet(
       this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
         .currentRevision
     );

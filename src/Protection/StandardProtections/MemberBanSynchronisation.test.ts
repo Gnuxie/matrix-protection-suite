@@ -166,7 +166,7 @@ test('A policy change banning a user on a directly watched list will call the co
   const userConsequences = createMock<UserConsequences>();
   const consequenceSpy = jest.spyOn(
     userConsequences,
-    'consequenceForUserInRoomSet'
+    'consequenceForUsersInRoomSet'
   );
 
   const protection = createMemberBanSynchronisationProtection(

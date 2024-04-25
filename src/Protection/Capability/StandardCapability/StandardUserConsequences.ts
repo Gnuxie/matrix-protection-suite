@@ -11,12 +11,13 @@
 import { PowerLevelPermission } from '../../../Client/PowerLevelsMirror';
 import { RoomBanner } from '../../../Client/RoomBanner';
 import { RoomUnbanner } from '../../../Client/RoomUnbanner';
-import { ActionResult, Ok } from '../../../Interface/Action';
+import { ActionError, ActionResult, Ok } from '../../../Interface/Action';
 import {
   StringRoomID,
   StringUserID,
 } from '../../../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../../../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
 import { SetMembership } from '../../../Membership/SetMembership';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
@@ -26,6 +27,8 @@ import {
   ResultForUsersInSet,
   RoomSetResultBuilder,
   RoomSetResult,
+  ResultForUsersInRoom,
+  ResultForUsersInRoomBuilder,
 } from './RoomSetResult';
 import { UserConsequences } from './UserConsequences';
 import './UserConsequences'; // we need this so the interface is loaded.
@@ -42,6 +45,33 @@ export class StandardUserConsequences implements UserConsequences, Capability {
     // nothing to do.
   }
 
+  private static async applyRevisionToRoom(
+    revision: PolicyListRevision,
+    roomMembershipRevision: RoomMembershipRevision,
+    consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
+  ): Promise<ResultForUsersInRoom> {
+    const resultBuilder = new ResultForUsersInRoomBuilder();
+    for (const membership of roomMembershipRevision.members()) {
+      if (membership.membership === Membership.Ban) {
+        continue;
+      }
+      const access = AccessControl.getAccessForUser(
+        revision,
+        membership.userID,
+        'IGNORE_SERVER'
+      );
+      if (access.outcome === Access.Banned) {
+        const consequenceResult = await consequenceProviderCB(
+          membership.roomID,
+          membership.userID,
+          access.rule?.reason ?? '<no reason supplied>'
+        );
+        resultBuilder.addResult(membership.userID, consequenceResult);
+      }
+    }
+    return resultBuilder.getResult();
+  }
+
   public static async applyPolicyRevisionToSetMembership(
     revision: PolicyListRevision,
     setMembership: SetMembership,
@@ -49,27 +79,17 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   ): Promise<ResultForUsersInSet> {
     const resultBuilder = new ResultForUsersInSetBuilder();
     for (const membershipRevision of setMembership.allRooms) {
-      for (const membership of membershipRevision.members()) {
-        if (membership.membership === Membership.Ban) {
-          continue;
-        }
-        const access = AccessControl.getAccessForUser(
-          revision,
-          membership.userID,
-          'IGNORE_SERVER'
+      const results = await StandardUserConsequences.applyRevisionToRoom(
+        revision,
+        membershipRevision,
+        consequenceProviderCB
+      );
+      for (const [userID, result] of results.map) {
+        resultBuilder.addResult(
+          userID,
+          membershipRevision.room.toRoomIDOrAlias(),
+          result
         );
-        if (access.outcome === Access.Banned) {
-          const consequenceResult = await consequenceProviderCB(
-            membership.roomID,
-            membership.userID,
-            access.rule?.reason ?? '<no reason supplied>'
-          );
-          resultBuilder.addResult(
-            membership.userID,
-            membership.roomID,
-            consequenceResult
-          );
-        }
       }
     }
     return resultBuilder.getResult();
@@ -81,7 +101,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   ): Promise<ActionResult<void>> {
     return await this.roomBanner.banUser(roomID, user, reason);
   }
-  public async consequenceForUserInRoomSet(
+  public async consequenceForUsersInRoomSet(
     revision: PolicyListRevision
   ): Promise<ActionResult<ResultForUsersInSet>> {
     return Ok(
@@ -92,6 +112,25 @@ export class StandardUserConsequences implements UserConsequences, Capability {
       )
     );
   }
+  public async consequenceForUsersInRoom(
+    roomID: StringRoomID,
+    revision: PolicyListRevision
+  ): Promise<ActionResult<ResultForUsersInRoom>> {
+    const membershipRevision = this.setMembership.getRevision(roomID);
+    if (membershipRevision === undefined) {
+      return ActionError.Result(
+        `Unable to find a membership revision for the room ${roomID}`
+      );
+    }
+    return Ok(
+      await StandardUserConsequences.applyRevisionToRoom(
+        revision,
+        membershipRevision,
+        this.roomBanner.banUser.bind(this.roomBanner)
+      )
+    );
+  }
+
   public async unbanUserFromRoomSet(
     userID: StringUserID,
     reason: string
