@@ -30,6 +30,8 @@ import { UserConsequences } from '../Capability/StandardCapability/UserConsequen
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
 import '../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
+import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
+import { Task } from '../../Interface/Task';
 
 export type MemberBanSynchronisationProtectionDescription =
   ProtectionDescription<
@@ -118,6 +120,17 @@ export class MemberBanSynchronisationProtection
     _changes: PolicyRuleChange[]
   ): Promise<ActionResult<void>> {
     return await this.synchroniseWithRevision(revision);
+  }
+  public handlePermissionRequirementsMet(room: MatrixRoomID): void {
+    void Task(
+      (async () => {
+        await this.userConsequences.consequenceForUsersInRoom(
+          room.toRoomIDOrAlias(),
+          this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
+            .currentRevision
+        );
+      })()
+    );
   }
 }
 

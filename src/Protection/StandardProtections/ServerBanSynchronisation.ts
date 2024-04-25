@@ -9,7 +9,9 @@
 // </text>
 
 import { ActionResult, Ok, isError } from '../../Interface/Action';
+import { Task } from '../../Interface/Task';
 import { StateEvent } from '../../MatrixTypes/Events';
+import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
@@ -91,6 +93,18 @@ export class ServerBanSynchronisationProtection
     } else {
       return Ok(undefined);
     }
+  }
+
+  public handlePermissionRequirementsMet(room: MatrixRoomID): void {
+    void Task(
+      (async () => {
+        await this.serverConsequences.consequenceForServersInRoom(
+          room.toRoomIDOrAlias(),
+          this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
+            .currentRevision
+        );
+      })()
+    );
   }
 }
 
