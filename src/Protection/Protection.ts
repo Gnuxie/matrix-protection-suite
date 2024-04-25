@@ -36,6 +36,7 @@ import {
   GenericCapabilityDescription,
   capabilitySetEventPermissions,
   capabilitySetPermissions,
+  capabilitySetStatePermissions,
 } from './Capability/CapabilitySet';
 import { findCapabilityInterfaceSet } from './Capability/CapabilityInterface';
 import { findCapabilityProviderSet } from './Capability/CapabilityProvider';
@@ -92,6 +93,7 @@ export interface ProtectionDescription<
 export interface Protection<TProtectionDescription> {
   readonly description: TProtectionDescription;
   readonly requiredEventPermissions: string[];
+  readonly requiredStatePermissions: string[];
   readonly requiredPermissions: PowerLevelPermission[];
 
   /*
@@ -143,14 +145,22 @@ export interface Protection<TProtectionDescription> {
 export class AbstractProtection<TProtectionDescription>
   implements Protection<TProtectionDescription>
 {
+  private readonly clientEventPermissions: string[];
+  private readonly clientPermissions: PowerLevelPermission[];
+  private readonly clientStatePermissions: string[];
   protected constructor(
     public readonly description: TProtectionDescription,
     protected readonly capabilitySet: CapabilitySet,
     protected readonly protectedRoomsSet: ProtectedRoomsSet,
-    private readonly clientEventPermissions: string[],
-    private readonly clientPermissions: PowerLevelPermission[]
+    permissions: {
+      requiredEventPermissions?: string[];
+      requiredPermissions?: PowerLevelPermission[];
+      requiredStatePermissions?: string[];
+    }
   ) {
-    // nothing to do.
+    this.clientEventPermissions = permissions.requiredEventPermissions ?? [];
+    this.clientPermissions = permissions.requiredPermissions ?? [];
+    this.clientStatePermissions = permissions.requiredStatePermissions ?? [];
   }
 
   public get requiredEventPermissions(): string[] {
@@ -164,6 +174,13 @@ export class AbstractProtection<TProtectionDescription>
     return [
       ...this.clientPermissions,
       ...capabilitySetPermissions(this.capabilitySet),
+    ];
+  }
+
+  public get requiredStatePermissions(): string[] {
+    return [
+      ...this.clientStatePermissions,
+      ...capabilitySetStatePermissions(this.capabilitySet),
     ];
   }
 }

@@ -64,3 +64,13 @@ export function capabilitySetPermissions(
     [] as PowerLevelPermission[]
   );
 }
+
+export function capabilitySetStatePermissions(set: CapabilitySet): string[] {
+  return Object.entries(set).reduce(
+    (acc, [_name, capability]) => [
+      ...acc,
+      ...capability.requiredStatePermissions,
+    ],
+    [] as string[]
+  );
+}

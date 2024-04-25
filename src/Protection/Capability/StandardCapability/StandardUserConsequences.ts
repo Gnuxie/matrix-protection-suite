@@ -33,6 +33,7 @@ import './UserConsequences'; // we need this so the interface is loaded.
 export class StandardUserConsequences implements UserConsequences, Capability {
   public readonly requiredPermissions = [PowerLevelPermission.Ban];
   public readonly requiredEventPermissions = [];
+  public readonly requiredStatePermissions = [];
   public constructor(
     private readonly roomBanner: RoomBanner,
     private readonly roomUnbanner: RoomUnbanner,

@@ -16,9 +16,11 @@ import './EventConsequences'; // we need this so the interface is loaded.
 export class StandardEventConsequences implements EventConsequences {
   requiredPermissions = [PowerLevelPermission.Redact];
   requiredEventPermissions = [];
+  requiredStatePermissions = [];
   public constructor(private readonly eventRedacter: RoomEventRedacter) {
     // nothing to do.
   }
+
   public async consequenceForEvent(
     roomID: StringRoomID,
     eventID: StringEventID,

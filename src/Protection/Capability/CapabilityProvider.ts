@@ -42,12 +42,14 @@ export interface CapabilityProviderDescription<Context = unknown> {
 
 export interface Capability {
   readonly requiredPermissions: PowerLevelPermission[];
+  readonly requiredStatePermissions: string[];
   readonly requiredEventPermissions: string[];
 }
 
 export const Capability = Type.Object({
   requiredPermissions: Type.Array(Type.String()),
   requiredEventPermissions: Type.Array(Type.String()),
+  requiredStatePermissions: Type.Array(Type.String()),
 });
 
 const PROVIDER_DESCRIPTIONS = new Map<string, CapabilityProviderDescription>();

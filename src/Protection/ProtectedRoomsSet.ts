@@ -156,15 +156,13 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         isPrivilidgedInPriorPowerLevels,
         missingStatePermissions,
         missingPermissions,
-      } = PowerLevelsMirror.calculateNewMissingPermissions(
-        this.userID,
-        protection.requiredEventPermissions,
-        protection.requiredPermissions,
-        {
-          nextPowerLevelsContent: nextPowerLevels?.content,
-          previousPowerLevelsContent: previousPowerLevels?.content,
-        }
-      );
+      } = PowerLevelsMirror.calculateNewMissingPermissions(this.userID, {
+        nextPowerLevelsContent: nextPowerLevels?.content,
+        previousPowerLevelsContent: previousPowerLevels?.content,
+        requiredEventPermissions: protection.requiredEventPermissions,
+        requiredPermissions: protection.requiredPermissions,
+        requiredStatePermissions: protection.requiredStatePermissions,
+      });
       if (!isPrivilidgedInNextPowerLevels) {
         this.handleMissingProtectionPermissions?.(
           nextRevision.room.toRoomIDOrAlias(),

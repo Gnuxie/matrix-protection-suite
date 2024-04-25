@@ -25,6 +25,12 @@ export const PowerLevelsMirror = Object.freeze({
   ): number {
     return content?.events?.[eventType] ?? content?.state_default ?? 50;
   },
+  getEventPowerLevel(
+    eventType: string,
+    content?: PowerLevelsEventContent
+  ): number {
+    return content?.events?.[eventType] ?? content?.events_default ?? 0;
+  },
   isUserAbleToSendState(
     who: StringUserID,
     eventType: string,
@@ -44,6 +50,16 @@ export const PowerLevelsMirror = Object.freeze({
     const defaultPowerLevel = permission === 'invite' ? 0 : 50;
     const permissionLevel = content?.[permission] ?? defaultPowerLevel;
     return userLevel >= permissionLevel;
+  },
+  isUserAbleToSendEvent(
+    who: StringUserID,
+    eventType: string,
+    content?: PowerLevelsEventContent
+  ): boolean {
+    return (
+      this.getUserPowerLevel(who, content) >=
+      this.getStatePowerLevel(eventType, content)
+    );
   },
   missingPermissions(
     clientUserID: StringUserID,
@@ -66,11 +82,11 @@ export const PowerLevelsMirror = Object.freeze({
   },
   missingStatePermissions(
     clientUserID: StringUserID,
-    requiredEventPermissions: string[],
+    requiredStatePermissions: string[],
     powerLevelsContent?: PowerLevelsEventContent
   ): string[] {
     const missingPermissions: string[] = [];
-    for (const permission of requiredEventPermissions) {
+    for (const permission of requiredStatePermissions) {
       if (
         !PowerLevelsMirror.isUserAbleToSendState(
           clientUserID,
@@ -83,16 +99,39 @@ export const PowerLevelsMirror = Object.freeze({
     }
     return missingPermissions;
   },
+  missingEventPermissions(
+    clientUserID: StringUserID,
+    requiredEventPermissions: string[],
+    powerLevelsContent?: PowerLevelsEventContent
+  ): string[] {
+    const missingPermissions: string[] = [];
+    for (const permission of requiredEventPermissions) {
+      if (
+        !PowerLevelsMirror.isUserAbleToSendEvent(
+          clientUserID,
+          permission,
+          powerLevelsContent
+        )
+      ) {
+        missingPermissions.push(permission);
+      }
+    }
+    return missingPermissions;
+  },
   calculateNewMissingPermissions(
     userID: StringUserID,
-    requiredEventPermissions: string[],
-    requiredPermissions: PowerLevelPermission[],
     {
       nextPowerLevelsContent,
       previousPowerLevelsContent,
+      requiredEventPermissions,
+      requiredPermissions,
+      requiredStatePermissions,
     }: {
       nextPowerLevelsContent?: PowerLevelsEventContent;
       previousPowerLevelsContent?: PowerLevelsEventContent;
+      requiredEventPermissions: string[];
+      requiredPermissions: PowerLevelPermission[];
+      requiredStatePermissions: string[];
     }
   ): {
     missingStatePermissions: string[];
@@ -112,19 +151,31 @@ export const PowerLevelsMirror = Object.freeze({
     );
     const nextMissingStatePermissions = this.missingStatePermissions(
       userID,
-      requiredEventPermissions,
+      requiredStatePermissions,
       nextPowerLevelsContent
     );
     const previousMissingStatePermissions = this.missingStatePermissions(
+      userID,
+      requiredStatePermissions,
+      previousPowerLevelsContent
+    );
+    const nextMissingEventPermissions = this.missingEventPermissions(
+      userID,
+      requiredEventPermissions,
+      nextPowerLevelsContent
+    );
+    const previousMissingEventPermissions = this.missingEventPermissions(
       userID,
       requiredEventPermissions,
       previousPowerLevelsContent
     );
     const isPrivilidgedInNextRevision =
       nextMissingStatePermissions.length === 0 &&
+      nextMissingEventPermissions.length === 0 &&
       nextMissingPermissions.length === 0;
     const isPrivilidgedInPriorRevision =
       previousMissingStatePermissions.length === 0 &&
+      previousMissingEventPermissions.length === 0 &&
       previousMissingPermissions.length === 0;
     return {
       missingStatePermissions: nextMissingStatePermissions,
