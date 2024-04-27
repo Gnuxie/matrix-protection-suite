@@ -12,6 +12,14 @@ export enum PowerLevelPermission {
   Redact = 'redact',
 }
 
+export type MissingPermissionsChange = {
+  missingStatePermissions: string[];
+  missingPermissions: PowerLevelPermission[];
+  missingEventPermissions: string[];
+  isPrivilidgedInNextPowerLevels: boolean;
+  isPrivilidgedInPriorPowerLevels: boolean;
+};
+
 export const PowerLevelsMirror = Object.freeze({
   getUserPowerLevel(
     who: StringUserID,
@@ -133,12 +141,7 @@ export const PowerLevelsMirror = Object.freeze({
       requiredPermissions: PowerLevelPermission[];
       requiredStatePermissions: string[];
     }
-  ): {
-    missingStatePermissions: string[];
-    missingPermissions: PowerLevelPermission[];
-    isPrivilidgedInNextPowerLevels: boolean;
-    isPrivilidgedInPriorPowerLevels: boolean;
-  } {
+  ): MissingPermissionsChange {
     const nextMissingPermissions = this.missingPermissions(
       userID,
       requiredPermissions,
@@ -180,6 +183,7 @@ export const PowerLevelsMirror = Object.freeze({
     return {
       missingStatePermissions: nextMissingStatePermissions,
       missingPermissions: nextMissingPermissions,
+      missingEventPermissions: nextMissingEventPermissions,
       isPrivilidgedInNextPowerLevels: isPrivilidgedInNextRevision,
       isPrivilidgedInPriorPowerLevels: isPrivilidgedInPriorRevision,
     };

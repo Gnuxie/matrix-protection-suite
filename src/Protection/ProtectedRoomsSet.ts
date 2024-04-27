@@ -28,7 +28,10 @@ import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfi
 import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { Protection, ProtectionDescription } from './Protection';
-import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
+import {
+  MissingPermissionsChange,
+  PowerLevelsMirror,
+} from '../Client/PowerLevelsMirror';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
@@ -44,9 +47,8 @@ export interface ProtectedRoomsSet {
 
 export type HandleMissingProtectionPermissions = (
   roomID: StringRoomID,
-  eventPermissions: string[],
-  permissions: string[],
-  protection: Protection<ProtectionDescription>
+  protection: Protection<ProtectionDescription>,
+  permissionsChange: MissingPermissionsChange
 ) => void;
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
@@ -151,24 +153,23 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       ''
     );
     for (const protection of this.protections.allProtections) {
+      const permissionsChange =
+        PowerLevelsMirror.calculateNewMissingPermissions(this.userID, {
+          nextPowerLevelsContent: nextPowerLevels?.content,
+          previousPowerLevelsContent: previousPowerLevels?.content,
+          requiredEventPermissions: protection.requiredEventPermissions,
+          requiredPermissions: protection.requiredPermissions,
+          requiredStatePermissions: protection.requiredStatePermissions,
+        });
       const {
         isPrivilidgedInNextPowerLevels,
         isPrivilidgedInPriorPowerLevels,
-        missingStatePermissions,
-        missingPermissions,
-      } = PowerLevelsMirror.calculateNewMissingPermissions(this.userID, {
-        nextPowerLevelsContent: nextPowerLevels?.content,
-        previousPowerLevelsContent: previousPowerLevels?.content,
-        requiredEventPermissions: protection.requiredEventPermissions,
-        requiredPermissions: protection.requiredPermissions,
-        requiredStatePermissions: protection.requiredStatePermissions,
-      });
+      } = permissionsChange;
       if (!isPrivilidgedInNextPowerLevels) {
         this.handleMissingProtectionPermissions?.(
           nextRevision.room.toRoomIDOrAlias(),
-          missingStatePermissions,
-          missingPermissions,
-          protection
+          protection,
+          permissionsChange
         );
       }
       if (isPrivilidgedInNextPowerLevels && !isPrivilidgedInPriorPowerLevels) {
