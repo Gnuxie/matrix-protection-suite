@@ -45,10 +45,14 @@ export interface ProtectedRoomsSet {
   isProtectedRoom(roomID: StringRoomID): boolean;
 }
 
+export type ProtectionPermissionsChange = {
+  protection: Protection<ProtectionDescription>;
+  permissionsChange: MissingPermissionsChange;
+};
+
 export type HandleMissingProtectionPermissions = (
   roomID: StringRoomID,
-  protection: Protection<ProtectionDescription>,
-  permissionsChange: MissingPermissionsChange
+  protectionPermissions: ProtectionPermissionsChange[]
 ) => void;
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
@@ -152,6 +156,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       'm.room.power_levels',
       ''
     );
+    const missingPermissionsInfo: ProtectionPermissionsChange[] = [];
     for (const protection of this.protections.allProtections) {
       const permissionsChange =
         PowerLevelsMirror.calculateNewMissingPermissions(this.userID, {
@@ -166,15 +171,20 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         isPrivilidgedInPriorPowerLevels,
       } = permissionsChange;
       if (!isPrivilidgedInNextPowerLevels) {
-        this.handleMissingProtectionPermissions?.(
-          nextRevision.room.toRoomIDOrAlias(),
+        missingPermissionsInfo.push({
           protection,
-          permissionsChange
-        );
+          permissionsChange,
+        });
       }
       if (isPrivilidgedInNextPowerLevels && !isPrivilidgedInPriorPowerLevels) {
         protection.handlePermissionRequirementsMet?.(nextRevision.room);
       }
+    }
+    if (missingPermissionsInfo.length !== 0) {
+      this.handleMissingProtectionPermissions?.(
+        nextRevision.room.toRoomIDOrAlias(),
+        missingPermissionsInfo
+      );
     }
   }
 
