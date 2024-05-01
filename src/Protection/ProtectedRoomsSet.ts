@@ -24,7 +24,6 @@ import {
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
-import { ProtectedRoomsConfig } from './ProtectedRoomsConfig/ProtectedRoomsConfig';
 import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { Protection, ProtectionDescription } from './Protection';
@@ -32,14 +31,17 @@ import {
   MissingPermissionsChange,
   PowerLevelsMirror,
 } from '../Client/PowerLevelsMirror';
+import { ProtectedRoomsManager } from './ProtectedRoomsManager/ProtectedRoomsManager';
+import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
-  readonly protectedRoomsConfig: ProtectedRoomsConfig;
+  readonly protectedRoomsManager: ProtectedRoomsManager;
   readonly protections: ProtectionsManager;
   readonly setMembership: SetMembership;
   readonly setRoomState: SetRoomState;
   readonly userID: StringUserID;
+  readonly allProtectedRooms: MatrixRoomID[];
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
@@ -65,19 +67,26 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
 
   constructor(
     public readonly issuerManager: PolicyListConfig,
-    public readonly protectedRoomsConfig: ProtectedRoomsConfig,
+    public readonly protectedRoomsManager: ProtectedRoomsManager,
     public readonly protections: ProtectionsManager,
-    public readonly setMembership: SetMembership,
-    public readonly setRoomState: SetRoomState,
     public readonly userID: StringUserID,
     private readonly handleMissingProtectionPermissions?: HandleMissingProtectionPermissions
   ) {
-    setMembership.on('membership', this.membershipChangeListener);
-    setRoomState.on('revision', this.stateChangeListener);
+    this.setMembership.on('membership', this.membershipChangeListener);
+    this.setRoomState.on('revision', this.stateChangeListener);
     issuerManager.policyListRevisionIssuer.on(
       'revision',
       this.policyChangeListener
     );
+  }
+  public get setRoomState() {
+    return this.protectedRoomsManager.setRoomState;
+  }
+  public get setMembership() {
+    return this.protectedRoomsManager.setMembership;
+  }
+  public get allProtectedRooms() {
+    return this.protectedRoomsManager.allProtectedRooms;
   }
   public handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void {
     // this should only be responsible for passing through to protections.
@@ -89,7 +98,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     // The only slightly dodgy thing about that is the PolicyListManager
     // can depend on the RoomStateManager but i don't suppose it'll matter
     // they both are programmed to de-duplicate repeat events.
-    const room = this.protectedRoomsConfig.getProtectedRoom(roomID);
+    const room = this.protectedRoomsManager.getProtectedRoom(roomID);
     if (room === undefined) {
       throw new TypeError(
         `The protected rooms set should not be being informed about events that it is not protecting`
@@ -113,7 +122,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
   }
 
   public isProtectedRoom(roomID: StringRoomID): boolean {
-    return this.protectedRoomsConfig.isProtectedRoom(roomID);
+    return this.protectedRoomsManager.isProtectedRoom(roomID);
   }
 
   private setMembershipChangeListener(

@@ -75,7 +75,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     revision: PolicyListRevision
   ): Promise<ActionResult<RoomSetResult>> {
     const resultBuilder = new RoomSetResultBuilder();
-    for (const room of this.protectedRoomsSet.protectedRoomsConfig.allRooms) {
+    for (const room of this.protectedRoomsSet.allProtectedRooms) {
       resultBuilder.addResult(
         room.toRoomIDOrAlias(),
         await this.applyPolicyRevisionToRoom(room.toRoomIDOrAlias(), revision)

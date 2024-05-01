@@ -13,49 +13,41 @@ import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
-import EventEmitter from 'events';
 import AwaitLock from 'await-lock';
-import { RoomJoiner } from '../../Client/RoomJoiner';
+import {
+  LoggableConfig,
+  LoggableConfigTracker,
+} from '../../Interface/LoggableConfig';
+import { RoomResolver } from '../../Client/RoomResolver';
+import { Logger } from '../../Logging/Logger';
 
-export enum ProtectedRoomChangeType {
-  Added = 'added',
-  Removed = 'removed',
-}
-
-export type ProtectedRoomsChangeListener = (
-  room: MatrixRoomID,
-  changeType: ProtectedRoomChangeType
-) => void;
+const log = new Logger('MjolnirProtectedroomsCofnig');
 
 export interface ProtectedRoomsConfig {
-  readonly allRooms: MatrixRoomID[];
-  isProtectedRoom(roomID: StringRoomID): boolean;
-  getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined;
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
-  on(event: 'change', listener: ProtectedRoomsChangeListener): this;
-  off(event: 'change', listener: ProtectedRoomsChangeListener): this;
-  emit(
-    event: 'change',
-    ...args: Parameters<ProtectedRoomsChangeListener>
-  ): void;
+  getProtectedRooms(): MatrixRoomID[];
 }
 
 export class MjolnirProtectedRoomsConfig
-  extends EventEmitter
-  implements ProtectedRoomsConfig
+  implements ProtectedRoomsConfig, LoggableConfig
 {
   private readonly writeLock = new AwaitLock();
   private constructor(
     private readonly store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
     private readonly protectedRooms: Map<StringRoomID, MatrixRoomID>,
-    private readonly roomJoiner: RoomJoiner
+    /**
+     * We use this so that we can keep track of the raw data for logging purposes.
+     */
+    private rawData: MjolnirProtectedRoomsEvent | undefined,
+    loggableConfigTracker: LoggableConfigTracker
   ) {
-    super();
+    loggableConfigTracker.addLoggableConfig(this);
   }
   public static async createFromStore(
     store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
-    roomJoiner: RoomJoiner
+    resolver: RoomResolver,
+    loggableConfigTracker: LoggableConfigTracker
   ): Promise<ActionResult<ProtectedRoomsConfig>> {
     const data = await store.requestAccountData();
     if (isError(data)) {
@@ -65,42 +57,43 @@ export class MjolnirProtectedRoomsConfig
     }
     const protectedRooms = new Map<StringRoomID, MatrixRoomID>();
     for (const ref of data.ok?.rooms ?? []) {
-      const resolvedRef = await roomJoiner.resolveRoom(ref);
+      const resolvedRef = await resolver.resolveRoom(ref);
       if (isError(resolvedRef)) {
+        log.info(`Current config`, data.ok);
         return resolvedRef;
       }
       protectedRooms.set(resolvedRef.ok.toRoomIDOrAlias(), resolvedRef.ok);
     }
     return Ok(
-      new MjolnirProtectedRoomsConfig(store, protectedRooms, roomJoiner)
+      new MjolnirProtectedRoomsConfig(
+        store,
+        protectedRooms,
+        data.ok,
+        loggableConfigTracker
+      )
     );
   }
-  public getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined {
-    return this.protectedRooms.get(roomID);
-  }
-  public get allRooms() {
+
+  public getProtectedRooms(): MatrixRoomID[] {
     return [...this.protectedRooms.values()];
   }
-  public isProtectedRoom(roomID: StringRoomID): boolean {
-    return this.protectedRooms.has(roomID);
+  public logCurrentConfig(): void {
+    log.info('Current config', this.rawData);
   }
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
-    const joinResult = await this.roomJoiner.joinRoom(room);
-    if (isError(joinResult)) {
-      return joinResult;
-    }
     await this.writeLock.acquireAsync();
     try {
-      const result = await this.store.storeAccountData({
+      const data = {
         rooms: [...this.protectedRooms.keys(), room.toRoomIDOrAlias()],
-      });
+      };
+      const result = await this.store.storeAccountData(data);
       if (isError(result)) {
         return result.elaborate(
           `Failed to add ${room.toPermalink()} to protected rooms set.`
         );
       }
       this.protectedRooms.set(room.toRoomIDOrAlias(), room);
-      this.emit('change', room, ProtectedRoomChangeType.Added);
+      this.rawData = data;
       return Ok(undefined);
     } finally {
       this.writeLock.release();
@@ -109,18 +102,19 @@ export class MjolnirProtectedRoomsConfig
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     await this.writeLock.acquireAsync();
     try {
-      const result = await this.store.storeAccountData({
-        rooms: this.allRooms
+      const data = {
+        rooms: this.getProtectedRooms()
           .map((ref) => ref.toRoomIDOrAlias())
           .filter((roomID) => roomID !== room.toRoomIDOrAlias()),
-      });
+      };
+      const result = await this.store.storeAccountData(data);
       if (isError(result)) {
         return result.elaborate(
           `Failed to remove ${room.toPermalink()} to protected rooms set.`
         );
       }
       this.protectedRooms.delete(room.toRoomIDOrAlias());
-      this.emit('change', room, ProtectedRoomChangeType.Removed);
+      this.rawData = data;
       return Ok(undefined);
     } finally {
       this.writeLock.release();

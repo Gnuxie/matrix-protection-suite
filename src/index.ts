@@ -106,6 +106,9 @@ export * from './Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
 export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 
+export * from './Protection/ProtectedRoomsManager/ProtectedRoomsManager';
+export * from './Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
+
 export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsEvent';
 export * from './Protection/ProtectionsConfig/ProtectionsConfig';
 export * from './Protection/ProtectionsConfig/StandardProtectionsConfig';

@@ -2,29 +2,21 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig';
 import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok } from '../../Interface/Action';
-import { SimpleChangeType } from '../../Interface/SimpleChangeType';
 
 export class AbstractProtectedRoomsConfig
-  extends EventEmitter
-  implements
-    Omit<
-      ProtectedRoomsConfig,
-      'addRoom' | 'removeRoom' | 'on' | 'off' | 'emit'
-    >
+  implements Omit<ProtectedRoomsConfig, 'addRoom' | 'removeRoom'>
 {
   private readonly protectedRooms = new Map<StringRoomID, MatrixRoomID>();
   public constructor(rooms: MatrixRoomID[]) {
-    super();
     rooms.forEach((room) =>
       this.protectedRooms.set(room.toRoomIDOrAlias(), room)
     );
   }
-  public get allRooms(): MatrixRoomID[] {
+  public getProtectedRooms(): MatrixRoomID[] {
     return [...this.protectedRooms.values()];
   }
 
@@ -36,11 +28,9 @@ export class AbstractProtectedRoomsConfig
   }
   protected addRoom(room: MatrixRoomID): void {
     this.protectedRooms.set(room.toRoomIDOrAlias(), room);
-    this.emit('change', room, SimpleChangeType.Added);
   }
   protected removeRoom(room: MatrixRoomID): void {
     this.protectedRooms.delete(room.toRoomIDOrAlias());
-    this.emit('change', room, SimpleChangeType.Removed);
   }
 }
 

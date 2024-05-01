@@ -32,6 +32,8 @@ import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisi
 import { FakeRoomMembershipRevisionIssuer } from '../Membership/FakeRoomMembershipRevisionIssuer';
 import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
 import { FakeProtectionsManager } from '../Protection/ProtectionsManager/FakeProtectionsManager';
+import { StandardProtectedRoomsManager } from '../Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
+import { DummyRoomJoiner } from '../Client/DummyClientPlatform';
 
 // TODO:
 // all describe* methods need to return description objects, not concrete
@@ -73,27 +75,36 @@ export async function describeProtectedRoomsSet({
   );
   const setMembership = await StandardSetMembership.create(
     roomMembershipManager,
-    protectedRoomsConfig
+    protectedRoomsConfig.getProtectedRooms()
   );
   if (isError(setMembership)) {
     throw setMembership.error;
   }
   const setRoomState = await StandardSetRoomState.create(
     roomStateManager,
-    protectedRoomsConfig
+    protectedRoomsConfig.getProtectedRooms()
   );
   if (isError(setRoomState)) {
     throw setRoomState;
+  }
+  const protectedRoomsManager = await StandardProtectedRoomsManager.create(
+    protectedRoomsConfig,
+    roomStateManager,
+    roomMembershipManager,
+    DummyRoomJoiner,
+    setMembership.ok,
+    setRoomState.ok
+  );
+  if (isError(protectedRoomsManager)) {
+    throw protectedRoomsManager;
   }
   const protectedRoomsSet = new StandardProtectedRoomsSet(
     new FakePolicyListConfig(
       policyRoomManager,
       listDescriptions.map((description) => description.policyRevisionIssuer)
     ),
-    protectedRoomsConfig,
+    protectedRoomsManager.ok,
     new FakeProtectionsManager(),
-    setMembership.ok,
-    setRoomState.ok,
     clientUserID
   );
   return {

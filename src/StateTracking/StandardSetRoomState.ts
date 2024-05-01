@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import EventEmitter from 'events';
-import { SetRoomState } from './SetRoomState';
+import {
+  SetRoomState,
+  SetRoomStateMirror,
+  SetRoomStateMirrorCord,
+} from './SetRoomState';
 import {
   RoomStateManager,
   RoomStateRevision,
@@ -11,29 +15,23 @@ import {
   StateRevisionListener,
 } from './StateRevisionIssuer';
 import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
-import {
-  ProtectedRoomChangeType,
-  ProtectedRoomsChangeListener,
-  ProtectedRoomsConfig,
-} from '../Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 import { ActionResult, Ok, isError } from '../Interface/Action';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { Task } from '../Interface/Task';
 
+/**
+ * Provides immediate (synchronous) access to the room state within a set of rooms.
+ * Needs to be backed up with the ProtectedRoomManager which will add and remove rooms
+ * via the `SetRoomStateMirror` as they are added and removed from the protected
+ * rooms set.
+ */
 export class StandardSetRoomState extends EventEmitter implements SetRoomState {
   private readonly issuers = new Map<StringRoomID, RoomStateRevisionIssuer>();
 
   private readonly revisionListener: StateRevisionListener<RoomStateRevision>;
-  private readonly protectedRoomsChangeListener: ProtectedRoomsChangeListener;
 
-  private constructor(
-    private readonly roomStateManager: RoomStateManager,
-    private readonly protectedRoomsConfig: ProtectedRoomsConfig
-  ) {
+  private constructor() {
     super();
     this.revisionListener = this.stateRevision.bind(this);
-    this.protectedRoomsChangeListener = this.protectedRoomsListener.bind(this);
-    this.protectedRoomsConfig.on('change', this.protectedRoomsChangeListener);
   }
   getRevision(room: StringRoomID): RoomStateRevision | undefined {
     return this.issuers.get(room)?.currentRevision;
@@ -41,38 +39,36 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
 
   public static async create(
     roomStateManager: RoomStateManager,
-    protectedRoomsConfig: ProtectedRoomsConfig
+    roomSet: MatrixRoomID[]
   ): Promise<ActionResult<SetRoomState>> {
-    const setMembership = new StandardSetRoomState(
-      roomStateManager,
-      protectedRoomsConfig
+    const setRoomState = new StandardSetRoomState();
+    const issuersResult = await Promise.all(
+      roomSet.map((room) => roomStateManager.getRoomStateRevisionIssuer(room))
     );
-    const results = await Promise.all(
-      protectedRoomsConfig.allRooms.map((room) => setMembership.addRoom(room))
-    );
-    const failedResults = results.filter((result) => isError(result));
-    if (failedResults.length > 0) {
-      if (!isError(failedResults[1])) {
-        // just make typescript happy.
-        throw new TypeError('This is catastrophically wrong');
+    for (const result of issuersResult) {
+      if (isError(result)) {
+        return result.elaborate(
+          `Unable to fetch a room state revision issuer while creating the SetRoomState`
+        );
+      } else {
+        SetRoomStateMirror.addRoom(setRoomState, result.ok.room, result.ok);
       }
-      return failedResults[1];
     }
-    return Ok(setMembership);
+    return Ok(setRoomState);
   }
 
-  public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
-    const issuerResult = await this.roomStateManager.getRoomStateRevisionIssuer(
-      room
-    );
-    if (isError(issuerResult)) {
-      return issuerResult;
-    }
-    this.issuers.set(room.toRoomIDOrAlias(), issuerResult.ok);
-    issuerResult.ok.on('revision', this.revisionListener);
-    return Ok(undefined);
+  public static blankSet(): StandardSetRoomState {
+    return new StandardSetRoomState();
   }
-  public removeRoom(room: MatrixRoomID): void {
+
+  public [SetRoomStateMirrorCord.addRoom](
+    room: MatrixRoomID,
+    roomStateRevisionIssuer: RoomStateRevisionIssuer
+  ): void {
+    this.issuers.set(room.toRoomIDOrAlias(), roomStateRevisionIssuer);
+    roomStateRevisionIssuer.on('revision', this.revisionListener);
+  }
+  public [SetRoomStateMirrorCord.removeRoom](room: MatrixRoomID): void {
     const issuer = this.issuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       return;
@@ -84,7 +80,6 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
     for (const issuer of this.issuers.values()) {
       issuer.off('revision', this.revisionListener);
     }
-    this.protectedRoomsConfig.off('change', this.protectedRoomsChangeListener);
   }
   public get allRooms(): RoomStateRevision[] {
     return [...this.issuers.values()].map((issuer) => issuer.currentRevision);
@@ -96,23 +91,11 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
     >
   ) {
     this.emit(
-      'membership',
+      'revision',
       nextRevision.room.toRoomIDOrAlias(),
       nextRevision,
       changes,
       previousRevision
-    );
-  }
-
-  private protectedRoomsListener(
-    ...[room, changeType]: Parameters<ProtectedRoomsChangeListener>
-  ): void {
-    void Task(
-      (async (): Promise<ActionResult<void>> => {
-        return changeType === ProtectedRoomChangeType.Added
-          ? await this.addRoom(room)
-          : Ok(this.removeRoom(room));
-      })()
     );
   }
 }
