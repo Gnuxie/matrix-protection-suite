@@ -137,7 +137,7 @@ export interface Protection<TProtectionDescription> {
 
   /**
    * Called when the permission requirements of the protection have been met
-   * within a protected room.
+   * within a protected room. This includes if the room is a newly protected room.
    */
   handlePermissionRequirementsMet?(room: MatrixRoomID): void;
 }
