@@ -68,4 +68,8 @@ export class FakeRoomStateManager implements RoomStateManager {
     }
     issuer.appendState(stateEvents);
   }
+
+  addIssuer(issuer: FakeRoomStateRevisionIssuer): void {
+    this.roomStateRevisionIssuers.set(issuer.room.toRoomIDOrAlias(), issuer);
+  }
 }
