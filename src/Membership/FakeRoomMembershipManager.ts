@@ -61,4 +61,11 @@ export class FakeRoomMembershipManager implements RoomMembershipManager {
     }
     return issuer;
   }
+
+  public addIssuer(issuer: FakeRoomMembershipRevisionIssuer): void {
+    this.roomMembershipRevisionIssuers.set(
+      issuer.room.toRoomIDOrAlias(),
+      issuer
+    );
+  }
 }

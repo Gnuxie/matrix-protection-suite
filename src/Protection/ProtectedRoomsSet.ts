@@ -25,13 +25,19 @@ import {
 } from '../StateTracking/StateRevisionIssuer';
 import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
-import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
+import {
+  PowerLevelsEvent,
+  PowerLevelsEventContent,
+} from '../MatrixTypes/PowerLevels';
 import { Protection, ProtectionDescription } from './Protection';
 import {
   MissingPermissionsChange,
   PowerLevelsMirror,
 } from '../Client/PowerLevelsMirror';
-import { ProtectedRoomsManager } from './ProtectedRoomsManager/ProtectedRoomsManager';
+import {
+  ProtectedRoomChangeType,
+  ProtectedRoomsManager,
+} from './ProtectedRoomsManager/ProtectedRoomsManager';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 
 export interface ProtectedRoomsSet {
@@ -64,6 +70,8 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.policyRevisionChangeListener.bind(this);
   private readonly stateChangeListener: SetRoomStateListener =
     this.stateRevisionChangeListener.bind(this);
+  private readonly roomsChangeListener =
+    this.protectedRoomsChangeListener.bind(this);
 
   constructor(
     public readonly issuerManager: PolicyListConfig,
@@ -78,6 +86,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       'revision',
       this.policyChangeListener
     );
+    this.protectedRoomsManager.on('change', this.roomsChangeListener);
   }
   public get setRoomState() {
     return this.protectedRoomsManager.setRoomState;
@@ -152,25 +161,17 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     }
   }
 
-  private powerLevelsChange(
-    nextRevision: RoomStateRevision,
-    previousRevision: RoomStateRevision
+  private powerLevelsChangeFromContent(
+    room: MatrixRoomID,
+    nextPowerLevels: PowerLevelsEventContent | undefined,
+    previousPowerLevels: PowerLevelsEventContent | undefined
   ): void {
-    const previousPowerLevels =
-      previousRevision.getStateEvent<PowerLevelsEvent>(
-        'm.room.power_levels',
-        ''
-      );
-    const nextPowerLevels = nextRevision.getStateEvent<PowerLevelsEvent>(
-      'm.room.power_levels',
-      ''
-    );
     const missingPermissionsInfo: ProtectionPermissionsChange[] = [];
     for (const protection of this.protections.allProtections) {
       const permissionsChange =
         PowerLevelsMirror.calculateNewMissingPermissions(this.userID, {
-          nextPowerLevelsContent: nextPowerLevels?.content,
-          previousPowerLevelsContent: previousPowerLevels?.content,
+          nextPowerLevelsContent: nextPowerLevels,
+          previousPowerLevelsContent: previousPowerLevels,
           requiredEventPermissions: protection.requiredEventPermissions,
           requiredPermissions: protection.requiredPermissions,
           requiredStatePermissions: protection.requiredStatePermissions,
@@ -186,15 +187,35 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         });
       }
       if (isPrivilidgedInNextPowerLevels && !isPrivilidgedInPriorPowerLevels) {
-        protection.handlePermissionRequirementsMet?.(nextRevision.room);
+        protection.handlePermissionRequirementsMet?.(room);
       }
     }
     if (missingPermissionsInfo.length !== 0) {
       this.handleMissingProtectionPermissions?.(
-        nextRevision.room.toRoomIDOrAlias(),
+        room.toRoomIDOrAlias(),
         missingPermissionsInfo
       );
     }
+  }
+
+  private powerLevelsChangeFromRevision(
+    nextRevision: RoomStateRevision,
+    previousRevision: RoomStateRevision
+  ): void {
+    const previousPowerLevels =
+      previousRevision.getStateEvent<PowerLevelsEvent>(
+        'm.room.power_levels',
+        ''
+      );
+    const nextPowerLevels = nextRevision.getStateEvent<PowerLevelsEvent>(
+      'm.room.power_levels',
+      ''
+    );
+    this.powerLevelsChangeFromContent(
+      nextRevision.room,
+      nextPowerLevels?.content,
+      previousPowerLevels?.content
+    );
   }
 
   private stateRevisionChangeListener(
@@ -207,7 +228,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       (change) => change.eventType === 'm.room.power_levels'
     );
     if (powerLevelsEvent !== undefined) {
-      this.powerLevelsChange(nextRevision, previousRevision);
+      this.powerLevelsChangeFromRevision(nextRevision, previousRevision);
     }
     for (const protection of this.protections.allProtections) {
       if (protection.handleStateChange === undefined) {
@@ -215,5 +236,38 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       }
       void Task(protection.handleStateChange(nextRevision, changes));
     }
+  }
+
+  private protectedRoomsChangeListener(
+    room: MatrixRoomID,
+    changeType: ProtectedRoomChangeType
+  ): void {
+    if (changeType !== ProtectedRoomChangeType.Added) {
+      return;
+    }
+    const currentRevision = this.setRoomState.getRevision(
+      room.toRoomIDOrAlias()
+    );
+    if (currentRevision === undefined) {
+      throw new TypeError(
+        `The SetRoomState is not being kept consistent with the number of protected rooms`
+      );
+    }
+    const currentPowerLevelsEvent = currentRevision.getStateEvent(
+      'm.room.power_levels',
+      ''
+    );
+    // We call the powerLevelsChange so that handlePermissionsMet will be called
+    // on protections for with the new room.
+    // We also call powerLevelsChange so that the missing permissions CB will
+    // get called if we don't have the right permissions for any protection in the new room.
+    this.powerLevelsChangeFromContent(
+      room,
+      currentPowerLevelsEvent?.content,
+      // always treat the previous revision as though we are unprividdged in the new room.
+      {
+        users_default: -1,
+      }
+    );
   }
 }
