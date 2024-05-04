@@ -99,11 +99,11 @@ export class StandardProtectedRoomsManager
         SetMembershipMirror.addRoom(blankSetMembership, room, membershipIssuer);
       }
     );
-    const allProtectedRooms = protectedRoomsConfig.getProtectedRooms();
-    const results = await Promise.all(allProtectedRooms.map(joinAndAdd));
-    const error = results.find(isError);
-    if (error !== undefined) {
-      return error;
+    for (const room of protectedRoomsConfig.getProtectedRooms()) {
+      const result = await joinAndAdd(room);
+      if (isError(result)) {
+        return result;
+      }
     }
     return Ok(
       new StandardProtectedRoomsManager(
