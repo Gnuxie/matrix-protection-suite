@@ -1,26 +1,18 @@
-// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2023 - 2024 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2024 Haydn Paterson (sinclair) <haydn.developer@gmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Type } from '@sinclair/typebox';
+import { FormatRegistry, Type } from '@sinclair/typebox';
 
 const UserIDSecret = Symbol('StringUserID');
 export type StringUserID = string & { [UserIDSecret]: true };
 
-export const StringUserID = Type.Transform(
-  Type.String({
-    description:
-      'Contains the fully-qualified ID of the user who sent this event.',
-  })
-)
-  .Decode((value) => {
-    if (isStringUserID(value)) {
-      return value;
-    } else {
-      throw new TypeError(`Couldnt' decode ${value} as an StringUserID`);
-    }
-  })
-  .Encode((value) => value);
+FormatRegistry.Set('StringUserID', isStringUserID);
+
+export const StringUserID = Type.Unsafe<StringUserID>(
+  Type.String({ format: 'StringUserID' })
+);
 
 export function isStringUserID(string: string): string is StringUserID {
   return /^@[\S^:]*:\S*$/.test(string);
@@ -45,19 +37,11 @@ export function userLocalpart(userID: StringUserID): string {
 const StringRoomIDSecret = Symbol('StringRoomID');
 export type StringRoomID = string & { [StringRoomIDSecret]: true };
 
-export const StringRoomID = Type.Transform(
-  Type.String({
-    description: 'The ID of the room associated with this event.',
-  })
-)
-  .Decode((value) => {
-    if (isStringRoomID(value)) {
-      return value;
-    } else {
-      throw new TypeError(`Couldn't decode ${value} as a StringRoomID`);
-    }
-  })
-  .Encode((value) => value);
+FormatRegistry.Set('StringRoomID', isStringRoomID);
+
+export const StringRoomID = Type.Unsafe<StringRoomID>(
+  Type.String({ format: 'StringRoomID' })
+);
 
 export function isStringRoomID(string: string): string is StringRoomID {
   return /^![^:]*:(\S)*/.test(string);
@@ -66,19 +50,11 @@ export function isStringRoomID(string: string): string is StringRoomID {
 const StringRoomAliasSecret = Symbol('StringRoomAlias');
 export type StringRoomAlias = string & { [StringRoomAliasSecret]: true };
 
-export const StringRoomAlias = Type.Transform(
-  Type.String({
-    description: 'An alias for the room.',
-  })
-)
-  .Decode((value) => {
-    if (isStringRoomAlias(value)) {
-      return value;
-    } else {
-      throw new TypeError(`Couldn't decode ${value} as StringRoomAlias`);
-    }
-  })
-  .Encode((value) => value);
+FormatRegistry.Set('StringRoomAlias', isStringRoomAlias);
+
+export const StringRoomAlias = Type.Unsafe<StringRoomAlias>(
+  Type.String({ format: 'StringRoomAlias' })
+);
 
 export function isStringRoomAlias(string: string): string is StringRoomAlias {
   return /^#[^:]*:(\S)*/.test(string);
@@ -101,16 +77,8 @@ export function isStringEventID(string: string): string is StringEventID {
   return string.startsWith('$');
 }
 
-export const StringEventID = Type.Transform(
-  Type.String({
-    description: 'The globally unique event identifier.',
-  })
-)
-  .Decode((value) => {
-    if (isStringEventID(value)) {
-      return value;
-    } else {
-      throw new TypeError(`Couldn't decode ${value} as a StringEventID`);
-    }
-  })
-  .Encode((value) => value);
+FormatRegistry.Set('StringEventID', isStringEventID);
+
+export const StringEventID = Type.Unsafe<StringEventID>(
+  Type.String({ format: 'StringEventID' })
+);

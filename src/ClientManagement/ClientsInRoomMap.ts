@@ -180,10 +180,8 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
     }
     if (event.type === 'm.room.member' && Value.Check(MembershipEvent, event)) {
       // only inform if we already informed the client about this event.
-      if (!usersInRoom.includes(event.state_key as StringUserID)) {
-        const clientRooms = this.getClientRooms(
-          event.state_key as StringUserID
-        );
+      if (!usersInRoom.includes(event.state_key)) {
+        const clientRooms = this.getClientRooms(event.state_key);
         clientRooms?.handleTimelineEvent(roomID, event);
       }
     }
