@@ -39,6 +39,7 @@ import {
   ProtectedRoomsManager,
 } from './ProtectedRoomsManager/ProtectedRoomsManager';
 import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
@@ -50,6 +51,7 @@ export interface ProtectedRoomsSet {
   readonly allProtectedRooms: MatrixRoomID[];
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
+  handleExternalInvite(roomID: StringRoomID, event: MembershipEvent): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
 }
 
@@ -127,6 +129,17 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         continue;
       }
       void Task(protection.handleEventReport(report));
+    }
+  }
+  public handleExternalInvite(
+    roomID: StringRoomID,
+    event: MembershipEvent
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleExternalInvite === undefined) {
+        continue;
+      }
+      protection.handleExternalInvite(roomID, event);
     }
   }
 

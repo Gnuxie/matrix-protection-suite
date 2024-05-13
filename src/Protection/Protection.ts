@@ -41,6 +41,8 @@ import {
 import { findCapabilityInterfaceSet } from './Capability/CapabilityInterface';
 import { findCapabilityProviderSet } from './Capability/CapabilityProvider';
 import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
+import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 
 /**
  * @param description The description for the protection being constructed.
@@ -140,6 +142,13 @@ export interface Protection<TProtectionDescription> {
    * within a protected room. This includes if the room is a newly protected room.
    */
   handlePermissionRequirementsMet?(room: MatrixRoomID): void;
+
+  /**
+   * Handle an invitation to a room that is external to the protected rooms set.
+   * @param roomID The room the invitation is for.
+   * @param event The invitation event itself.
+   */
+  handleExternalInvite?(roomID: StringRoomID, event: MembershipEvent): void;
 }
 
 export class AbstractProtection<TProtectionDescription>
