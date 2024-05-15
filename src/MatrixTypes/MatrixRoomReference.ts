@@ -82,6 +82,21 @@ export namespace MatrixRoomReference {
       );
     }
   }
+
+  /**
+   * Try parse a roomID, roomAlias or a permalink.
+   */
+  export function fromString(
+    string: string
+  ): ActionResult<MatrixRoomReference> {
+    if (isStringRoomID(string)) {
+      return Ok(MatrixRoomReference.fromRoomID(string));
+    } else if (isStringRoomAlias(string)) {
+      return Ok(MatrixRoomReference.fromRoomIDOrAlias(string));
+    } else {
+      return MatrixRoomReference.fromPermalink(string);
+    }
+  }
 }
 /**
  * This is a universal reference for a matrix room.
