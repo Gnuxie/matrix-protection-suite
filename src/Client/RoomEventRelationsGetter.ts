@@ -8,21 +8,18 @@ import {
   StringEventID,
   StringRoomID,
 } from '../MatrixTypes/StringlyTypedMatrix';
-import {
-  PaginationOptions,
-  StreamPaginationError,
-  StreamPaginationOptions,
-} from './Pagination';
+import { PaginationError, StreamPaginationOptions } from './Pagination';
 
-export interface RoomEventRelationsOptions extends PaginationOptions {
+export interface RoomEventRelationsOptions<ChunkItem>
+  extends StreamPaginationOptions<ChunkItem> {
   relationType?: string;
   eventType?: string;
 }
 
-export interface RoomEventRelationsGetter<ChunkItem = RoomEvent> {
-  forEachRelation(
+export interface RoomEventRelationsGetter {
+  forEachRelation<ChunkItem = RoomEvent>(
     roomID: StringRoomID,
     eventID: StringEventID,
-    options: StreamPaginationOptions<ChunkItem>
-  ): Promise<ActionResult<void, StreamPaginationError>>;
+    options: RoomEventRelationsOptions<ChunkItem>
+  ): Promise<ActionResult<void, PaginationError>>;
 }
