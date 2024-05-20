@@ -27,6 +27,7 @@ export * from './ClientManagement/StandardClientRooms';
 
 export * from './Interface/Action';
 export * from './Interface/ActionException';
+export * from './Interface/Deduplicator';
 export * from './Interface/InternedInstanceFactory';
 export * from './Interface/LoggableConfig';
 export * from './Interface/MatrixException';
