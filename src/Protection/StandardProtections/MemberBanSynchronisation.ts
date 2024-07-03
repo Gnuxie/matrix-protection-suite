@@ -105,9 +105,8 @@ export class MemberBanSynchronisationProtection
   public async synchroniseWithRevision(
     revision: PolicyListRevision
   ): Promise<ActionResult<void>> {
-    const result = await this.userConsequences.consequenceForUsersInRoomSet(
-      revision
-    );
+    const result =
+      await this.userConsequences.consequenceForUsersInRoomSet(revision);
     if (isError(result)) {
       return result;
     } else {

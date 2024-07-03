@@ -12,11 +12,11 @@ import {
 import { wrapCapabilityProviderInRenderer } from './CapabilityRenderer';
 
 export type CapabilityInterfaceSet<
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = Record<keyof TCapabilitySet, CapabilityInterfaceDescription>;
 
 export type CapabilityProviderSet<
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = Record<keyof TCapabilitySet, CapabilityProviderDescription>;
 
 export type CapabilitySet<Names extends string = string> = Record<
@@ -25,7 +25,7 @@ export type CapabilitySet<Names extends string = string> = Record<
 >;
 
 export type GenericCapabilityDescription<
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = Record<keyof TCapabilitySet, string>;
 
 export function initializeCapabilitySet<Context = unknown>(

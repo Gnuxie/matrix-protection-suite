@@ -10,7 +10,7 @@ import {
 
 export class SetProtectionSetting<
     Key extends string,
-    TSettings extends Record<string | Key, unknown> & Record<Key, Set<unknown>>
+    TSettings extends Record<string | Key, unknown> & Record<Key, Set<unknown>>,
   >
   extends AbstractProtectionSetting<Key, TSettings>
   implements CollectionProtectionSetting<Key, TSettings>

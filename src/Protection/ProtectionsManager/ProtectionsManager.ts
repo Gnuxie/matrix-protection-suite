@@ -80,7 +80,7 @@ export interface ProtectionsManager<Context = unknown> {
     TProtectionDescription extends ProtectionDescription<
       Context,
       TSettings
-    > = ProtectionDescription<Context, TSettings>
+    > = ProtectionDescription<Context, TSettings>,
   >(
     protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
@@ -94,13 +94,14 @@ export interface ProtectionsManager<Context = unknown> {
    * consequence provider description for.
    */
   getCapabilityProviderSet<
-    TProtectionDescription extends ProtectionDescription = ProtectionDescription
+    TProtectionDescription extends
+      ProtectionDescription = ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<CapabilityProviderSet>>;
 
   getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
   >(
     protectionDescription: ProtectionDescription<Context, TSettings>
   ): Promise<ActionResult<TSettings>>;

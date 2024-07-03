@@ -88,7 +88,8 @@ export class AbstractProtectionsManager<Context = unknown>
   }
 
   public async getCapabilityProviderSet<
-    TProtectionDescription extends ProtectionDescription<Context> = ProtectionDescription<Context>
+    TProtectionDescription extends
+      ProtectionDescription<Context> = ProtectionDescription<Context>,
   >(
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<CapabilityProviderSet>> {
@@ -101,7 +102,7 @@ export class AbstractProtectionsManager<Context = unknown>
     TProtectionDescription extends ProtectionDescription<
       Context,
       TSettings
-    > = ProtectionDescription<Context, TSettings>
+    > = ProtectionDescription<Context, TSettings>,
   >(
     protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
@@ -152,14 +153,14 @@ export class AbstractProtectionsManager<Context = unknown>
     return this.enabledProtections.has(protectionDescription.name);
   }
   public findEnabledProtection<
-    TProtectionDescription extends ProtectionDescription
+    TProtectionDescription extends ProtectionDescription,
   >(name: string): Protection<TProtectionDescription> | undefined {
     return this.enabledProtections.get(
       name
     ) as Protection<TProtectionDescription>;
   }
   public withEnabledProtection<
-    TProtectionDescription extends ProtectionDescription
+    TProtectionDescription extends ProtectionDescription,
   >(
     name: string,
     cb: (protection: Protection<TProtectionDescription>) => void
@@ -187,7 +188,7 @@ export class FakeProtectionsManager<Context = unknown>
   }
 
   private getSetting<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
   >(
     description: ProtectionDescription<Context, TSettings>
   ): UnknownSettings<string> {
@@ -228,7 +229,7 @@ export class FakeProtectionsManager<Context = unknown>
     return Ok(undefined);
   }
   public async getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
   >(
     protectionDescription: ProtectionDescription<Context, TSettings>
   ): Promise<ActionResult<TSettings>> {

@@ -12,7 +12,7 @@ import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { ProtectionSetting, UnknownSettings } from './ProtectionSetting';
 
 export interface ProtectionSettings<
-  TSettings extends UnknownSettings<string> = UnknownSettings<string>
+  TSettings extends UnknownSettings<string> = UnknownSettings<string>,
 > {
   defaultSettings: TSettings;
   descriptions: Record<keyof TSettings, ProtectionSetting<string, TSettings>>;
@@ -27,7 +27,7 @@ export interface ProtectionSettings<
 }
 
 export class StandardProtectionSettings<
-  TSettings extends UnknownSettings<string> = UnknownSettings<string>
+  TSettings extends UnknownSettings<string> = UnknownSettings<string>,
 > implements ProtectionSettings<TSettings>
 {
   public constructor(

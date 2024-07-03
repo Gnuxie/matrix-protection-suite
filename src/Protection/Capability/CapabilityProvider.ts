@@ -97,7 +97,7 @@ export function describeCapabilityProvider<Context = unknown>({
 }
 
 export function findCapabilityProviderSet<
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 >(
   names: GenericCapabilityDescription<TCapabilitySet>
 ): CapabilityProviderSet<TCapabilitySet> {

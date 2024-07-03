@@ -9,7 +9,7 @@ export const DRAUPNIR_SCHEMA_VERSION_KEY =
 
 export type SchemedData<
   VersionKey extends string = typeof DRAUPNIR_SCHEMA_VERSION_KEY,
-  Version extends number = number
+  Version extends number = number,
 > = { [P in VersionKey]?: Version };
 
 export type SchemaMigration<TSchema extends SchemedData = SchemedData> = (

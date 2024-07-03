@@ -163,7 +163,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
   }
 
   public async enableProtection<
-    TProtectionDescription extends ProtectionDescription
+    TProtectionDescription extends ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription,
     capabilityProviderSet: CapabilityProviderSet

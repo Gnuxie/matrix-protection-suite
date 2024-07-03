@@ -47,7 +47,7 @@ export interface StateChange<EventSchema extends StateEvent = StateEvent> {
 }
 
 export type StateRevisionListener<
-  Revision extends StateRevision = StateRevision
+  Revision extends StateRevision = StateRevision,
 > = (
   nextRevision: Revision,
   changes: StateChange[],

@@ -7,7 +7,7 @@ import { ActionResult, Ok, isOk } from './Action';
 export type CreateInstanceFromKey<
   K,
   V,
-  AdditionalCreationArguments extends unknown[]
+  AdditionalCreationArguments extends unknown[],
 > = (key: K, ...args: AdditionalCreationArguments) => Promise<ActionResult<V>>;
 
 /**
@@ -23,7 +23,7 @@ export type CreateInstanceFromKey<
 export class InternedInstanceFactory<
   K,
   V,
-  AdditionalCreationArguments extends unknown[]
+  AdditionalCreationArguments extends unknown[],
 > {
   private readonly instances = new Map<K, V>();
   /**
