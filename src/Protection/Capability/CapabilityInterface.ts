@@ -42,7 +42,7 @@ export function describeCapabilityInterface(
 }
 
 export function findCapabilityInterfaceSet<
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 >(
   names: GenericCapabilityDescription<TCapabilitySet>
 ): CapabilityInterfaceSet<TCapabilitySet> {

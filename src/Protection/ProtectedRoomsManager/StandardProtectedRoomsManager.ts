@@ -131,9 +131,8 @@ export class StandardProtectedRoomsManager
     if (isError(joinResult)) {
       return joinResult;
     }
-    const stateIssuer = await this.roomStateManager.getRoomStateRevisionIssuer(
-      room
-    );
+    const stateIssuer =
+      await this.roomStateManager.getRoomStateRevisionIssuer(room);
     if (isError(stateIssuer)) {
       return stateIssuer;
     }

@@ -139,7 +139,7 @@ export class StandardProtectionsManager<Context = unknown>
     TProtectionDescription extends ProtectionDescription<
       Context,
       TSettings
-    > = ProtectionDescription<Context, TSettings>
+    > = ProtectionDescription<Context, TSettings>,
   >(
     protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
@@ -162,7 +162,7 @@ export class StandardProtectionsManager<Context = unknown>
   }
 
   public async getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>
+    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
   >(
     protectionDescription: ProtectionDescription<Context, TSettings>
   ): Promise<ActionResult<TSettings>> {

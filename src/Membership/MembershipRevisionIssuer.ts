@@ -12,7 +12,7 @@ import {
 } from './MembershipRevision';
 
 export type MembershipRevisionListener<
-  Revision extends MembershipRevision = MembershipRevision
+  Revision extends MembershipRevision = MembershipRevision,
 > = (
   nextRevision: Revision,
   changes: MembershipChange[],

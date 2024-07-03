@@ -20,7 +20,7 @@ const CAPABILITY_CONTEXT_GLUE = new Map<string, CapabilityContextGlue>();
  */
 export type CapabilityContextGlue<
   HostContext = unknown,
-  GuestContext = unknown
+  GuestContext = unknown,
 > = {
   /** The name of the capability provider to provide glue for */
   name: string;
@@ -39,14 +39,14 @@ export function findCapabilityContextGlue(
 
 export function registerCapabilityContextGlue<
   HostContext = unknown,
-  GuestContext = unknown
+  GuestContext = unknown,
 >(glue: CapabilityContextGlue<HostContext, GuestContext>): void {
   CAPABILITY_CONTEXT_GLUE.set(glue.name, glue as CapabilityContextGlue);
 }
 
 export function describeCapabilityContextGlue<
   HostContext = unknown,
-  GuestContext = unknown
+  GuestContext = unknown,
 >(glue: CapabilityContextGlue<HostContext, GuestContext>): void {
   registerCapabilityContextGlue<HostContext, GuestContext>(glue);
 }

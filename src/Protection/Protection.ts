@@ -58,7 +58,7 @@ import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 export type ProtectionFactoryMethod<
   Context = unknown,
   TSettings extends Record<string, unknown> = Record<string, unknown>,
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = (
   description: ProtectionDescription<Context, TSettings, TCapabilitySet>,
   protectedRoomsSet: ProtectedRoomsSet,
@@ -76,7 +76,7 @@ export type ProtectionFactoryMethod<
 export interface ProtectionDescription<
   Context = unknown,
   TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 > {
   readonly name: string;
   readonly description: string;
@@ -199,7 +199,7 @@ const PROTECTIONS = new Map<string, ProtectionDescription>();
 export function registerProtection<
   Context = unknown,
   TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  TCapabilitySet extends CapabilitySet = CapabilitySet
+  TCapabilitySet extends CapabilitySet = CapabilitySet,
 >(
   description: ProtectionDescription<Context, TSettings, TCapabilitySet>
 ): ProtectionDescription<Context, TSettings, TCapabilitySet> {
@@ -221,7 +221,7 @@ export function findProtection(
 export function describeProtection<
   TCapabilitySet extends CapabilitySet = CapabilitySet,
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>
+  TSettings extends Record<string, unknown> = Record<string, unknown>,
 >({
   name,
   description,

@@ -17,7 +17,7 @@ import {
 
 export class SafeIntegerProtectionSetting<
     Key extends string,
-    TSettings extends UnknownSettings<Key> & Record<Key, number>
+    TSettings extends UnknownSettings<Key> & Record<Key, number>,
   >
   extends AbstractProtectionSetting<Key, TSettings>
   implements ProtectionSetting<Key, TSettings>

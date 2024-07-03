@@ -77,22 +77,22 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
         event.unsigned?.prev_content === undefined
           ? undefined
           : event.unsigned?.prev_content === null
-          ? undefined
-          : SafeMembershipEventMirror.parse(
-              event.unsigned.prev_content as Record<string, unknown>
-            ).match(
-              (ok) => ok,
-              (error) => {
-                log.error(
-                  `Unable to decode previous membership for ${
-                    event.state_key
-                  } within ${this.room.toPermalink()}. This is a serious error and the developers should be notified.`,
-                  JSON.stringify(event.unsigned?.prev_content),
-                  error
-                );
-                return undefined;
-              }
-            );
+            ? undefined
+            : SafeMembershipEventMirror.parse(
+                event.unsigned.prev_content as Record<string, unknown>
+              ).match(
+                (ok) => ok,
+                (error) => {
+                  log.error(
+                    `Unable to decode previous membership for ${
+                      event.state_key
+                    } within ${this.room.toPermalink()}. This is a serious error and the developers should be notified.`,
+                    JSON.stringify(event.unsigned?.prev_content),
+                    error
+                  );
+                  return undefined;
+                }
+              );
       const membershipChange = membershipChangeType(
         event,
         localPreviousEvent ?? citedPreviousMembership

@@ -246,7 +246,7 @@ export function groupChangesByScope(
 type FlatPolicyRuleChnageByScope = [
   PolicyRuleType,
   Recommendation,
-  PolicyRuleChange[]
+  PolicyRuleChange[],
 ][];
 
 function flattenChangesByScope(

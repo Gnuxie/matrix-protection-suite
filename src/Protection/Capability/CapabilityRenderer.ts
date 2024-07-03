@@ -12,7 +12,7 @@ import {
 
 export interface CapabilityRendererDescription<
   TCapabilityInterface = unknown,
-  Context = unknown
+  Context = unknown,
 > extends Omit<CapabilityProviderDescription<Context>, 'factory'> {
   factory(
     protectionDescription: DescriptionMeta,
@@ -36,7 +36,7 @@ export function registerCapabilityRenderer(
 
 export function findCapabilityRenderer<
   TCapabilityInterface = unknown,
-  Context = unknown
+  Context = unknown,
 >(
   name: string
 ): CapabilityRendererDescription<TCapabilityInterface, Context> | undefined {
@@ -45,7 +45,7 @@ export function findCapabilityRenderer<
 
 export function describeCapabilityRenderer<
   TCapabilityInterface = unknown,
-  Context = unknown
+  Context = unknown,
 >({
   name,
   description,

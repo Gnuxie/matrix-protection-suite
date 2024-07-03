@@ -14,7 +14,7 @@ export type UnknownSettings<Key extends string> = Record<string | Key, unknown>;
 
 export interface ProtectionSetting<
   Key extends string,
-  TSettings extends UnknownSettings<Key>
+  TSettings extends UnknownSettings<Key>,
 > {
   readonly key: Key;
   setValue(settings: TSettings, value: unknown): ActionResult<TSettings>;
@@ -24,7 +24,7 @@ export interface ProtectionSetting<
 
 export class AbstractProtectionSetting<
   Key extends string,
-  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>
+  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>,
 > {
   protected constructor(public readonly key: keyof TSettings & Key) {
     // nothing to do.
@@ -44,7 +44,7 @@ export class AbstractProtectionSetting<
 
 export interface CollectionProtectionSetting<
   Key extends string,
-  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>
+  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>,
 > extends ProtectionSetting<Key, TSettings> {
   addItem(settings: TSettings, value: unknown): ActionResult<TSettings>;
   removeItem(settings: TSettings, value: unknown): ActionResult<TSettings>;

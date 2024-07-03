@@ -5,7 +5,10 @@
 import { ActionError, ActionResult, ResultError } from './Action';
 
 export class MultipleErrors extends ActionError {
-  constructor(message: string, public readonly errors: ActionError[]) {
+  constructor(
+    message: string,
+    public readonly errors: ActionError[]
+  ) {
     super(message);
   }
 

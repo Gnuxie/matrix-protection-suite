@@ -19,7 +19,7 @@ const StringArray = Type.Array(Type.String());
 
 export class StringSetProtectionSetting<
     Key extends string,
-    TSettings extends Record<string | Key, unknown> & Record<Key, Set<string>>
+    TSettings extends Record<string | Key, unknown> & Record<Key, Set<string>>,
   >
   extends SetProtectionSetting<Key, TSettings>
   implements CollectionProtectionSetting<Key, TSettings>
