@@ -121,7 +121,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     const eventIdMap = this.policyRuleByType.get(kind);
     if (eventIdMap) {
       for (const rule of eventIdMap.values()) {
-        if (rule && rule.kind === kind) {
+        if (rule.kind === kind) {
           if (recommendation === undefined) {
             rules.push(rule);
           } else if (rule.recommendation === recommendation) {
@@ -166,8 +166,12 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         change.changeType === SimpleChangeType.Modified
       ) {
         setPolicyRule(change.rule.kind, change.rule);
+        // The code base could change, and then we'd be screwed:
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       } else if (change.changeType === SimpleChangeType.Removed) {
         removePolicyRule(change.rule);
+      } else {
+        throw new TypeError(`Unknown change type ${change.changeType}`);
       }
     }
     const nextRevisionID = new Revision();
@@ -384,9 +388,6 @@ class PolicyRuleScope {
     return [...this.globRules.values()]
       .filter((rules) => {
         const [firstRule] = rules;
-        if (firstRule === undefined) {
-          throw new TypeError('There should never be an empty list in the map');
-        }
         return firstRule.isMatch(entity);
       })
       .map((rules) => [...rules])

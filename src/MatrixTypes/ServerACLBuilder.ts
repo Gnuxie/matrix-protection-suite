@@ -49,32 +49,32 @@ export class ServerACLBuilder {
     return allowed;
   }
 
-  public allowIpAddresses(): ServerACLBuilder {
+  public allowIpAddresses(): this {
     this.allowIps = true;
     return this;
   }
 
-  public denyIpAddresses(): ServerACLBuilder {
+  public denyIpAddresses(): this {
     this.allowIps = false;
     return this;
   }
 
-  public allowServer(glob: string): ServerACLBuilder {
+  public allowServer(glob: string): this {
     this.allowedServers.add(glob);
     return this;
   }
 
-  public setAllowedServers(globs: string[]): ServerACLBuilder {
+  public setAllowedServers(globs: string[]): this {
     this.allowedServers = new Set<string>(globs);
     return this;
   }
 
-  public denyServer(glob: string): ServerACLBuilder {
+  public denyServer(glob: string): this {
     this.deniedServers.add(glob);
     return this;
   }
 
-  public setDeniedServers(globs: string[]): ServerACLBuilder {
+  public setDeniedServers(globs: string[]): this {
     this.deniedServers = new Set<string>(globs);
     return this;
   }
@@ -96,8 +96,6 @@ export class ServerACLBuilder {
   }
 
   public matches(acl: ServerACLContent): boolean {
-    if (!acl) return false;
-
     const allow = acl['allow'];
     const deny = acl['deny'];
     const ips = acl['allow_ip_literals'];

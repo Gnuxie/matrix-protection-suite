@@ -55,7 +55,8 @@ export const PowerLevelsMirror = Object.freeze({
     content?: PowerLevelsEventContent
   ): boolean {
     const userLevel = this.getUserPowerLevel(who, content);
-    const defaultPowerLevel = permission === 'invite' ? 0 : 50;
+    const defaultPowerLevel =
+      permission === PowerLevelPermission.Invite ? 0 : 50;
     const permissionLevel = content?.[permission] ?? defaultPowerLevel;
     return userLevel >= permissionLevel;
   },

@@ -62,7 +62,7 @@ export class Permalinks {
   }
 
   private static encodeViaArgs(servers: string[]): string {
-    if (!servers || !servers.length) return '';
+    if (servers.length === 0) return '';
 
     return `?via=${servers.join('&via=')}`;
   }
@@ -122,7 +122,7 @@ export class Permalinks {
       return ActionError.Result(`Not a valid matrix.to URL: ${matrixTo}`);
     }
     const eventID = url.eventId && decodeURIComponent(url.eventId);
-    if (eventID !== undefined && !isStringEventID(eventID)) {
+    if (!isStringEventID(eventID)) {
       return ActionError.Result(`Invalid EventID in matrix.to URL ${eventID}`);
     }
     const entity = decodeURIComponent(url.entity);

@@ -76,7 +76,7 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
       const citedPreviousMembership =
         event.unsigned?.prev_content === undefined
           ? undefined
-          : event.unsigned?.prev_content === null
+          : event.unsigned.prev_content === null
             ? undefined
             : SafeMembershipEventMirror.parse(
                 event.unsigned.prev_content as Record<string, unknown>

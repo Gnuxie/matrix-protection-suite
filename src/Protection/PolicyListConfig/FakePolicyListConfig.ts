@@ -40,10 +40,12 @@ export class AbstractPolicyListConfig implements PolicyListConfig {
   }
 
   public async watchList<T>(
-    propagation: string,
+    propagation: PropagationType,
     list: MatrixRoomID,
     _options: T
   ): Promise<ActionResult<void>> {
+    // The enum could be changed to add more variants:
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (propagation !== PropagationType.Direct) {
       return ActionError.Result(
         `The AbstractProtectedRoomsConfig does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`
@@ -59,9 +61,11 @@ export class AbstractPolicyListConfig implements PolicyListConfig {
     return Ok(undefined);
   }
   public async unwatchList(
-    propagation: string,
+    propagation: PropagationType,
     list: MatrixRoomID
   ): Promise<ActionResult<void>> {
+    // The enum could be changed to add more variants:
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (propagation !== PropagationType.Direct) {
       return ActionError.Result(
         `The MjolnirProtectedRoomsConfigUnable does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`

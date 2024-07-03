@@ -34,6 +34,9 @@ import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
 import { FakeProtectionsManager } from '../Protection/ProtectionsManager/FakeProtectionsManager';
 import { StandardProtectedRoomsManager } from '../Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
 import { DummyRoomJoiner } from '../Client/DummyClientPlatform';
+import { Logger } from '../Logging/Logger';
+
+const log = new Logger('DeclareRoomState');
 
 // TODO:
 // all describe* methods need to return description objects, not concrete
@@ -78,14 +81,16 @@ export async function describeProtectedRoomsSet({
     protectedRoomsConfig.getProtectedRooms()
   );
   if (isError(setMembership)) {
-    throw setMembership.error;
+    log.error(`Unable to create set membership`, setMembership.error);
+    throw new TypeError(`Unable to create set membership`);
   }
   const setRoomState = await StandardSetRoomState.create(
     roomStateManager,
     protectedRoomsConfig.getProtectedRooms()
   );
   if (isError(setRoomState)) {
-    throw setRoomState;
+    log.error(`Unable to create set room state`, setRoomState.error);
+    throw new TypeError(`Unable to create set room state`);
   }
   const protectedRoomsManager = await StandardProtectedRoomsManager.create(
     protectedRoomsConfig,
@@ -96,7 +101,11 @@ export async function describeProtectedRoomsSet({
     setRoomState.ok
   );
   if (isError(protectedRoomsManager)) {
-    throw protectedRoomsManager;
+    log.error(
+      `Unable to create protected rooms manager`,
+      protectedRoomsManager.error
+    );
+    throw new TypeError(`Unable to create protected rooms manager`);
   }
   const protectedRoomsSet = new StandardProtectedRoomsSet(
     new FakePolicyListConfig(
@@ -276,11 +285,7 @@ export function describePolicyRule({
       return undefined;
     } else if (copyFrom !== undefined) {
       return undefined;
-    } else if (
-      entity === undefined ||
-      reason === undefined ||
-      recommendation === undefined
-    ) {
+    } else if (entity === undefined) {
       throw new TypeError(
         `Content fields should be defined when copyFrom and remove aren't being used`
       );
@@ -303,7 +308,7 @@ export function describePolicyRule({
     state_key: description.state_key,
     room_id,
     type: description.type,
-    content: description.content ?? {},
+    content: description.content,
   }) as PolicyRuleEvent;
 }
 

@@ -74,10 +74,12 @@ export class MjolnirPolicyRoomsConfig
   }
 
   public async watchList<T>(
-    propagation: string,
+    propagation: PropagationType,
     list: MatrixRoomID,
     options: T
   ): Promise<ActionResult<void>> {
+    // More variants could be added under our feet as code changes:
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (propagation !== PropagationType.Direct) {
       return ActionError.Result(
         `The MjolnirProtectedRoomsConfig does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`
@@ -103,9 +105,11 @@ export class MjolnirPolicyRoomsConfig
     }
   }
   public async unwatchList(
-    propagation: string,
+    propagation: PropagationType,
     list: MatrixRoomID
   ): Promise<ActionResult<void>> {
+    // More variants could be added under our feet as code changes:
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (propagation !== PropagationType.Direct) {
       return ActionError.Result(
         `The MjolnirProtectedRoomsConfigUnable does not support watching a list ${list.toPermalink()} with propagation type ${propagation}.`

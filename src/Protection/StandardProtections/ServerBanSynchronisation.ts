@@ -10,7 +10,6 @@
 
 import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { Task } from '../../Interface/Task';
-import { StateEvent } from '../../MatrixTypes/Events';
 import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
@@ -54,7 +53,7 @@ export class ServerBanSynchronisationProtection
 
   public async handleStateChange(
     revision: RoomStateRevision,
-    changes: StateChange<StateEvent>[]
+    changes: StateChange[]
   ): Promise<ActionResult<void>> {
     const serverACLEventChanges = changes.filter(
       (change) => change.eventType === 'm.room.server_acl'

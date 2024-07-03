@@ -46,11 +46,6 @@ export class StandardProtectionSettings<
     value: unknown
   ): ActionResult<TSettings> {
     const protectionSetting = this.descriptions[key];
-    if (protectionSetting === undefined) {
-      return ActionError.Result(
-        `There is no setting available to set with the key ${String(key)}`
-      );
-    }
     return protectionSetting.setValue(settings, value);
   }
 

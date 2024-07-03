@@ -145,7 +145,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     const stateKeyMap = this.policyRules.get(kind);
     if (stateKeyMap) {
       for (const rule of stateKeyMap.values()) {
-        if (rule && rule.kind === kind) {
+        if (rule.kind === kind) {
           if (recommendation === undefined) {
             rules.push(rule);
           } else if (rule.recommendation === recommendation) {

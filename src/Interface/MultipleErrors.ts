@@ -15,7 +15,7 @@ export class MultipleErrors extends ActionError {
   public static Result(
     message: string,
     { errors = [] }: { errors: ActionError[] }
-  ): ActionResult<never, ActionError> {
+  ): ActionResult<never> {
     return ResultError(new MultipleErrors(message, errors));
   }
 }

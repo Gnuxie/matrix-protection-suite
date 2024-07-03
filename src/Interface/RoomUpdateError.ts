@@ -48,11 +48,7 @@ export class RoomActionError extends ActionError implements RoomUpdateError {
   }
 }
 
-export class PermissionError extends RoomActionError {
-  constructor(room: MatrixRoomID, message: string) {
-    super(room, message);
-  }
-}
+export class PermissionError extends RoomActionError {}
 
 export class RoomUpdateException
   extends ActionException

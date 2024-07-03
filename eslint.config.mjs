@@ -24,7 +24,7 @@ export default tseslint.config(
     ],
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended,
+      ...tseslint.configs.strictTypeChecked,
     ],
     languageOptions: {
       parserOptions: {
@@ -45,6 +45,14 @@ export default tseslint.config(
       "@typescript-eslint/require-await": "off",
       // we need never because our code can be wrong!
       "@typescript-eslint/restrict-template-expressions": ['error', { allowNever: true }],
+      // stylistic recommendation that doesn't play well with event emitter interfaces.
+      "@typescript-eslint/unified-signatures": "off",
+      // There are some compelling arguments for including this rule,
+      // but other than using namespaces, we don't have granular enough modules
+      // to be able to depend on their behaviour. This should be revisited.
+      "@typescript-eslint/no-extraneous-class": "off",
+      // We want to be able to create infinite loops.
+      "@typescript-eslint/no-unnecessary-condition": ['error', { allowConstantLoopConditions: true }],
     },
     ignores: [...ignores, '**/*.js', '**/*.jsx'],
   }
