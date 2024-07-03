@@ -48,6 +48,6 @@ export const SetRoomStateMirror = Object.freeze({
     setRoomState[SetRoomStateMirrorCord.addRoom](room, revisionIssuer);
   },
   removeRoom(setRoomState: SetRoomState, room: MatrixRoomID): void {
-    return setRoomState[SetRoomStateMirrorCord.removeRoom](room);
+    setRoomState[SetRoomStateMirrorCord.removeRoom](room);
   },
 });

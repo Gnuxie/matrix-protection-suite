@@ -4,6 +4,7 @@
 
 import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
 import { Ok, isError } from '../Interface/Action';
+import { Logger } from '../Logging/Logger';
 import { PowerLevelsEventContent } from '../MatrixTypes/PowerLevels';
 import { Membership } from '../Membership/MembershipChange';
 import {
@@ -13,6 +14,8 @@ import {
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { ProtectionDescription } from './Protection';
 import { StandardProtectionSettings } from './ProtectionSettings/ProtectionSettings';
+
+const log = new Logger('ProtectionHandles.test');
 
 test('handlePermissionRequirementsMet is called when a new room is added with met permissions', async function () {
   const userID = randomUserID();
@@ -83,7 +86,8 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
     newRoom.membershipRevisionIssuer.room
   );
   if (isError(addResult)) {
-    throw addResult;
+    log.error(`Couldn't add room`, addResult);
+    throw new TypeError(`Couldn't add a room`);
   }
   expect(handleCalled).toBe(true);
 });

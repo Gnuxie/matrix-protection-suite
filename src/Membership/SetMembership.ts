@@ -49,6 +49,6 @@ export const SetMembershipMirror = Object.freeze({
     setMembership[SetMembershipMirrorCord.addRoom](room, revisionIssuer);
   },
   removeRoom(setMembership: SetMembership, room: MatrixRoomID): void {
-    return setMembership[SetMembershipMirrorCord.removeRoom](room);
+    setMembership[SetMembershipMirrorCord.removeRoom](room);
   },
 });

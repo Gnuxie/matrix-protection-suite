@@ -70,7 +70,9 @@ export class StandardRoomPauser implements RoomPauser {
     }
     this.pausedRooms.set(roomID, []);
     task().then(
-      () => this.unpause(roomID, then),
+      () => {
+        this.unpause(roomID, then);
+      },
       (reason) => {
         log.error(
           `RoomPause task was rejected, this should not happen and the task should catch all exceptions.`,

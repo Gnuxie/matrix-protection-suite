@@ -129,10 +129,7 @@ export class ActionError {
    * Otherwise they wouldn't be able to pass other constructor arguments through this method.
    * @returns An `ActionResult` with a `ActionError` as the `Error` value.
    */
-  public static Result(
-    message: string,
-    _options = {}
-  ): ActionResult<never, ActionError> {
+  public static Result(message: string, _options = {}): ActionResult<never> {
     return ResultError(new ActionError(message));
   }
 

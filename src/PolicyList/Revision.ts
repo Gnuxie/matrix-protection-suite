@@ -28,10 +28,6 @@ export class Revision {
    */
   public readonly ulid = Revision.makeULID();
 
-  constructor() {
-    // nothing to do.
-  }
-
   /**
    * Check whether this revision supersedes another revision.
    * @param revision The revision we want to check this supersedes.

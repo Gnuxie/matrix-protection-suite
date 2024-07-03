@@ -58,7 +58,7 @@ export async function doPagination<ChunkItem>(
     options.totalItemLimit === undefined || count < options.totalItemLimit;
   let itemCount = 0;
   let currentPage = startingPage;
-  do {
+  while (true) {
     let isMarkedAsStop = false;
     for (const item of currentPage.chunk) {
       isMarkedAsStop =
@@ -81,9 +81,7 @@ export async function doPagination<ChunkItem>(
     } else {
       currentPage = nextPageResult.ok;
     }
-    // We want an infinite loop unfortunatley:
-    // eslint-disable-next-line no-constant-condition
-  } while (true);
+  }
   return Ok(undefined);
 }
 

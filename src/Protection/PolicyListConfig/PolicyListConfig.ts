@@ -16,12 +16,12 @@ export interface PolicyRoomWatchProfile<T = unknown> {
 export interface PolicyListConfig extends LoggableConfig {
   readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
   watchList<T>(
-    propagation: string,
+    propagation: PropagationType,
     list: MatrixRoomID,
     options: T
   ): Promise<ActionResult<void>>;
   unwatchList(
-    propagation: string,
+    propagation: PropagationType,
     list: MatrixRoomID
   ): Promise<ActionResult<void>>;
   allWatchedLists: PolicyRoomWatchProfile[];

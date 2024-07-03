@@ -33,9 +33,15 @@ export class FakeRoomMembershipRevisionIssuer
     changes: MembershipChange[],
     previousRevision: RoomMembershipRevision
   ): boolean {
-    if (event === 'revision') {
-      this.revisionLog.push([nextRevision, changes, previousRevision]);
+    // I can see why this rule exists but it's not appropriate here, as we don't
+    // really know the context that this fake might gets used in (maybe js?).
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (event !== 'revision') {
+      throw new TypeError(
+        `FakeRoomMembershipRevisionIssuer was only written for the revision event`
+      );
     }
+    this.revisionLog.push([nextRevision, changes, previousRevision]);
     return super.emit(event, nextRevision, changes, previousRevision);
   }
 

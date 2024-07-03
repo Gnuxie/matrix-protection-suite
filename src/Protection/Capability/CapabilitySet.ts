@@ -47,30 +47,30 @@ export function initializeCapabilitySet<Context = unknown>(
 }
 
 export function capabilitySetEventPermissions(set: CapabilitySet): string[] {
-  return Object.entries(set).reduce(
+  return Object.entries(set).reduce<string[]>(
     (acc, [_name, capability]) => [
       ...acc,
       ...capability.requiredEventPermissions,
     ],
-    [] as string[]
+    []
   );
 }
 
 export function capabilitySetPermissions(
   set: CapabilitySet
 ): PowerLevelPermission[] {
-  return Object.entries(set).reduce(
+  return Object.entries(set).reduce<PowerLevelPermission[]>(
     (acc, [_name, capability]) => [...acc, ...capability.requiredPermissions],
-    [] as PowerLevelPermission[]
+    []
   );
 }
 
 export function capabilitySetStatePermissions(set: CapabilitySet): string[] {
-  return Object.entries(set).reduce(
+  return Object.entries(set).reduce<string[]>(
     (acc, [_name, capability]) => [
       ...acc,
       ...capability.requiredStatePermissions,
     ],
-    [] as string[]
+    []
   );
 }

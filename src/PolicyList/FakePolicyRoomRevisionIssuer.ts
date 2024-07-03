@@ -31,9 +31,13 @@ export class FakePolicyRoomRevisionIssuer
     changes: PolicyRuleChange[],
     previousRevision: PolicyListRevision
   ): boolean {
-    if (event === 'revision') {
-      this.revisionLog.push([nextRevision, changes, previousRevision]);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (event !== 'revision') {
+      throw new TypeError(
+        `The FakePolicyRoomRevisionIssuer was only written to work with the 'revision' event and not: ${event}`
+      );
     }
+    this.revisionLog.push([nextRevision, changes, previousRevision]);
     return super.emit(event, nextRevision, changes, previousRevision);
   }
 

@@ -22,10 +22,7 @@ export class StringTypeResultBuilder<T extends string> {
   private numberOfFailedResults = 0;
   private map = new Map<T, ActionResult<void>>();
 
-  public addResult(
-    key: T,
-    result: ActionResult<void>
-  ): StringTypeResultBuilder<T> {
+  public addResult(key: T, result: ActionResult<void>): this {
     if (isError(result)) {
       this.numberOfFailedResults += 1;
       this.isEveryResultOk = false;
@@ -65,7 +62,7 @@ export class ResultForUsersInSetBuilder {
     userID: StringUserID,
     roomID: StringRoomID,
     result: ActionResult<void>
-  ): ResultForUsersInSetBuilder {
+  ): this {
     if (isError(result)) {
       this.numberOfFailedResults += 1;
       this.isEveryResultOk = false;

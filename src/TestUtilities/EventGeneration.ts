@@ -29,7 +29,7 @@ export function randomRawEvent(sender: string, room_id: string): unknown {
     origin_server_ts: Date.now(),
     type: 'm.room.message',
     content: {
-      body: `${randomUUID()}`,
+      body: randomUUID(),
       msgtype: 'm.text',
     },
   };
@@ -73,7 +73,7 @@ export function makePolicyRuleUserEvent({
     state_key: description.state_key,
     type: description.type,
     sender,
-    content: description.content ?? {},
+    content: description.content,
   };
   const decodeResult = Value.Decode(PolicyRuleEvent, rawEventJSON);
   if (isError(decodeResult)) {

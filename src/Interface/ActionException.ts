@@ -40,7 +40,7 @@ export class ActionException extends ActionError {
   constructor(
     public readonly exceptionKind: ActionExceptionKind,
     // make a call to only allow Error in a moment.
-    public readonly exception: Error | unknown,
+    public readonly exception: unknown,
     message: string,
     {
       uuid = randomUUID(),
@@ -69,7 +69,7 @@ export class ActionException extends ActionError {
    */
   public static Result(
     message: string,
-    options: { exception: Error | unknown; exceptionKind: ActionExceptionKind }
+    options: { exception: unknown; exceptionKind: ActionExceptionKind }
   ): ActionResult<never, ActionException> {
     return ResultError(
       new ActionException(options.exceptionKind, options.exception, message)

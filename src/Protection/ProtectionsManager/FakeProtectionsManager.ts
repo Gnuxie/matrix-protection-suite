@@ -56,7 +56,7 @@ export class AbstractProtectionsManager<Context = unknown>
       protectedRoomsSet,
       context,
       capabilities,
-      settings ?? protectionDescription.protectionSettings.defaultSettings
+      settings
     );
     if (isError(protectionResult)) {
       return protectionResult;
