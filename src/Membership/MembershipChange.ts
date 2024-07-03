@@ -84,6 +84,7 @@ export function membershipChangeType(
           return MembershipChangeType.NoChange;
         case Membership.Leave:
         // it is possible for us to not have/skip the intermediate state for their unban.
+        // fall through
         case Membership.Ban:
           return MembershipChangeType.Rejoined;
         default:
