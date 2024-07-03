@@ -28,7 +28,7 @@ export class DecodeException extends ActionException {
     suppressLog?: boolean
   ) {
     super(ActionExceptionKind.Unknown, exception, message, { suppressLog });
-    if (!Boolean(suppressLog)) {
+    if (!suppressLog) {
       DecodeException.log.error(this.uuid, ...this.errors);
     }
   }

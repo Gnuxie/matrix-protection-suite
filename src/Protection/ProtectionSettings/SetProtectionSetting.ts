@@ -35,7 +35,10 @@ export class SetProtectionSetting<
   toJSON(settings: TSettings): unknown {
     return [...settings[this.key]];
   }
-  public isCollectionSetting(): boolean {
+  public isCollectionSetting(): this is CollectionProtectionSetting<
+    Key,
+    TSettings
+  > {
     return true;
   }
 }

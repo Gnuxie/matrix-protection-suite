@@ -34,7 +34,10 @@ export class AbstractProtectionSetting<
     clone[this.key] = value;
     return Ok(clone);
   }
-  public isCollectionSetting() {
+  public isCollectionSetting(): this is CollectionProtectionSetting<
+    Key,
+    TSettings
+  > {
     return false;
   }
 }

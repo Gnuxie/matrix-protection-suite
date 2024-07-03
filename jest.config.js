@@ -7,12 +7,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   transform: {
-    '^.+\\.tsx?$': [
-      'ts-jest',
-      {
-        compiler: 'ttypescript',
-      },
-    ],
+    ".(ts|tsx)": "ts-jest"
   },
   setupFiles: ['<rootDir>ts-auto-mock.config.ts'],
 };

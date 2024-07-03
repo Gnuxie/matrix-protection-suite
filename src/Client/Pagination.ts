@@ -81,6 +81,8 @@ export async function doPagination<ChunkItem>(
     } else {
       currentPage = nextPageResult.ok;
     }
+    // We want an infinite loop unfortunatley:
+    // eslint-disable-next-line no-constant-condition
   } while (true);
   return Ok(undefined);
 }

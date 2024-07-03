@@ -274,7 +274,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         case StateChangeType.IntroducedAsBlank:
           continue;
         case StateChangeType.CompletelyRedacted:
-        case StateChangeType.BlankedContent:
+        case StateChangeType.BlankedContent: {
           if (existingRule === undefined) {
             continue; // we have already removed the rule somehow.
           }
@@ -296,9 +296,10 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           });
           // Event has no content and cannot be parsed as a ListRule.
           continue;
+        }
         case StateChangeType.Introduced:
         case StateChangeType.Reintroduced:
-        case StateChangeType.SupersededContent:
+        case StateChangeType.SupersededContent: {
           // This cast is required because for some reason TS won't narrow on the
           // properties of `event`.
           // We should really consider making all of the properties in MatrixTypes
@@ -319,6 +320,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
             ...(existingState ? { existingState } : {}),
           });
           continue;
+        }
         case StateChangeType.PartiallyRedacted:
           throw new TypeError(
             `No idea how the hell there is a partially redacted policy rule`
