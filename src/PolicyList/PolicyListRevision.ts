@@ -105,7 +105,7 @@ export interface PolicyRoomRevision extends PolicyListRevision {
   /**
    * A shortcode that Mjolnir has associated wit the room.
    */
-  readonly shortcode?: string;
+  readonly shortcode: string | undefined;
   reviseFromChanges(changes: PolicyRuleChange[]): PolicyRoomRevision;
   /**
    * Create a new revision from the state of the associated Matrix room.

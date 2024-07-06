@@ -20,11 +20,11 @@ export type PolicyRuleEventDescription = {
 };
 
 export type DescribeBuildPolicyEvent = {
-  state_key?: string;
-  type?: (typeof ALL_RULE_TYPES)[number];
-  content?: UnredactedPolicyContent;
-  copyFrom?: PolicyRuleEvent;
-  remove?: PolicyRuleEvent;
+  state_key?: string | undefined;
+  type?: (typeof ALL_RULE_TYPES)[number] | undefined;
+  content?: UnredactedPolicyContent | undefined;
+  copyFrom?: PolicyRuleEvent | undefined;
+  remove?: PolicyRuleEvent | undefined;
 };
 
 export function policyStateKeyFromContent(

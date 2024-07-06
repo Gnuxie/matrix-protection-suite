@@ -27,7 +27,9 @@ export class DecodeException extends ActionException {
     public readonly errors: ValueError[],
     suppressLog?: boolean
   ) {
-    super(ActionExceptionKind.Unknown, exception, message, { suppressLog });
+    super(ActionExceptionKind.Unknown, exception, message, {
+      suppressLog: suppressLog ?? false,
+    });
     if (!suppressLog) {
       DecodeException.log.error(this.uuid, ...this.errors);
     }

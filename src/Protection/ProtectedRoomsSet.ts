@@ -183,8 +183,8 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     for (const protection of this.protections.allProtections) {
       const permissionsChange =
         PowerLevelsMirror.calculateNewMissingPermissions(this.userID, {
-          nextPowerLevelsContent: nextPowerLevels,
-          previousPowerLevelsContent: previousPowerLevels,
+          nextPowerLevelsContent: nextPowerLevels ?? {},
+          previousPowerLevelsContent: previousPowerLevels ?? {},
           requiredEventPermissions: protection.requiredEventPermissions,
           requiredPermissions: protection.requiredPermissions,
           requiredStatePermissions: protection.requiredStatePermissions,

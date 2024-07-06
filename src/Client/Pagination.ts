@@ -20,8 +20,8 @@ export const StringPaginationToken = Type.Unsafe<StringPaginationToken>(
 export interface ChunkPage<ChunkItem> {
   getNextPage(): Promise<ActionResult<ChunkPage<ChunkItem>, PaginationError>>;
   chunk: ChunkItem[];
-  nextToken?: StringPaginationToken;
-  previousToken?: StringPaginationToken;
+  nextToken: StringPaginationToken | undefined;
+  previousToken: StringPaginationToken | undefined;
   hasNext(): boolean;
   hasPrevious(): boolean;
   isFirstPage(): boolean;
@@ -29,9 +29,9 @@ export interface ChunkPage<ChunkItem> {
 
 export interface PaginationOptions {
   direction?: 'forwards' | 'backwards';
-  from?: StringPaginationToken;
-  itemLimitPerPage?: number;
-  to?: StringPaginationToken;
+  from?: StringPaginationToken | undefined;
+  itemLimitPerPage?: number | undefined;
+  to?: StringPaginationToken | undefined;
 }
 
 export type StreamPaginationForEachCB<ChunkItem> = (item: ChunkItem) => void;
@@ -90,8 +90,8 @@ export type StandardChunkPageGetter<ChunkItem> = (
 ) => Promise<ActionResult<PaginatedResponse<ChunkItem>, PaginationError>>;
 
 export class StandardChunkPage<ChunkItem> implements ChunkPage<ChunkItem> {
-  public readonly nextToken?: StringPaginationToken;
-  public readonly previousToken?: StringPaginationToken | undefined;
+  public readonly nextToken: StringPaginationToken | undefined;
+  public readonly previousToken: StringPaginationToken | undefined;
   readonly #isFirstPage: boolean;
   public static createFirstPage<ChunkItem>(
     chunkGetter: StandardChunkPageGetter<ChunkItem>,
@@ -115,8 +115,8 @@ export class StandardChunkPage<ChunkItem> implements ChunkPage<ChunkItem> {
       nextToken,
       previousToken,
     }: {
-      nextToken?: StringPaginationToken;
-      previousToken?: StringPaginationToken;
+      nextToken?: StringPaginationToken | undefined;
+      previousToken?: StringPaginationToken | undefined;
     },
     private readonly paginationOptions: Omit<
       StreamPaginationOptions<ChunkItem>,

@@ -314,9 +314,9 @@ export function describePolicyRule({
 
 export type DescribeStateEventOptions = {
   sender: StringUserID;
-  state_key?: string;
-  content?: Record<string, unknown>;
-  room_id?: StringRoomID;
+  state_key?: string | undefined;
+  content?: Record<string, unknown> | undefined;
+  room_id?: StringRoomID | undefined;
   type: string;
 };
 

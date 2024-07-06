@@ -8,6 +8,7 @@
     "declaration": true,
     "declarationDir": "dist",
     "declarationMap": true,
+    "exactOptionalPropertyTypes": true,
     "outDir": "dist",
     "sourceMap": true,
     "strict": true,
