@@ -159,6 +159,10 @@ abstract class AbstractMatrixRoomReference {
     // don't want them mutating the viaServers in this reference.
     return [...this.viaServers];
   }
+
+  public toString(): string {
+    return this.toPermalink();
+  }
 }
 
 /**
