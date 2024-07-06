@@ -31,7 +31,9 @@ async function loadProtecitons(
   {
     migrationHandler,
   }: {
-    migrationHandler?: SchemedDataManager<MjolnirEnabledProtectionsEvent>;
+    migrationHandler?:
+      | SchemedDataManager<MjolnirEnabledProtectionsEvent>
+      | undefined;
   }
 ): Promise<ActionResult<ProtectionsInfo>> {
   const storeResult = await store.requestAccountData();

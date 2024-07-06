@@ -56,9 +56,11 @@ export const SafeMembershipEventMirror = Object.freeze({
     return {
       ...content,
       ...{
-        [UnsafeContentKey]: unsafeContent,
         [SafeMembershipEventContentKey]: true,
       },
+      ...(unsafeContent === undefined
+        ? {}
+        : { [UnsafeContentKey]: unsafeContent }),
     };
   },
   /**
