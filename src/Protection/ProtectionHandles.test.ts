@@ -13,6 +13,7 @@ import {
 } from '../StateTracking/DeclareRoomState';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { ProtectionDescription } from './Protection';
+import { ProtectionSetting } from './ProtectionSettings/ProtectionSetting';
 import { StandardProtectionSettings } from './ProtectionSettings/ProtectionSettings';
 
 const log = new Logger('ProtectionHandles.test');
@@ -49,7 +50,10 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
     description: 'test description',
     capabilities: {},
     defaultCapabilities: {},
-    protectionSettings: new StandardProtectionSettings({}, {}),
+    protectionSettings: new StandardProtectionSettings(
+      new Map<never, ProtectionSetting<string, Record<never, never>>>(),
+      {}
+    ),
     factory(
       description,
       _protectedRoomsSet,
