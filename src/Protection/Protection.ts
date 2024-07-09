@@ -21,10 +21,7 @@ import {
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
-import {
-  ProtectionSetting,
-  UnknownSettings,
-} from './ProtectionSettings/ProtectionSetting';
+import { UnknownSettings } from './ProtectionSettings/ProtectionSetting';
 import {
   ProtectionSettings,
   StandardProtectionSettings,
@@ -229,7 +226,7 @@ export function describeProtection<
   defaultCapabilities,
   factory,
   protectionSettings = new StandardProtectionSettings<TSettings>(
-    {} as Record<keyof TSettings, ProtectionSetting<string, TSettings>>,
+    {} as Record<keyof TSettings, never>,
     {} as TSettings
   ),
 }: {

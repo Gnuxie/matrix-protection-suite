@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2024 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2022 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -15,13 +15,13 @@ export interface ProtectionSettings<
   TSettings extends UnknownSettings<string> = UnknownSettings<string>,
 > {
   defaultSettings: TSettings;
-  descriptions: Record<keyof TSettings, ProtectionSetting<string, TSettings>>;
+  settingDescriptions: ProtectionSetting<string, TSettings>[];
   setValue(
     settings: TSettings,
     key: keyof TSettings,
     value: unknown
   ): ActionResult<TSettings>;
-
+  getDescription(key: string): ProtectionSetting<string, TSettings> | undefined;
   parseSettings(settings: unknown): ActionResult<TSettings>;
   toJSON(settings: TSettings): Record<string, unknown>;
 }
@@ -30,14 +30,17 @@ export class StandardProtectionSettings<
   TSettings extends UnknownSettings<string> = UnknownSettings<string>,
 > implements ProtectionSettings<TSettings>
 {
+  private readonly descriptions: Map<
+    keyof TSettings,
+    ProtectionSetting<string, TSettings>
+  > = new Map();
   public constructor(
-    public readonly descriptions: Record<
-      keyof TSettings,
-      ProtectionSetting<string, TSettings>
-    >,
+    descriptions: Record<keyof TSettings, ProtectionSetting<string, TSettings>>,
     public readonly defaultSettings: TSettings
   ) {
-    // nothing to do.
+    for (const [key, setting] of Object.entries(descriptions)) {
+      this.descriptions.set(key, setting);
+    }
   }
 
   public setValue(
@@ -45,7 +48,12 @@ export class StandardProtectionSettings<
     key: keyof TSettings,
     value: unknown
   ): ActionResult<TSettings> {
-    const protectionSetting = this.descriptions[key];
+    const protectionSetting = this.descriptions.get(key);
+    if (protectionSetting === undefined) {
+      return ActionError.Result(
+        `There is no setting available to set with the key ${String(key)}`
+      );
+    }
     return protectionSetting.setValue(settings, value);
   }
 
@@ -54,7 +62,7 @@ export class StandardProtectionSettings<
       return ActionError.Result(`The settings are corrupted.`);
     }
     let parsedSettings = this.defaultSettings;
-    for (const setting of Object.values(this.descriptions)) {
+    for (const setting of this.descriptions.values()) {
       if (setting.key in settings) {
         const result = setting.setValue(
           parsedSettings,
@@ -71,9 +79,19 @@ export class StandardProtectionSettings<
   }
 
   toJSON(settings: TSettings): Record<string, unknown> {
-    return Object.entries(this.descriptions).reduce(
+    return [...this.descriptions.entries()].reduce(
       (acc, [key, setting]) => ({ [key]: setting.toJSON(settings), ...acc }),
       {}
     );
+  }
+
+  get settingDescriptions(): ProtectionSetting<string, TSettings>[] {
+    return [...this.descriptions.values()];
+  }
+
+  getDescription(
+    key: string
+  ): ProtectionSetting<string, TSettings> | undefined {
+    return this.descriptions.get(key);
   }
 }
