@@ -4,9 +4,14 @@
 
 import { isError, isOk } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
-import { randomRawEvent, randomRoomID } from '../TestUtilities/EventGeneration';
+import {
+  randomEventID,
+  randomRawEvent,
+  randomRoomID,
+} from '../TestUtilities/EventGeneration';
 import { DefaultEventDecoder } from './EventDecoder';
 import { PolicyRuleEvent } from './PolicyEvents';
+import { NoticeMessageContent } from './RoomMessage';
 
 test('Raw events are parsed correctly', function () {
   const room = randomRoomID(['example.org']);
@@ -68,4 +73,19 @@ test('Policy List event with leftover reason', function () {
   };
   const result = Value.Decode(PolicyRuleEvent, rawEvent);
   expect(result.isOkay).toBeFalsy();
+});
+
+test('Room messages', function () {
+  const rawContent = {
+    msgtype: 'm.notice',
+    body: '**Documentation: ** [https://the-draupnir-proj…no description\n</details></details></details>',
+    format: 'org.matrix.custom.html',
+    formatted_body:
+      '<b>Documentation: </b> <a href="https://t…ption<br/></details></details></details>',
+    'm.relates_to': {
+      'm.in_reply_to': randomEventID(),
+    },
+  };
+  const result = Value.Decode(NoticeMessageContent, rawContent);
+  expect(result.isOkay).toBeTruthy();
 });
