@@ -122,8 +122,13 @@ export class Permalinks {
       return ActionError.Result(`Not a valid matrix.to URL: ${matrixTo}`);
     }
     const eventID = url.eventId && decodeURIComponent(url.eventId);
-    if (!isStringEventID(eventID)) {
+    if (eventID === undefined || !isStringEventID(eventID)) {
       return ActionError.Result(`Invalid EventID in matrix.to URL ${eventID}`);
+    }
+    if (url.entity === undefined) {
+      return ActionError.Result(
+        `Invalid Entity in matrix.to URL ${url.entity}`
+      );
     }
     const entity = decodeURIComponent(url.entity);
     if (entity[0] === '@') {

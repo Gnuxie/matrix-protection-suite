@@ -26,6 +26,9 @@ class MatrixEntity {
     if (!fullId) throw new Error('No entity ID provided');
     if (fullId.length < 2) throw new Error('ID too short');
     const parts = fullId.split(/:/g);
+    if (parts[0] === undefined) {
+      throw new TypeError(`This code fatally is wrong`);
+    }
     this.entityLocalpart = parts[0].substring(1);
     this.entityDomain = parts.splice(1).join(':');
   }

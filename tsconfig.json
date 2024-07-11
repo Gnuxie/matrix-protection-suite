@@ -21,6 +21,7 @@
     "resolveJsonModule": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noImplicitAny": true,
     "plugins": [

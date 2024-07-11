@@ -63,6 +63,10 @@ test('Membership changes that should result in a ban when matching an existing p
     MembershipChangeType.Rejoined,
   ];
   const usersToTest = changesToTest.map((_change) => randomUserID());
+  const rejoiningUser = usersToTest[3];
+  if (rejoiningUser === undefined) {
+    throw new TypeError(`Test setup incorrectly`);
+  }
   const { protectedRoomsSet, roomStateManager, roomMembershipManager } =
     await describeProtectedRoomsSet({
       rooms: [
@@ -71,7 +75,7 @@ test('Membership changes that should result in a ban when matching an existing p
           membershipDescriptions: [
             {
               // we need this for the user who will rejoin the room.
-              sender: usersToTest[3],
+              sender: rejoiningUser,
               membership: Membership.Leave,
             },
           ],
@@ -114,9 +118,15 @@ test('Membership changes that should result in a ban when matching an existing p
             throw new TypeError(`Unexpected membership change type in test`);
         }
       })();
+      const userToTest = usersToTest[index];
+      if (userToTest === undefined) {
+        throw new TypeError(
+          `There aren't enough test users for the changes to test`
+        );
+      }
       return {
-        state_key: usersToTest[index],
-        sender: usersToTest[index],
+        state_key: userToTest,
+        sender: userToTest,
         membership: membership,
       };
     }),

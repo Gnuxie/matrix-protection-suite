@@ -388,6 +388,11 @@ class PolicyRuleScope {
     return [...this.globRules.values()]
       .filter((rules) => {
         const [firstRule] = rules;
+        if (firstRule === undefined) {
+          throw new TypeError(
+            `The code is wrong and so is my understanding of everything`
+          );
+        }
         return firstRule.isMatch(entity);
       })
       .map((rules) => [...rules])

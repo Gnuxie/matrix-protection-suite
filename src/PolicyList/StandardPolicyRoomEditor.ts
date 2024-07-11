@@ -104,8 +104,9 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
         })
       );
       const removalErrors = removalResults.filter(isError);
-      if (removalErrors.length > 0) {
-        return removalErrors[0];
+      const error = removalErrors[0];
+      if (error !== undefined) {
+        return error;
       } else {
         return Ok(undefined);
       }
@@ -118,8 +119,9 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
     const removalErrors = (await Promise.all(rules.map(removeRule))).filter(
       isError
     );
-    if (removalErrors.length > 0) {
-      return removalErrors[0];
+    const error = removalErrors[0];
+    if (error !== undefined) {
+      return error;
     } else {
       return Ok(rules);
     }
