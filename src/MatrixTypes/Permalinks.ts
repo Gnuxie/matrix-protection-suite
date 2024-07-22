@@ -121,8 +121,9 @@ export class Permalinks {
     if (!url) {
       return ActionError.Result(`Not a valid matrix.to URL: ${matrixTo}`);
     }
+    const viaServers = new URLSearchParams(url.query).getAll('via');
     const eventID = url.eventId && decodeURIComponent(url.eventId);
-    if (eventID === undefined || !isStringEventID(eventID)) {
+    if (eventID !== undefined && !isStringEventID(eventID)) {
       return ActionError.Result(`Invalid EventID in matrix.to URL ${eventID}`);
     }
     if (url.entity === undefined) {
@@ -147,8 +148,8 @@ export class Permalinks {
       }
       return Ok({
         roomID: entity,
-        eventID,
-        viaServers: new URLSearchParams(url.query).getAll('via'),
+        ...(eventID === undefined ? { eventID } : {}),
+        viaServers,
       });
     } else if (entity[0] === '#') {
       if (!isStringRoomAlias(entity)) {
@@ -158,8 +159,8 @@ export class Permalinks {
       }
       return Ok({
         roomAlias: entity,
-        eventID,
-        viaServers: new URLSearchParams(url.query).getAll('via'),
+        ...(eventID === undefined ? { eventID } : {}),
+        viaServers,
       });
     } else {
       return ActionError.Result(`Unexpected entity in matrix.to URL ${entity}`);
