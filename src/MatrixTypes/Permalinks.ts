@@ -148,7 +148,7 @@ export class Permalinks {
       }
       return Ok({
         roomID: entity,
-        ...(eventID === undefined ? { eventID } : {}),
+        ...(eventID === undefined ? {} : { eventID }),
         viaServers,
       });
     } else if (entity[0] === '#') {
@@ -159,7 +159,7 @@ export class Permalinks {
       }
       return Ok({
         roomAlias: entity,
-        ...(eventID === undefined ? { eventID } : {}),
+        ...(eventID === undefined ? {} : { eventID }),
         viaServers,
       });
     } else {
