@@ -18,7 +18,7 @@
   "scripts": {
     "start": "yarn tsc --project tsconfig.json --watch",
     "build": "rm -rf dist && yarn tsc --project tsconfig.json && yarn lint && yarn make:docs",
-    "lint": "yarn eslint src src/**/*.ts && yarn prettier src --check",
+    "lint": "yarn eslint src && yarn prettier src --check",
     "make:docs": "typedoc",
     "test": "jest --coverage",
     "test:ci": "cross-env CI=1 jest",
