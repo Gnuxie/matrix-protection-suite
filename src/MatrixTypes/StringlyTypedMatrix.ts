@@ -5,6 +5,8 @@
 
 import { FormatRegistry, Type } from '@sinclair/typebox';
 
+const StringUserIDRegex = /^@(?<localpart>[^\s:]*):(?<serverName>\S*)$/;
+
 const UserIDSecret = Symbol('StringUserID');
 export type StringUserID = string & { [UserIDSecret]: true };
 
@@ -15,24 +17,26 @@ export const StringUserID = Type.Unsafe<StringUserID>(
 );
 
 export function isStringUserID(string: string): string is StringUserID {
-  return /^@[\S^:]*:\S*$/.test(string);
+  return StringUserIDRegex.test(string);
 }
 
 export function serverName(userID: StringUserID): string {
-  const match = /^@[\S^:]*:(\S)*$/.exec(userID)?.at(1);
+  const match = StringUserIDRegex.exec(userID)?.groups?.serverName;
   if (match === undefined) {
-    throw new TypeError('Somehow a MatrixUserID was created that is invalid.');
+    throw new TypeError('Somehow a StringUserID was created that is invalid.');
   }
   return match;
 }
 
 export function userLocalpart(userID: StringUserID): string {
-  const match = /^@([\S^:]*):\S*$/.exec(userID)?.at(1);
+  const match = StringUserIDRegex.exec(userID)?.groups?.localpart;
   if (match === undefined) {
-    throw new TypeError('Somehow a MatrixUserID was created that is invalid.');
+    throw new TypeError('Somehow a StringUserID was created that is invalid.');
   }
   return match;
 }
+
+const StringRoomIDRegex = /^![^:]*:\S*/;
 
 const StringRoomIDSecret = Symbol('StringRoomID');
 export type StringRoomID = string & { [StringRoomIDSecret]: true };
@@ -44,8 +48,10 @@ export const StringRoomID = Type.Unsafe<StringRoomID>(
 );
 
 export function isStringRoomID(string: string): string is StringRoomID {
-  return /^![^:]*:(\S)*/.test(string);
+  return StringRoomIDRegex.test(string);
 }
+
+const StringRoomAliasRegex = /^#(?<roomAliasLocalpart>[^\s:]*):\S*$/;
 
 const StringRoomAliasSecret = Symbol('StringRoomAlias');
 export type StringRoomAlias = string & { [StringRoomAliasSecret]: true };
@@ -57,11 +63,11 @@ export const StringRoomAlias = Type.Unsafe<StringRoomAlias>(
 );
 
 export function isStringRoomAlias(string: string): string is StringRoomAlias {
-  return /^#[^:]*:(\S)*/.test(string);
+  return StringRoomAliasRegex.test(string);
 }
 
 export function roomAliasLocalpart(alias: StringRoomAlias): string {
-  const match = /^#([\S^:]*):\S*$/.exec(alias)?.at(1);
+  const match = StringRoomAliasRegex.exec(alias)?.groups?.roomAliasLocalpart;
   if (match === undefined) {
     throw new TypeError(
       'Somehow a StringRoomAlias was created that is invalid.'
