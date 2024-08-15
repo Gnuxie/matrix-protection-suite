@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
 
 /**

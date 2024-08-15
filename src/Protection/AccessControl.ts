@@ -8,10 +8,13 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import {
+  StringUserID,
+  userServerName,
+} from '@the-draupnir-project/matrix-basic-types';
 import { Logger } from '../Logging/Logger';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { ServerACLBuilder } from '../MatrixTypes/ServerACLBuilder';
-import { StringUserID, serverName } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
 
@@ -77,7 +80,7 @@ export class AccessControl {
     } else {
       const serverAccess = AccessControl.getAccessForEntity(
         revision,
-        serverName(userID),
+        userServerName(userID),
         PolicyRuleType.Server
       );
       if (

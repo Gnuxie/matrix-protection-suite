@@ -8,14 +8,14 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import {
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 import { PowerLevelPermission } from '../../../Client/PowerLevelsMirror';
 import { RoomBanner } from '../../../Client/RoomBanner';
 import { RoomUnbanner } from '../../../Client/RoomUnbanner';
 import { ActionError, ActionResult, Ok } from '../../../Interface/Action';
-import {
-  StringRoomID,
-  StringUserID,
-} from '../../../MatrixTypes/StringlyTypedMatrix';
 import { Membership } from '../../../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
 import { SetMembership } from '../../../Membership/SetMembership';

@@ -10,7 +10,6 @@ import {
   randomRoomID,
   randomUserID,
 } from '../../TestUtilities/EventGeneration';
-import { StringUserID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { describeProtectedRoomsSet } from '../../StateTracking/DeclareRoomState';
 import {
   Membership,
@@ -24,6 +23,7 @@ import {
   MemberBanSynchronisationProtectionCapabilities,
 } from './MemberBanSynchronisation';
 import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
+import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 
 function createMemberBanSynchronisationProtection(
   capabilities: MemberBanSynchronisationProtectionCapabilities,

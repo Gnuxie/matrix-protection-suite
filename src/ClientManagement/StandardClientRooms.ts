@@ -6,8 +6,6 @@ import { ActionResult, Ok, isError } from '../Interface/Action';
 import { Value } from '../Interface/Value';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
-import { Membership } from '../Membership/MembershipChange';
 import { RoomPauser, StandardRoomPauser } from './RoomPauser';
 import {
   AbstractClientRooms,
@@ -17,6 +15,11 @@ import {
 import AwaitLock from 'await-lock';
 import { Logger } from '../Logging/Logger';
 import { StandardJoinedRoomsRevision } from './JoinedRoomsRevision';
+import {
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
+import { Membership } from '../Membership/MembershipChange';
 
 const log = new Logger('StandardClientRooms');
 

@@ -8,9 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
 import AwaitLock from 'await-lock';
@@ -20,6 +18,10 @@ import {
 } from '../../Interface/LoggableConfig';
 import { RoomResolver } from '../../Client/RoomResolver';
 import { Logger } from '../../Logging/Logger';
+import {
+  MatrixRoomID,
+  StringRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('MjolnirProtectedroomsCofnig');
 

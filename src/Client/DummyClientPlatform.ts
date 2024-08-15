@@ -2,16 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Ok } from '../Interface/Action';
 import {
   MatrixRoomAlias,
   MatrixRoomReference,
-} from '../MatrixTypes/MatrixRoomReference';
-import {
   StringRoomAlias,
   StringRoomID,
   isStringRoomID,
-} from '../MatrixTypes/StringlyTypedMatrix';
+} from '@the-draupnir-project/matrix-basic-types';
+import { Ok } from '../Interface/Action';
 import { RoomJoiner } from './RoomJoiner';
 
 export async function resolveRoomFake(roomID: MatrixRoomReference | string) {

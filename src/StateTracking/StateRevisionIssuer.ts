@@ -11,11 +11,13 @@
 //   timeline events and state changes so that we can still give
 //   consumers chance to react in an attack.
 
+import {
+  StringEventID,
+  MatrixRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Redaction } from '../MatrixTypes/Redaction';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { StateChangeType } from './StateChangeType';
 
 export interface StateRevision {

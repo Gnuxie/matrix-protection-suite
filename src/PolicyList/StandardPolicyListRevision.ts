@@ -14,8 +14,8 @@ import { PolicyRule, Recommendation } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
+import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * A map of policy rules, by their type and then event id.

@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 import { PowerLevelsEventContent } from '../MatrixTypes/PowerLevels';
-import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 
 export enum PowerLevelPermission {
   Ban = 'ban',

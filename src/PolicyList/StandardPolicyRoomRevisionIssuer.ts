@@ -12,11 +12,11 @@ import { EventEmitter } from 'stream';
 import { PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
 import { PolicyRoomManager } from './PolicyRoomManger';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
 import { Redaction } from '../MatrixTypes/Redaction';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('StandardPolicyRoomRevisionIssuer');
 

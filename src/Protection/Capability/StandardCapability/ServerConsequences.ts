@@ -4,12 +4,12 @@
 
 import { Type } from '@sinclair/typebox';
 import { ActionResult } from '../../../Interface/Action';
-import { StringRoomID } from '../../../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { CapabilityMethodSchema } from './CapabilityMethodSchema';
 import { describeCapabilityInterface } from '../CapabilityInterface';
 import { Capability } from '../CapabilityProvider';
 import { RoomSetResult } from './RoomSetResult';
+import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export type ResultForServerInSetMap = Map<StringRoomID, ActionResult<void>>;
 

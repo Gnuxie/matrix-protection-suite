@@ -10,9 +10,9 @@
 
 import { StaticDecode, Type } from '@sinclair/typebox';
 import {
-  StringEventID,
-  StringRoomID,
-  StringUserID,
+  StringEventIDSchema,
+  StringRoomIDSchema,
+  StringUserIDSchema,
 } from './StringlyTypedMatrix';
 
 export type SynapseReport = StaticDecode<typeof SynapseReport>;
@@ -20,13 +20,13 @@ export const SynapseReport = Type.Object({
   id: Type.Integer({
     description: 'ID of event report.',
   }),
-  room_id: StringRoomID,
+  room_id: StringRoomIDSchema,
   name: Type.String({
     description:
       'The ID of the room in which the event being reported is located.',
   }),
-  event_id: StringEventID,
-  sender: StringUserID,
+  event_id: StringEventIDSchema,
+  sender: StringUserIDSchema,
   reason: Type.Optional(
     Type.Union([Type.Null(), Type.String()], {
       description:

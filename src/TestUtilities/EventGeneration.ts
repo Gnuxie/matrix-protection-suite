@@ -7,19 +7,17 @@ import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../PolicyList/PolicyRule';
 import { Value } from '../Interface/Value';
 import { isError } from '../Interface/Action';
+import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
 import {
   MatrixRoomID,
   MatrixRoomReference,
-} from '../MatrixTypes/MatrixRoomReference';
-import {
   StringEventID,
   StringRoomID,
   StringUserID,
   isStringEventID,
   isStringRoomID,
   isStringUserID,
-} from '../MatrixTypes/StringlyTypedMatrix';
-import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
+} from '@the-draupnir-project/matrix-basic-types';
 
 export function randomRawEvent(sender: string, room_id: string): unknown {
   const rawEventJSON = {

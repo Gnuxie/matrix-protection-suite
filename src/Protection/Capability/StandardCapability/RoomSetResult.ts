@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, isError } from '../../../Interface/Action';
 import {
   StringRoomID,
   StringUserID,
-} from '../../../MatrixTypes/StringlyTypedMatrix';
+} from '@the-draupnir-project/matrix-basic-types';
+import { ActionResult, isError } from '../../../Interface/Action';
 
 export interface SetResult {
   readonly isEveryResultOk: boolean;

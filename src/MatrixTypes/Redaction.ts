@@ -10,15 +10,16 @@
 
 import { Type } from '@sinclair/typebox';
 import { RoomEvent } from './Events';
-import { StringEventID } from './StringlyTypedMatrix';
+import { StringEventIDSchema } from './StringlyTypedMatrix';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
 import { EDStatic } from '../Interface/Static';
+import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
 
 export type RedactionContent = EDStatic<typeof RedactionContent>;
 export const RedactionContent = Type.Object({
   redacts: Type.Optional(
-    Type.Union([StringEventID], {
+    Type.Union([StringEventIDSchema], {
       description:
         'The event ID that was redacted. Required for, and present starting in, room version 11. This is protected from redaction.',
     })
@@ -33,7 +34,7 @@ export const Redaction = Type.Intersect([
   Type.Omit(RoomEvent(RedactionContent), ['type']),
   Type.Object({
     redacts: Type.Optional(
-      Type.Union([StringEventID], {
+      Type.Union([StringEventIDSchema], {
         description:
           'Required for, and only present in, room versions 1 - 10. The event ID that was redacted. This is not protected from redaction and can be removed in room versions prior to v11.',
       })

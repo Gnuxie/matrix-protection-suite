@@ -10,13 +10,13 @@
 
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { Value } from '../../Interface/Value';
-import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
+import { StringRoomIDSchema } from '../../MatrixTypes/StringlyTypedMatrix';
 
 export type MjolnirProtectedRoomsEvent = StaticDecode<
   typeof MjolnirProtectedRoomsEvent
 >;
 export const MjolnirProtectedRoomsEvent = Type.Object({
-  rooms: Type.Array(StringRoomID),
+  rooms: Type.Array(StringRoomIDSchema),
 });
 Value.Compile(MjolnirProtectedRoomsEvent);
 

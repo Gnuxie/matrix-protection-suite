@@ -27,12 +27,14 @@ import {
 } from '../StateTracking/StateChangeType';
 import { Revision } from './Revision';
 import { Map as PersistentMap } from 'immutable';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Logger } from '../Logging/Logger';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
+import {
+  MatrixRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('StandardPolicyRoomRevision');
 

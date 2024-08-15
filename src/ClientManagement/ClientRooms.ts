@@ -4,8 +4,11 @@
 
 import EventEmitter from 'events';
 import { RoomEvent } from '../MatrixTypes/Events';
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
+import {
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export interface ClientRoomsChange extends JoinedRoomsChange {
   preemptivelyJoined: StringRoomID[];

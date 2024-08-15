@@ -2,6 +2,10 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import {
+  StringRoomID,
+  userServerName,
+} from '@the-draupnir-project/matrix-basic-types';
 import { RoomStateEventSender } from '../../../Client/RoomStateEventSender';
 import {
   ActionError,
@@ -9,10 +13,6 @@ import {
   Ok,
   isError,
 } from '../../../Interface/Action';
-import {
-  StringRoomID,
-  serverName,
-} from '../../../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
@@ -33,7 +33,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     private readonly protectedRoomsSet: ProtectedRoomsSet
   ) {
     // nothing to do.
-    this.serverName = serverName(this.protectedRoomsSet.userID);
+    this.serverName = userServerName(this.protectedRoomsSet.userID);
   }
 
   private async applyPolicyRevisionToRoom(

@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult } from '../Interface/Action';
-import { RoomEvent } from '../MatrixTypes/Events';
 import {
   StringEventID,
   StringRoomID,
-} from '../MatrixTypes/StringlyTypedMatrix';
+} from '@the-draupnir-project/matrix-basic-types';
+import { ActionResult } from '../Interface/Action';
+import { RoomEvent } from '../MatrixTypes/Events';
 import { PaginationError, StreamPaginationOptions } from './Pagination';
 
 export interface RoomEventRelationsOptions<ChunkItem>

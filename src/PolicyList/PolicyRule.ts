@@ -8,8 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixGlob } from '../MatrixTypes/MatrixGlob';
-
+import { MatrixGlob } from '@the-draupnir-project/matrix-basic-types';
 import {
   PolicyRuleEvent,
   PolicyRuleType,

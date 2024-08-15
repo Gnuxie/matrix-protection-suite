@@ -4,8 +4,6 @@
 
 import { EventEmitter } from 'events';
 import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
-import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
 import { RoomMembershipManager } from '../../Membership/RoomMembershipManager';
 import {
   SetMembership,
@@ -26,6 +24,10 @@ import {
 } from './ProtectedRoomsManager';
 import { RoomJoiner } from '../../Client/RoomJoiner';
 import { RoomMembershipRevisionIssuer } from '../../Membership/MembershipRevisionIssuer';
+import {
+  MatrixRoomID,
+  StringRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 function makeJoinAndAdd(
   roomJoiner: RoomJoiner,

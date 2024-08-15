@@ -13,8 +13,8 @@ import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export interface DirectPropagationPolicyListRevisionIssuer
   extends PolicyListRevisionIssuer {

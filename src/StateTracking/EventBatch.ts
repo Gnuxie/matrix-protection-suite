@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
 import { Logger } from '../Logging/Logger';
-import { StringEventID } from '../MatrixTypes/StringlyTypedMatrix';
 
 const log = new Logger('EventBatch');
 

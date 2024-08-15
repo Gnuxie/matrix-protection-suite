@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../../Interface/Action';
 import { LoggableConfig } from '../../Interface/LoggableConfig';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyListRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
 
 export interface PolicyRoomWatchProfile<T = unknown> {

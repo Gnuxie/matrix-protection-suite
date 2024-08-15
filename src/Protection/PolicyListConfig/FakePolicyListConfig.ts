@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { Logger } from '../../Logging/Logger';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
 import {

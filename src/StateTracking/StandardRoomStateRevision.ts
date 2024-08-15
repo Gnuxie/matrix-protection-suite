@@ -11,9 +11,9 @@
 import { calculateStateChange, isChanged } from './StateChangeType';
 import { Revision } from '../PolicyList/Revision';
 import { Map as PersistentMap } from 'immutable';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StateEvent } from '../MatrixTypes/Events';
 import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * A map interning rules by their rule type, and then their state key.

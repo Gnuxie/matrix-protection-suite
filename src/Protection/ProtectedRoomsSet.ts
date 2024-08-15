@@ -4,7 +4,6 @@
 
 import { Task } from '../Interface/Task';
 import { RoomEvent } from '../MatrixTypes/Events';
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { RevisionListener } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
@@ -38,8 +37,12 @@ import {
   ProtectedRoomChangeType,
   ProtectedRoomsManager,
 } from './ProtectedRoomsManager/ProtectedRoomsManager';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import {
+  StringUserID,
+  MatrixRoomID,
+  StringRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;

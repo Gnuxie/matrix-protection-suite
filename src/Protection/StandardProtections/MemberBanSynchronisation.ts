@@ -30,8 +30,8 @@ import { UserConsequences } from '../Capability/StandardCapability/UserConsequen
 import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
 import '../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { Task } from '../../Interface/Task';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export type MemberBanSynchronisationProtectionDescription =
   ProtectionDescription<
