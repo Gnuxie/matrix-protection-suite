@@ -9,7 +9,6 @@ import {
   RoomStateRevisionIssuer,
   StateChange,
 } from './StateRevisionIssuer';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
 import { ConstantPeriodEventBatch, EventBatch } from './EventBatch';
 import { isError } from '../Interface/Action';
@@ -17,6 +16,7 @@ import { Logger } from '../Logging/Logger';
 import { RoomEvent, StateEvent } from '../MatrixTypes/Events';
 import { Redaction, redactionTargetEvent } from '../MatrixTypes/Redaction';
 import { calculateStateChange } from './StateChangeType';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('StandardRoomStateRevisionIssuer');
 

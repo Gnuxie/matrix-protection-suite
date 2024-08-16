@@ -9,7 +9,7 @@
 // </text>
 
 import { StaticDecode, Type } from '@sinclair/typebox';
-import { StringUserID } from '../StringlyTypedMatrix';
+import { StringUserIDSchema } from '../StringlyTypedMatrix';
 
 export type SynapseAdminGetUserAdminResponse = StaticDecode<
   typeof SynapseAdminGetUserAdminResponse
@@ -29,7 +29,7 @@ export type SynapseAdminDeleteRoomRequest = StaticDecode<
   typeof SynapseAdminDeleteRoomRequest
 >;
 export const SynapseAdminDeleteRoomRequest = Type.Object({
-  new_room_user_id: Type.Union([Type.Optional(StringUserID)], {
+  new_room_user_id: Type.Union([Type.Optional(StringUserIDSchema)], {
     description:
       ' If set, a new room will be created with this user ID as the creator and admin, and all users in the old room will be moved into that room. If not set, no new room will be created and the users will just be removed from the old room. The user ID must be on the local server, but does not necessarily have to belong to a registered user.',
   }),
@@ -72,5 +72,5 @@ export type SynapseAdminPostMakeRoomAdminRequest = StaticDecode<
   typeof SynapseAdminPostMakeRoomAdminRequest
 >;
 export const SynapseAdminPostMakeRoomAdminRequest = Type.Object({
-  user_id: StringUserID,
+  user_id: StringUserIDSchema,
 });

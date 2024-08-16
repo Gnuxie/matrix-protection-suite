@@ -10,7 +10,6 @@
 
 import { ActionResult } from '../Interface/Action';
 import { RoomEvent } from '../MatrixTypes/Events';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { EventReport } from '../Reporting/EventReport';
@@ -39,7 +38,10 @@ import { findCapabilityInterfaceSet } from './Capability/CapabilityInterface';
 import { findCapabilityProviderSet } from './Capability/CapabilityProvider';
 import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
+import {
+  MatrixRoomID,
+  StringRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * @param description The description for the protection being constructed.

@@ -8,7 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionError, ActionResult, ResultError } from './Action';
 import { ActionException, ActionExceptionKind } from './ActionException';
 

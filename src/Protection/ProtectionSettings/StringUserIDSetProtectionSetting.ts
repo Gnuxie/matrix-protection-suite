@@ -10,15 +10,16 @@
 
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { ActionError, ActionResult, isError } from '../../Interface/Action';
+import { SetProtectionSetting } from './SetProtectionSetting';
+import { Value } from '../../Interface/Value';
 import {
   StringUserID,
   isStringUserID,
-} from '../../MatrixTypes/StringlyTypedMatrix';
-import { SetProtectionSetting } from './SetProtectionSetting';
-import { Value } from '../../Interface/Value';
+} from '@the-draupnir-project/matrix-basic-types';
+import { StringUserIDSchema } from '../../MatrixTypes/StringlyTypedMatrix';
 
 type StringUserIDArray = StaticDecode<typeof StringUserIDArray>;
-const StringUserIDArray = Type.Array(StringUserID);
+const StringUserIDArray = Type.Array(StringUserIDSchema);
 
 export class StringUserIDSetProtectionSettings<
   Key extends string,

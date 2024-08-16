@@ -5,7 +5,6 @@
 import EventEmitter from 'events';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipRevision } from './MembershipRevision';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
@@ -14,6 +13,7 @@ import {
 } from '../StateTracking/StateRevisionIssuer';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { Redaction } from '../MatrixTypes/Redaction';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that

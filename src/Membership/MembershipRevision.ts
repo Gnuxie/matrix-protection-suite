@@ -9,13 +9,13 @@
 // </text>
 
 import { StaticDecode } from '@sinclair/typebox';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { MembershipChange } from './MembershipChange';
 import {
+  MatrixRoomID,
   StringEventID,
   StringUserID,
-} from '../MatrixTypes/StringlyTypedMatrix';
-import { MembershipChange } from './MembershipChange';
+} from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * A revision is a view of a Membership at a given moment in history.

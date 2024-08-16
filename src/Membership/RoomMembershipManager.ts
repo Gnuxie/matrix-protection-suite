@@ -4,9 +4,9 @@
 
 import { StaticDecode } from '@sinclair/typebox';
 import { ActionResult } from '../Interface/Action';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 // NOTE: This isn't going to be used to query about a set of rooms
 //       a propagator version of the revision should be used for that.

@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipChange } from './MembershipChange';
 import { RoomMembershipRevision } from './MembershipRevision';
 import {
@@ -11,6 +10,7 @@ import {
 } from './MembershipRevisionIssuer';
 import { RoomStateMembershipRevisionIssuer } from './RoomStateMembershipRevisionIssuer';
 import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export class FakeRoomMembershipRevisionIssuer
   extends RoomStateMembershipRevisionIssuer

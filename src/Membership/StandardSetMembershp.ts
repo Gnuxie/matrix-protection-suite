@@ -4,8 +4,6 @@
 
 import EventEmitter from 'events';
 import { ActionResult, Ok, isError } from '../Interface/Action';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import { RoomMembershipRevision } from './MembershipRevision';
 import {
   SetMembership,
@@ -17,6 +15,10 @@ import {
   RoomMembershipRevisionIssuer,
 } from './MembershipRevisionIssuer';
 import { RoomMembershipManager } from './RoomMembershipManager';
+import {
+  StringRoomID,
+  MatrixRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export class StandardSetMembership
   extends EventEmitter

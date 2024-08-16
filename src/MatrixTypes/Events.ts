@@ -9,9 +9,9 @@
 // </text>
 import { TSchema, Type } from '@sinclair/typebox';
 import {
-  StringEventID,
-  StringRoomID,
-  StringUserID,
+  StringEventIDSchema,
+  StringRoomIDSchema,
+  StringUserIDSchema,
 } from './StringlyTypedMatrix';
 import { EDStatic } from '../Interface/Static';
 
@@ -56,8 +56,8 @@ export const SyncRoomEvent = <Content extends TSchema>(Content: Content) =>
   Type.Intersect([
     Event(Content),
     Type.Object({
-      event_id: StringEventID,
-      sender: StringUserID,
+      event_id: StringEventIDSchema,
+      sender: StringUserIDSchema,
       origin_server_ts: Type.Number({
         description:
           'Timestamp in milliseconds on originating homeserver when this event was sent.',
@@ -74,7 +74,7 @@ export const RoomEvent = <Content extends TSchema>(Content: Content) =>
   Type.Intersect([
     SyncRoomEvent(Content),
     Type.Object({
-      room_id: StringRoomID,
+      room_id: StringRoomIDSchema,
     }),
   ]);
 
@@ -100,5 +100,5 @@ export const StrippedStateEvent = Type.Object({
   content: Type.Unknown(),
   state_key: Type.String({ description: 'The `state_key` for the event.' }),
   type: Type.String({ description: 'The `type` for the event.' }),
-  sender: StringUserID,
+  sender: StringUserIDSchema,
 });

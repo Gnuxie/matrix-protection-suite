@@ -5,7 +5,6 @@
 import AwaitLock from 'await-lock';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
 import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
 import {
   DirectPropagationPolicyListRevisionIssuer,
@@ -17,6 +16,7 @@ import { PolicyListConfig, PropagationType } from './PolicyListConfig';
 import { RoomJoiner } from '../../Client/RoomJoiner';
 import { Logger } from '../../Logging/Logger';
 import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('MjolnirPolicyRoomsConfig');
 

@@ -11,7 +11,7 @@ import {
   StringEventID,
   StringRoomID,
   StringUserID,
-} from '../MatrixTypes/StringlyTypedMatrix';
+} from '@the-draupnir-project/matrix-basic-types';
 
 export enum Membership {
   Join = 'join',

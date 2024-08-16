@@ -4,9 +4,7 @@
 
 import { randomUUID } from 'crypto';
 import { StateEvent } from '../MatrixTypes/Events';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { Membership } from '../Membership/MembershipChange';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
@@ -35,6 +33,11 @@ import { FakeProtectionsManager } from '../Protection/ProtectionsManager/FakePro
 import { StandardProtectedRoomsManager } from '../Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
 import { DummyRoomJoiner } from '../Client/DummyClientPlatform';
 import { Logger } from '../Logging/Logger';
+import {
+  MatrixRoomID,
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('DeclareRoomState');
 

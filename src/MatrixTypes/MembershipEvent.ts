@@ -11,7 +11,7 @@
 
 import { Type } from '@sinclair/typebox';
 import { StateEvent, StrippedStateEvent, UnsignedData } from './Events';
-import { StringUserID } from './StringlyTypedMatrix';
+import { StringUserIDSchema } from './StringlyTypedMatrix';
 import { EDStatic } from '../Interface/Static';
 
 export type MembershipEventUnsigned = EDStatic<typeof MembershipEventUnsigned>;
@@ -93,7 +93,7 @@ export type BaseMembershipEvent = EDStatic<typeof BaseMembershipEvent>;
 export const BaseMembershipEvent = Type.Intersect([
   Type.Omit(StateEvent(Type.Object({})), ['state_key', 'unsigned', 'type']),
   Type.Object({
-    state_key: StringUserID,
+    state_key: StringUserIDSchema,
     type: Type.Literal('m.room.member'),
     unsigned: Type.Optional(MembershipEventUnsigned),
   }),

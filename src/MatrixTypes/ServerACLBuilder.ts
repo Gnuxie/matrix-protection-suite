@@ -8,7 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixGlob } from './MatrixGlob';
+import { MatrixGlob } from '@the-draupnir-project/matrix-basic-types';
 import { ServerACLContent } from './ServerACL';
 
 export class ServerACLBuilder {

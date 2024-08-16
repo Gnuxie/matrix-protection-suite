@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { RoomEvent } from '../MatrixTypes/Events';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import { ConstantPeriodBatch } from './ConstantPeriodBatch';
 
 export type OnRoomEventActivity = (

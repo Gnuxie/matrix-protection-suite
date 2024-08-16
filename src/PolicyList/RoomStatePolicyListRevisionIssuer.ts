@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import EventEmitter from 'events';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
@@ -20,6 +19,7 @@ import { ALL_RULE_TYPES, PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { StateEvent } from '../MatrixTypes/Events';
 import { Redaction } from '../MatrixTypes/Redaction';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that

@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { JoinedRoomsRevision } from './JoinedRoomsRevision';
 import {
   ClientRooms,
@@ -14,6 +13,10 @@ import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { Value } from '../Interface/Value';
 import { JoinedRoomsSafe, StandardClientRooms } from './StandardClientRooms';
 import { ActionResult, Ok, isError } from '../Interface/Action';
+import {
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export interface ClientsInRoomMap {
   isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean;

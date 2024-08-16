@@ -2,14 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionError, ActionResult, Ok } from '../Interface/Action';
-import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
 import {
+  StringRoomID,
   MatrixRoomID,
   MatrixRoomReference,
-} from '../MatrixTypes/MatrixRoomReference';
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
+import { ActionError, ActionResult, Ok } from '../Interface/Action';
+import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { StringRoomID, StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
 import { PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyRoomEditor } from '../PolicyList/PolicyRoomEditor';

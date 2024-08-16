@@ -2,10 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import {
+  StringRoomID,
+  MatrixRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 import { ActionError, ActionResult, Ok } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import {
   DescribeRoomOptions,
   describeRoomStateEvents,

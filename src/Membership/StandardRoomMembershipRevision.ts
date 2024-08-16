@@ -3,12 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { StaticDecode } from '@sinclair/typebox';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import {
-  StringEventID,
-  StringUserID,
-} from '../MatrixTypes/StringlyTypedMatrix';
 import {
   MembershipChange,
   membershipChangeType,
@@ -18,6 +13,11 @@ import { RoomMembershipRevision } from './MembershipRevision';
 import { Map as PersistentMap } from 'immutable';
 import { Logger } from '../Logging/Logger';
 import { SafeMembershipEventMirror } from '../SafeMatrixEvents/SafeMembershipEvent';
+import {
+  MatrixRoomID,
+  StringEventID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('StandardRoomMembershipRevision');
 

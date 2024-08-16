@@ -9,7 +9,7 @@
 // </text>
 
 import { Type } from '@sinclair/typebox';
-import { StringEventID } from './StringlyTypedMatrix';
+import { StringEventIDSchema } from './StringlyTypedMatrix';
 import { RoomEvent } from './Events';
 import { registerDefaultDecoder } from './EventDecoder';
 import { Value } from '../Interface/Value';
@@ -20,7 +20,7 @@ export const ReactionContent = Type.Object({
   ['m.relates_to']: Type.Optional(
     Type.Object({
       rel_type: Type.Optional(Type.Union([Type.Literal('m.annotation')])),
-      event_id: StringEventID,
+      event_id: StringEventIDSchema,
       key: Type.Optional(
         Type.String({
           description:

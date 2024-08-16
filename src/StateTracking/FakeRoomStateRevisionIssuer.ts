@@ -8,8 +8,8 @@ import {
   RoomStateRevisionIssuer,
   StateChange,
 } from './StateRevisionIssuer';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { StateEvent } from '../MatrixTypes/Events';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export class FakeRoomStateRevisionIssuer
   extends EventEmitter

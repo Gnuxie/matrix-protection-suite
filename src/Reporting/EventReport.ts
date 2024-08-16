@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { RoomEvent } from '../MatrixTypes/Events';
 import {
   StringEventID,
   StringRoomID,
   StringUserID,
-} from '../MatrixTypes/StringlyTypedMatrix';
+} from '@the-draupnir-project/matrix-basic-types';
+import { RoomEvent } from '../MatrixTypes/Events';
 
 export interface EventReport {
   event_id: StringEventID;

@@ -8,9 +8,9 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { Task } from '../../Interface/Task';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';

@@ -4,13 +4,13 @@
 
 import { Type } from '@sinclair/typebox';
 import { ActionResult } from '../../../Interface/Action';
-import {
-  StringEventID,
-  StringRoomID,
-} from '../../../MatrixTypes/StringlyTypedMatrix';
 import { describeCapabilityInterface } from '../CapabilityInterface';
 import { Capability } from '../CapabilityProvider';
 import { CapabilityMethodSchema } from './CapabilityMethodSchema';
+import {
+  StringRoomID,
+  StringEventID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export interface EventConsequences extends Capability {
   consequenceForEvent(

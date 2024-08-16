@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { PowerLevelPermission } from '../../../Client/PowerLevelsMirror';
-import { RoomEventRedacter } from '../../../Client/RoomEventRedacter';
-import { ActionResult, Ok, isError } from '../../../Interface/Action';
 import {
   StringRoomID,
   StringEventID,
-} from '../../../MatrixTypes/StringlyTypedMatrix';
+} from '@the-draupnir-project/matrix-basic-types';
+import { PowerLevelPermission } from '../../../Client/PowerLevelsMirror';
+import { RoomEventRedacter } from '../../../Client/RoomEventRedacter';
+import { ActionResult, Ok, isError } from '../../../Interface/Action';
 import { describeCapabilityProvider } from '../CapabilityProvider';
 import { EventConsequences } from './EventConsequences';
 import './EventConsequences'; // we need this so the interface is loaded.

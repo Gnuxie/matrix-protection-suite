@@ -14,13 +14,13 @@ import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
 import { RoomStateEventSender } from '../Client/RoomStateEventSender';
 import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
 import { PolicyRoomEditor } from './PolicyRoomEditor';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import {
   PolicyRuleType,
   variantsForPolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { ActionResult, Ok, isError } from '../Interface/Action';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export class StandardPolicyRoomEditor implements PolicyRoomEditor {
   constructor(

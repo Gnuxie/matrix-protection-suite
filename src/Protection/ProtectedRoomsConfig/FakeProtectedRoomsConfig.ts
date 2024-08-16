@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { ProtectedRoomsConfig } from './ProtectedRoomsConfig';
-import { StringRoomID } from '../../MatrixTypes/StringlyTypedMatrix';
-import { MatrixRoomID } from '../../MatrixTypes/MatrixRoomReference';
 import { ActionResult, Ok } from '../../Interface/Action';
+import {
+  StringRoomID,
+  MatrixRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export class AbstractProtectedRoomsConfig
   implements Omit<ProtectedRoomsConfig, 'addRoom' | 'removeRoom'>

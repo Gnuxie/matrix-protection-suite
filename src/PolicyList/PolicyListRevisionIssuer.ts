@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { StateEvent } from '../MatrixTypes/Events';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Redaction } from '../MatrixTypes/Redaction';
 import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';

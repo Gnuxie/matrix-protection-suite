@@ -6,7 +6,6 @@ import EventEmitter from 'events';
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipRevision } from './MembershipRevision';
 import { RoomMembershipManager } from './RoomMembershipManager';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { Logger } from '../Logging/Logger';
 import { isError } from '../Interface/Action';
 import {
@@ -16,6 +15,7 @@ import {
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { Redaction } from '../MatrixTypes/Redaction';
+import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 const log = new Logger('StandardRoomMembershipRevisionIssuer');
 

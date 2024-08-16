@@ -9,16 +9,18 @@
 // </text>
 
 import { StaticDecode, Type } from '@sinclair/typebox';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { StringUserID } from '../MatrixTypes/StringlyTypedMatrix';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { StateEvent } from '../MatrixTypes/Events';
 import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
 import { Value } from '../Interface/Value';
+import {
+  MatrixRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 /** MSC3784 support. Please note that policy lists predate room types. So there will be lists in the wild without this type. */
 export const POLICY_ROOM_TYPE = 'support.feline.policy.lists.msc.v1';

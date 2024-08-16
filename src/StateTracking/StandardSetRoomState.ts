@@ -14,9 +14,11 @@ import {
   RoomStateRevisionIssuer,
   StateRevisionListener,
 } from './StateRevisionIssuer';
-import { StringRoomID } from '../MatrixTypes/StringlyTypedMatrix';
 import { ActionResult, Ok, isError } from '../Interface/Action';
-import { MatrixRoomID } from '../MatrixTypes/MatrixRoomReference';
+import {
+  StringRoomID,
+  MatrixRoomID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 /**
  * Provides immediate (synchronous) access to the room state within a set of rooms.

@@ -11,10 +11,6 @@
 import { Type } from '@sinclair/typebox';
 import { describeCapabilityInterface } from '../CapabilityInterface';
 import { CapabilityMethodSchema } from './CapabilityMethodSchema';
-import {
-  StringRoomID,
-  StringUserID,
-} from '../../../MatrixTypes/StringlyTypedMatrix';
 import { ActionResult } from '../../../Interface/Action';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Capability } from '../CapabilityProvider';
@@ -23,6 +19,10 @@ import {
   ResultForUsersInSet,
   RoomSetResult,
 } from './RoomSetResult';
+import {
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export interface UserConsequences extends Capability {
   consequenceForUserInRoom(
