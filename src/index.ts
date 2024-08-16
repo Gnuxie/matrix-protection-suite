@@ -48,6 +48,7 @@ export * from './MatrixTypes/CreateRoom';
 export * from './MatrixTypes/EventDecoder';
 export * from './MatrixTypes/Events';
 export * from './MatrixTypes/MembershipEvent';
+export * from './MatrixTypes/PermalinkSchema';
 export * from './MatrixTypes/PolicyEvents';
 export * from './MatrixTypes/PowerLevels';
 export * from './MatrixTypes/ReactionEvent';
