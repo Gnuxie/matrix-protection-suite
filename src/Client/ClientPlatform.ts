@@ -8,6 +8,7 @@ import { RoomEventRedacter } from './RoomEventRedacter';
 import { RoomEventRelationsGetter } from './RoomEventRelationsGetter';
 import { RoomJoiner } from './RoomJoiner';
 import { RoomKicker } from './RoomKicker';
+import { RoomMessageSender } from './RoomMessageSender';
 import { RoomResolver } from './RoomResolver';
 import { RoomStateEventSender } from './RoomStateEventSender';
 import { RoomUnbanner } from './RoomUnbanner';
@@ -33,4 +34,5 @@ export interface ClientPlatform {
   // which types can be sent.
   toRoomStateEventSender(): RoomStateEventSender;
   toRoomUnbanner(): RoomUnbanner;
+  toRoomMessageSender(): RoomMessageSender;
 }

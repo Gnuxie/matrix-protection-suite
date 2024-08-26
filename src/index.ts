@@ -9,10 +9,12 @@ export * from './Client/PowerLevelsMirror';
 export * from './Client/RoomBanner';
 export * from './Client/RoomCreator';
 export * from './Client/RoomEventRedacter';
+export * from './Client/RoomEventRelationsGetter';
 export * from './Client/RoomJoiner';
 export * from './Client/RoomKicker';
+export * from './Client/RoomMessageSender';
 export * from './Client/RoomResolver';
-export * from './Client/RoomEventRelationsGetter';
+
 export * from './Client/RoomStateEventSender';
 export * from './Client/RoomUnbanner';
 
