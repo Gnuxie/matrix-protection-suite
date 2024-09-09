@@ -140,6 +140,7 @@ export * from './Reporting/EventReport';
 
 export * from './SafeMatrixEvents/SafeMembershipEvent';
 
+export * from './StateTracking/DeclareRoomState';
 export * from './StateTracking/EventBatch';
 export * from './StateTracking/RoomStateBackingStore';
 export * from './StateTracking/SetRoomState';
@@ -148,3 +149,4 @@ export * from './StateTracking/StandardRoomStateRevisionIssuer';
 export * from './StateTracking/StandardSetRoomState';
 export * from './StateTracking/StateChangeType';
 export * from './StateTracking/StateRevisionIssuer';
+export * from './TestUtilities/EventGeneration';
