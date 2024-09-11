@@ -4,6 +4,7 @@
 
 import {
   MatrixRoomAlias,
+  MatrixRoomID,
   MatrixRoomReference,
   StringRoomAlias,
   StringRoomID,
@@ -11,8 +12,11 @@ import {
 } from '@the-draupnir-project/matrix-basic-types';
 import { Ok } from '../Interface/Action';
 import { RoomJoiner } from './RoomJoiner';
+import { Result } from '@gnuxie/typescript-result';
 
-export async function resolveRoomFake(roomID: MatrixRoomReference | string) {
+export async function resolveRoomFake(
+  roomID: MatrixRoomReference | string
+): Promise<Result<MatrixRoomID>> {
   if (typeof roomID === 'string') {
     if (!isStringRoomID(roomID)) {
       throw new TypeError(`Fake can't deal with aliases.`);

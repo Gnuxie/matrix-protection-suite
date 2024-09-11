@@ -104,7 +104,9 @@ export class StandardProtectedRoomsManager
     for (const room of protectedRoomsConfig.getProtectedRooms()) {
       const result = await joinAndAdd(room);
       if (isError(result)) {
-        return result;
+        return result.elaborate(
+          `Unable to join and add configured protected room ${room.toPermalink()}`
+        );
       }
     }
     return Ok(
