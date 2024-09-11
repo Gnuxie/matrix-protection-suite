@@ -359,10 +359,10 @@
   resolved "https://registry.yarnpkg.com/@eslint/object-schema/-/object-schema-2.1.4.tgz#9e69f8bb4031e11df79e03db09f9dbbae1740843"
   integrity sha512-BsWiH1yFGjXXS2yvrf5LyuoSIIbPrGUWob917o+BTKuZ7qJdxX8aJLRxs1fS9n6r7vESrq1OUqb68dANcFXuQQ==
 
-"@gnuxie/typescript-result@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@gnuxie/typescript-result/-/typescript-result-0.2.0.tgz#870e29d079341c32a7cae7e0ee77ffdd09aad60f"
-  integrity sha512-V5VZUpl21fRNTBHqdigWVkkXhoue/6MVfpWLBOMVgi5unR4ePoXjzNXc9diNmnmDe+mrQfXGPT8LiB18Cc+0Ig==
+"@gnuxie/typescript-result@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@gnuxie/typescript-result/-/typescript-result-1.0.0.tgz#d96ae02123261e42c03b2046e78d0cd6c5a24fb4"
+  integrity sha512-evHf0XIR2wrpc8iDfQKaU+9jwrutjbDfnjmZOLij+8aFKjpOi4oSzaUfUBv89WyvEW0XtUZPUQpSe5KiE9t1ng==
 
 "@humanwhocodes/module-importer@^1.0.1":
   version "1.0.1"
@@ -664,12 +664,12 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@the-draupnir-project/matrix-basic-types@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@the-draupnir-project/matrix-basic-types/-/matrix-basic-types-0.1.1.tgz#27a131e2f92d6d25b377f7339177d8ac204d95a2"
-  integrity sha512-g5CDAdQMe1dxbVlzPvrrPPluZCFKaBqJ2iAarspGHkr0V3YBBCdz9v3Yb6TY8e2d/eXz5gSWDKzeZElWD33oeA==
+"@the-draupnir-project/matrix-basic-types@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@the-draupnir-project/matrix-basic-types/-/matrix-basic-types-0.2.0.tgz#21502e4b9c0ad7b1cce077dc7d5ddefd768d0b42"
+  integrity sha512-plYd/Oi9/JPo+C5ga2D/8L41St+QpdfMwDjE3LuFnjF7TdmxEIw4rx/AFMqZk3KTMbukLQDQDCQF1ZFYmKI6WA==
   dependencies:
-    "@gnuxie/typescript-result" "^0.2.0"
+    "@gnuxie/typescript-result" "^1.0.0"
     glob-to-regexp "^0.4.1"
 
 "@types/babel__core@^7.1.14":

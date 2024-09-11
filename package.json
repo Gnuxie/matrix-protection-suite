@@ -29,7 +29,7 @@
     "@commitlint/config-conventional": "^19.2.2",
     "@eslint/js": "^9.6.0",
     "@sinclair/typebox": "0.32.34",
-    "@the-draupnir-project/matrix-basic-types": "^0.1.1",
+    "@the-draupnir-project/matrix-basic-types": "^0.2.0",
     "@types/crypto-js": "^4.2.2",
     "@types/eslint__js": "^8.42.3",
     "@types/glob-to-regexp": "^0.4.4",
@@ -71,7 +71,7 @@
     ]
   },
   "dependencies": {
-    "@gnuxie/typescript-result": "^0.2.0",
+    "@gnuxie/typescript-result": "^1.0.0",
     "await-lock": "^2.2.2",
     "crypto-js": "^4.2.0",
     "glob-to-regexp": "^0.4.1",
@@ -80,7 +80,7 @@
   },
   "peerDependencies": {
     "@sinclair/typebox": "0.32.34",
-    "@the-draupnir-project/matrix-basic-types": "^0.1.1"
+    "@the-draupnir-project/matrix-basic-types": "^0.2.0"
   },
   "publishConfig": {
     "@gnuxie:registry": "https://registry.npmjs.org"
