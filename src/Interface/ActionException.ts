@@ -90,4 +90,9 @@ export class ActionException extends ActionError {
       log.error(...logArguments);
     }
   }
+
+  public toReadableString(): string {
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    return `ActionException: ${this.uuid}\n${super.toReadableString()}\nfrom error: ${this.exception}`;
+  }
 }
