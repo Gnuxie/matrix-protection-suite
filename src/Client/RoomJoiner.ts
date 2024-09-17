@@ -11,8 +11,17 @@ import {
 import { ActionResult } from '../Interface/Action';
 import { RoomResolver } from './RoomResolver';
 
+type JoinRoomOptions = {
+  /**
+   * Whether to call `/join` regardless of whether we know we are
+   * already joined to the room.
+   */
+  alwaysCallJoin?: boolean;
+};
+
 export interface RoomJoiner extends RoomResolver {
   joinRoom(
-    room: MatrixRoomReference | StringRoomID | StringRoomAlias
+    room: MatrixRoomReference | StringRoomID | StringRoomAlias,
+    options?: JoinRoomOptions
   ): Promise<ActionResult<MatrixRoomID>>;
 }
