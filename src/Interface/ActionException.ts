@@ -92,7 +92,12 @@ export class ActionException extends ActionError {
   }
 
   public toReadableString(): string {
+    const mainDetail = `ActionException: ${this.uuid}\n${super.toReadableString()}`;
+    if (this.exception instanceof Error) {
+      return `${mainDetail}\nfrom error: ${this.exception.name}: ${this.exception.message}\n${this.exception.stack}`;
+    }
+    // @typescript-eslint/restrict-template-expressions
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    return `ActionException: ${this.uuid}\n${super.toReadableString()}\nfrom error: ${this.exception}`;
+    return `${mainDetail}\nfrom unknown: ${this.exception}`;
   }
 }
