@@ -27,6 +27,11 @@ export * from './ClientManagement/RoomEventAcivity';
 export * from './ClientManagement/RoomPauser';
 export * from './ClientManagement/StandardClientRooms';
 
+export * from './DynamicConfig/DynamicConfigDescription';
+export * from './DynamicConfig/DynamicConfigParseError';
+export * from './DynamicConfig/DynamicConfigProperty';
+export * from './DynamicConfig/DynamicConfigPropertyValidationError';
+
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/Deduplicator';
