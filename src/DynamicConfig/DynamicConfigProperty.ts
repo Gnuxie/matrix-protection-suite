@@ -17,7 +17,7 @@ export interface DynamicConfigProperty<
   TConfig extends UnknownConfig<Key>,
 > {
   readonly key: Key;
-  setValue(settings: TConfig, value: unknown): Result<TConfig>;
+  setValue(settings: TConfig, value: unknown): Result<TConfig, DynamicConfigPropertyValidationError>;
   parseValue(
     value: unknown
   ): Result<TConfig[Key], DynamicConfigPropertyValidationError>;

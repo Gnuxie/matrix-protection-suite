@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ResultError } from '@gnuxie/typescript-result';
+import { Err, ResultError } from '@gnuxie/typescript-result';
 import { DynamicConfigPropertyValidationError } from './DynamicConfigPropertyValidationError';
 import {
   DynamicConfigDescription,
@@ -27,6 +27,10 @@ export class DynamicConfigJSONError extends ResultError {
     super(message);
     this.cause = options.cause;
   }
+
+  public static Result(message: string, options: DynamicConfigJSONErrorOptions & { json: string }) {
+    return Err(new DynamicConfigJSONError(message, options.json, options));
+  }
 }
 
 export class DynamicConfigPropertyErrors extends ResultError {
@@ -36,5 +40,12 @@ export class DynamicConfigPropertyErrors extends ResultError {
     public readonly proprties: DynamicConfigPropertyValidationError[]
   ) {
     super(message);
+  }
+
+  public static Result(
+    message: string,
+    options: { config: DynamicConfigDescription<UnknownConfig<string>>; properties: DynamicConfigPropertyValidationError[] }
+  ) {
+    return Err(new DynamicConfigPropertyErrors(message, options.config, options.properties));
   }
 }

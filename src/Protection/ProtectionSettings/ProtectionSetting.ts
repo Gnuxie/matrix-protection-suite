@@ -8,7 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionResult, Ok } from '../../Interface/Action';
+import { AbstractDynamicConfigProperty } from '../../DynamicConfig/AbstractDynamicConfigProperty';
+import { ActionResult } from '../../Interface/Action';
 
 export type UnknownSettings<Key extends string> = Record<string | Key, unknown>;
 
@@ -22,25 +23,7 @@ export interface ProtectionSetting<
   isCollectionSetting(): this is CollectionProtectionSetting<Key, TSettings>;
 }
 
-export class AbstractProtectionSetting<
-  Key extends string,
-  TSettings extends UnknownSettings<Key> = UnknownSettings<Key>,
-> {
-  protected constructor(public readonly key: keyof TSettings & Key) {
-    // nothing to do.
-  }
-  public setParsedValue(settings: TSettings, value: TSettings[Key]) {
-    const clone = structuredClone(settings);
-    clone[this.key] = value;
-    return Ok(clone);
-  }
-  public isCollectionSetting(): this is CollectionProtectionSetting<
-    Key,
-    TSettings
-  > {
-    return false;
-  }
-}
+export const AbstractProtectionSetting = AbstractDynamicConfigProperty;
 
 export interface CollectionProtectionSetting<
   Key extends string,
