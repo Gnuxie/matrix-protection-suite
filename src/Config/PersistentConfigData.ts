@@ -4,7 +4,11 @@
 
 import { Ok, Result, ResultError, isError } from '@gnuxie/typescript-result';
 import { ConfigDescription } from './ConfigDescription';
-import { ConfigParseError } from './ConfigParseError';
+import {
+  ConfigErrorDiagnosis,
+  ConfigParseError,
+  ConfigPropertyError,
+} from './ConfigParseError';
 import { TObject } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
 
@@ -29,10 +33,6 @@ export interface PersistentConfigData<T extends TObject> {
   // invalidates any of the associated recovery options?
   // Be sure not to mandate all recovery options to be tied together though,
   // since there will be one further up which just restarts Draupnir.
-  // FIXME: hmm is there a way of just accepting the path for both of these
-  // and working out whether to use the index one or not based on that?
-  // i don't think anything further up the chain would operate on anything
-  // but the path considering it will be handed the ConfigPropertyError.
   makeRecoveryOptionsForProperty(
     config: Record<string, unknown>,
     key: string
@@ -41,6 +41,10 @@ export interface PersistentConfigData<T extends TObject> {
     config: Record<string, unknown[]>,
     key: string,
     index: number
+  ): ConfigRecoveryOption[];
+  makeRecoveryOptionsForError(
+    config: Record<string, unknown>,
+    error: ResultError
   ): ConfigRecoveryOption[];
 }
 
@@ -124,5 +128,34 @@ export class StandardPersistentConfigData<T extends TObject>
       },
       ...this.makeRecoveryOptionsForProperty(config, key),
     ];
+  }
+
+  makeRecoveryOptionsForError(
+    config: Record<string, unknown>,
+    error: ResultError
+  ): ConfigRecoveryOption[] {
+    if (error instanceof ConfigParseError) {
+      const mostRelevantError = error.errors[0];
+      if (mostRelevantError === undefined) {
+        return [this.makeRecoveryOptionForConfig()];
+      } else {
+        return this.makeRecoveryOptionsForError(config, mostRelevantError);
+      }
+    } else if (error instanceof ConfigPropertyError) {
+      if (error.diagnosis === ConfigErrorDiagnosis.ProblematicArrayItem) {
+        return this.makeRecoveryOptionsForPropertyItem(
+          config as Record<string, unknown[]>,
+          error.topLevelProperty(),
+          error.itemIndex()
+        );
+      } else {
+        return this.makeRecoveryOptionsForProperty(
+          config,
+          error.topLevelProperty()
+        );
+      }
+    } else {
+      return [];
+    }
   }
 }

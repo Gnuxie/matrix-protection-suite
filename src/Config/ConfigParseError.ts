@@ -57,6 +57,14 @@ export class ConfigPropertyError extends ResultError {
     return `Property at ${this.path} has the following diagnosis: ${this.diagnosis}, problem: ${this.message}, and value: ${String(this.value)}`;
   }
 
+  public itemIndex(): number {
+    const match = this.path.match(/\/(\d+)$/)?.[1];
+    if (match === undefined) {
+      throw new TypeError('Invalid path was given to ConfigPropertyError');
+    }
+    return parseInt(match, 10);
+  }
+
   public topLevelProperty(): string {
     const key = this.path.split('/')[1];
     if (key === undefined) {
