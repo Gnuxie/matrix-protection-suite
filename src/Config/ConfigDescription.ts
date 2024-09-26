@@ -33,6 +33,7 @@ export type ConfigDescription<TConfigSchema extends TObject> = {
   properties(): ConfigPropertyDescription[];
   getPropertyDescription(key: string): ConfigPropertyDescription;
   toMirror(): ConfigMirror<TConfigSchema>;
+  getDefaultConfig(): EDStatic<TConfigSchema>;
 };
 
 export class StandardConfigDescription<TConfigSchema extends TObject>
@@ -87,5 +88,8 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
 
   public toMirror(): ConfigMirror<TConfigSchema> {
     return new StandardConfigMirror(this);
+  }
+  public getDefaultConfig(): EDStatic<TConfigSchema> {
+    return TBValue.Default(this.schema, {}) as EDStatic<TConfigSchema>;
   }
 }

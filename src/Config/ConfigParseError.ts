@@ -56,4 +56,41 @@ export class ConfigPropertyError extends ResultError {
   public toReadableString(): string {
     return `Property at ${this.path} has the following diagnosis: ${this.diagnosis}, problem: ${this.message}, and value: ${String(this.value)}`;
   }
+
+  public topLevelProperty(): string {
+    const key = this.path.split('/')[1];
+    if (key === undefined) {
+      throw new TypeError('Invalid path was given to ConfigPropertyError');
+    }
+    return key;
+  }
+}
+
+export class ConfigPropertyUseError extends ConfigPropertyError {
+  constructor(
+    message: string,
+    path: string,
+    value: unknown,
+    public readonly cause: ResultError
+  ) {
+    super(message, path, value);
+  }
+
+  public static Result(
+    message: string,
+    options: { path: string; value: unknown; cause: ResultError }
+  ) {
+    return Err(
+      new ConfigPropertyUseError(
+        message,
+        options.path,
+        options.value,
+        options.cause
+      )
+    );
+  }
+
+  public toReadableString(): string {
+    return `${super.toReadableString()}\ncaused by: ${this.cause.toReadableString()}`;
+  }
 }

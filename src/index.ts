@@ -31,6 +31,7 @@ export * from './Config/ConfigDescription';
 export * from './Config/ConfigMirror';
 export * from './Config/ConfigParseError';
 export * from './Config/describeConfig';
+export * from './Config/PersistentConfigData';
 
 export * from './Interface/Action';
 export * from './Interface/ActionException';
