@@ -7,12 +7,16 @@ import { StringUserIDSchema } from '../MatrixTypes/StringlyTypedMatrix';
 import { describeConfig } from './describeConfig';
 import { isOk } from '@gnuxie/typescript-result';
 import { StandardConfigMirror } from './ConfigMirror';
+import { ConfigErrorDiagnosis } from './ConfigParseError';
 
 const TrustedReportersConfigDescription = describeConfig({
-  schema: Type.Object({
-    mxids: Type.Array(StringUserIDSchema, { default: [], uniqueItems: true }),
-    alertThreshold: Type.Number({ default: -1 }),
-  }),
+  schema: Type.Object(
+    {
+      mxids: Type.Array(StringUserIDSchema, { default: [], uniqueItems: true }),
+      alertThreshold: Type.Number({ default: -1 }),
+    },
+    { additionalProperties: false }
+  ),
 });
 it('Works i guess', function () {
   expect(
@@ -53,6 +57,9 @@ it('Is possible to get validation errors for adding garbage values', function ()
     throw new Error('Expected this to fail');
   }
   expect(result.error.path).toBe('/mxids/1');
+  expect(result.error.diagnosis).toBe(
+    ConfigErrorDiagnosis.ProblematicArrayItem
+  );
 });
 
 it('Is possibel to get correct paths from wrong values', function () {
@@ -68,4 +75,27 @@ it('Is possibel to get correct paths from wrong values', function () {
     throw new Error('Expected this to fail');
   }
   expect(numberResult.error.path).toBe('/alertThreshold');
+});
+
+it('Gives us accurate information on arrays being replaced with non-arrays, and that the config is recoverable', function () {
+  const result = TrustedReportersConfigDescription.parseConfig({
+    mxids: 'cheese wheels',
+  });
+  if (isOk(result)) {
+    throw new Error('Expected this to fail');
+  }
+  expect(result.error.errors[0]?.diagnosis).toBe(
+    ConfigErrorDiagnosis.ProblematicValue
+  );
+});
+
+it('What happens when we just provide the completely wrong config', function () {
+  const config = {
+    oranges: ['moldy'],
+    apples: 5,
+  };
+  const result = TrustedReportersConfigDescription.parseConfig(config);
+  if (isOk(result)) {
+    throw new Error('Expected this to fail');
+  }
 });

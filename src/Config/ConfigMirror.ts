@@ -27,6 +27,21 @@ export interface ConfigMirror<TSchema extends TObject> {
     key: keyof EDStatic<TSchema>,
     value: unknown
   ): Result<EDStatic<TSchema>, ConfigPropertyError>;
+  // needed for when additionalProperties is true.
+  removeProperty<TKey extends string>(
+    key: TKey,
+    config: Record<TKey, unknown>
+  ): Record<TKey, unknown>;
+  removeItem<TKey extends string>(
+    config: Record<TKey, unknown[]>,
+    key: TKey,
+    index: number
+  ): Record<TKey, unknown[]>;
+  filterItems<TKey extends string>(
+    config: Record<TKey, unknown[]>,
+    key: TKey,
+    callbackFn: Parameters<Array<unknown>['filter']>[0]
+  ): Record<TKey, unknown[]>;
 }
 
 export class StandardConfigMirror<TSchema extends TObject>
@@ -113,5 +128,40 @@ export class StandardConfigMirror<TSchema extends TObject>
       });
     }
     return Ok(this.addUnparsedItem(config, key, value));
+  }
+  removeProperty<TKey extends string>(
+    key: TKey,
+    config: Record<TKey, unknown>
+  ): Record<string, unknown> {
+    return Object.entries(config).reduce<Record<string, unknown>>(
+      (acc, [k, v]) => {
+        if (k !== key) {
+          acc[k as TKey] = v;
+        }
+        return acc;
+      },
+      {}
+    );
+  }
+  removeItem<TKey extends string>(
+    config: Record<TKey, unknown[]>,
+    key: TKey,
+    index: number
+  ): Record<TKey, unknown[]> {
+    return {
+      ...config,
+      [key]: config[key].filter((_, i) => i !== index),
+    };
+  }
+
+  filterItems<TKey extends string>(
+    config: Record<TKey, unknown[]>,
+    key: TKey,
+    callbackFn: Parameters<Array<unknown>['filter']>[0]
+  ): Record<TKey, unknown[]> {
+    return {
+      ...config,
+      [key]: config[key].filter(callbackFn),
+    };
   }
 }
