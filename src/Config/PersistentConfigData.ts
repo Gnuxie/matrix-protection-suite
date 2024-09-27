@@ -2,12 +2,19 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Ok, Result, ResultError, isError } from '@gnuxie/typescript-result';
+import {
+  Ok,
+  Result,
+  ResultError,
+  isError,
+  isOk,
+} from '@gnuxie/typescript-result';
 import { ConfigDescription } from './ConfigDescription';
 import {
   ConfigErrorDiagnosis,
   ConfigParseError,
   ConfigPropertyError,
+  ConfigRecoverableError,
 } from './ConfigParseError';
 import { TObject } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
@@ -46,6 +53,15 @@ export interface PersistentConfigData<T extends TObject> {
     config: Record<string, unknown>,
     error: ResultError
   ): ConfigRecoveryOption[];
+  addRecoveryOptionsToResult<T = unknown>(
+    config: Record<string, unknown>,
+    result: Result<T>
+  ): Result<T>;
+  reportUseError(
+    path: string,
+    value: unknown,
+    cause: ResultError
+  ): Promise<Result<never>>;
 }
 
 export interface PersistentConfigBackend<T> {
@@ -76,7 +92,10 @@ export class StandardPersistentConfigData<T extends TObject>
     if (loadResult.ok === undefined) {
       return Ok(this.description.getDefaultConfig());
     }
-    return this.description.parseConfig(loadResult.ok);
+    return this.addRecoveryOptionsToResult(
+      loadResult.ok,
+      this.description.parseConfig(loadResult.ok)
+    );
   }
 
   public async saveConfig(config: EDStatic<T>): Promise<Result<void>> {
@@ -157,5 +176,37 @@ export class StandardPersistentConfigData<T extends TObject>
     } else {
       return [];
     }
+  }
+
+  public addRecoveryOptionsToResult<T = unknown>(
+    config: Record<string, unknown>,
+    result: Result<T>
+  ): Result<T> {
+    if (isOk(result)) {
+      return result;
+    } else {
+      const options = this.makeRecoveryOptionsForError(config, result.error);
+      if (options.length > 0) {
+        (result.error as ConfigRecoverableError).addRecoveryOptions(options);
+      }
+      return result;
+    }
+  }
+
+  public async reportUseError(
+    message: string,
+    options: { path: string; value: unknown; cause: ResultError }
+  ): Promise<Result<never>> {
+    const loadResult = await this.backend.requestConfig();
+    if (isError(loadResult)) {
+      return loadResult;
+    }
+    if (loadResult.ok === undefined) {
+      throw new TypeError('The config defaults must be broken');
+    }
+    return this.addRecoveryOptionsToResult(
+      loadResult.ok,
+      ConfigPropertyError.Result(message, options)
+    );
   }
 }

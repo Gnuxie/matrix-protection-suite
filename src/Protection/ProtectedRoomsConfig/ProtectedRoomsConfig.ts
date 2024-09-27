@@ -30,7 +30,6 @@ import {
   MjolnirProtectedRoomsConfigEvent,
   MjolnirProtectedRoomsDescription,
 } from './MjolnirProtectedRoomsDescription';
-import { ConfigPropertyUseError } from '../../Config/ConfigParseError';
 
 const log = new Logger('MjolnirProtectedroomsCofnig');
 
@@ -77,14 +76,15 @@ export class MjolnirProtectedRoomsConfig
       const resolvedRef = await resolver.resolveRoom(ref);
       if (isError(resolvedRef)) {
         log.info(`Current config`, data.ok);
-        return ConfigPropertyUseError.Result(
-          'Unable to resolve room reference',
-          {
-            path: `/rooms/${i}`,
-            value: ref,
-            cause: resolvedRef.error,
-          }
-        );
+        const rawData = await store.requestConfig();
+        if (isError(rawData)) {
+          return rawData;
+        }
+        return await config.reportUseError('Unable to resolve room reference', {
+          path: `/rooms/${i}`,
+          value: ref,
+          cause: resolvedRef.error,
+        });
       }
       protectedRooms.set(resolvedRef.ok.toRoomIDOrAlias(), resolvedRef.ok);
     }

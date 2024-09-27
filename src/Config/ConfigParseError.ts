@@ -3,6 +3,16 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { Err, ResultError } from '@gnuxie/typescript-result';
+import { ConfigRecoveryOption } from './PersistentConfigData';
+
+export class ConfigRecoverableError extends ResultError {
+  public readonly recoveryOptions: ConfigRecoveryOption[] = [];
+
+  addRecoveryOptions(options: ConfigRecoveryOption[]): this {
+    this.recoveryOptions.push(...options);
+    return this;
+  }
+}
 
 // others that could be missing: Missing porperties, completely different schema?
 // We call them problematic because we can get errors once they are used too rather
@@ -12,7 +22,7 @@ export enum ConfigErrorDiagnosis {
   ProblematicArrayItem = 'ProblematicArrayItem',
 }
 
-export class ConfigParseError extends ResultError {
+export class ConfigParseError extends ConfigRecoverableError {
   constructor(
     message: string,
     public readonly errors: ConfigPropertyError[]
@@ -31,7 +41,7 @@ export class ConfigParseError extends ResultError {
 // This doesn't have to appear just during parsing, it can appear
 // later on while processing the configuration file to display a problem
 // with a particular property.
-export class ConfigPropertyError extends ResultError {
+export class ConfigPropertyError extends ConfigRecoverableError {
   public readonly diagnosis: ConfigErrorDiagnosis;
   constructor(
     message: string,
