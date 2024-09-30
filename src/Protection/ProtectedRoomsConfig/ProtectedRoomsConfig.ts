@@ -9,7 +9,6 @@
 // </text>
 
 import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
 import AwaitLock from 'await-lock';
 import {
@@ -22,6 +21,15 @@ import {
   MatrixRoomID,
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
+import {
+  PersistentConfigBackend,
+  PersistentConfigData,
+  StandardPersistentConfigData,
+} from '../../Config/PersistentConfigData';
+import {
+  MjolnirProtectedRoomsConfigEvent,
+  MjolnirProtectedRoomsDescription,
+} from './MjolnirProtectedRoomsDescription';
 
 const log = new Logger('MjolnirProtectedroomsCofnig');
 
@@ -36,7 +44,9 @@ export class MjolnirProtectedRoomsConfig
 {
   private readonly writeLock = new AwaitLock();
   private constructor(
-    private readonly store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
+    private readonly config: PersistentConfigData<
+      typeof MjolnirProtectedRoomsDescription.schema
+    >,
     private readonly protectedRooms: Map<StringRoomID, MatrixRoomID>,
     /**
      * We use this so that we can keep track of the raw data for logging purposes.
@@ -47,28 +57,40 @@ export class MjolnirProtectedRoomsConfig
     loggableConfigTracker.addLoggableConfig(this);
   }
   public static async createFromStore(
-    store: MatrixAccountData<MjolnirProtectedRoomsEvent>,
+    store: PersistentConfigBackend<MjolnirProtectedRoomsConfigEvent>,
     resolver: RoomResolver,
     loggableConfigTracker: LoggableConfigTracker
   ): Promise<ActionResult<ProtectedRoomsConfig>> {
-    const data = await store.requestAccountData();
+    const config = new StandardPersistentConfigData(
+      MjolnirProtectedRoomsDescription,
+      store
+    );
+    const data = await config.requestConfig();
     if (isError(data)) {
       return data.elaborate(
         `Failed to load ProtectedRoomsConfig when creating ProtectedRoomsConfig`
       );
     }
     const protectedRooms = new Map<StringRoomID, MatrixRoomID>();
-    for (const ref of data.ok?.rooms ?? []) {
+    for (const [i, ref] of data.ok.rooms.entries()) {
       const resolvedRef = await resolver.resolveRoom(ref);
       if (isError(resolvedRef)) {
         log.info(`Current config`, data.ok);
-        return resolvedRef;
+        const rawData = await store.requestConfig();
+        if (isError(rawData)) {
+          return rawData;
+        }
+        return await config.reportUseError('Unable to resolve room reference', {
+          path: `/rooms/${i}`,
+          value: ref,
+          cause: resolvedRef.error,
+        });
       }
       protectedRooms.set(resolvedRef.ok.toRoomIDOrAlias(), resolvedRef.ok);
     }
     return Ok(
       new MjolnirProtectedRoomsConfig(
-        store,
+        config,
         protectedRooms,
         data.ok,
         loggableConfigTracker
@@ -88,7 +110,7 @@ export class MjolnirProtectedRoomsConfig
       const data = {
         rooms: [...this.protectedRooms.keys(), room.toRoomIDOrAlias()],
       };
-      const result = await this.store.storeAccountData(data);
+      const result = await this.config.saveConfig(data);
       if (isError(result)) {
         return result.elaborate(
           `Failed to add ${room.toPermalink()} to protected rooms set.`
@@ -109,7 +131,7 @@ export class MjolnirProtectedRoomsConfig
           .map((ref) => ref.toRoomIDOrAlias())
           .filter((roomID) => roomID !== room.toRoomIDOrAlias()),
       };
-      const result = await this.store.storeAccountData(data);
+      const result = await this.config.saveConfig(data);
       if (isError(result)) {
         return result.elaborate(
           `Failed to remove ${room.toPermalink()} to protected rooms set.`

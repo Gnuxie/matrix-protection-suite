@@ -27,6 +27,12 @@ export * from './ClientManagement/RoomEventAcivity';
 export * from './ClientManagement/RoomPauser';
 export * from './ClientManagement/StandardClientRooms';
 
+export * from './Config/ConfigDescription';
+export * from './Config/ConfigMirror';
+export * from './Config/ConfigParseError';
+export * from './Config/describeConfig';
+export * from './Config/PersistentConfigData';
+
 export * from './Interface/Action';
 export * from './Interface/ActionException';
 export * from './Interface/Deduplicator';
