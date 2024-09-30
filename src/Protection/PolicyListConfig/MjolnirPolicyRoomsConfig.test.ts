@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { isError } from '../../Interface/Action';
-import { FakeMatrixAccountData } from '../../Interface/FakePersistentMatrixData';
+import { FakePersistentConfigBackend } from '../../Interface/FakePersistentMatrixData';
 import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
 import { describeRoom } from '../../StateTracking/DeclareRoomState';
@@ -26,7 +26,7 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
     policyRoom.policyRevisionIssuer,
   ]);
   const policyListConfigAccountData =
-    new FakeMatrixAccountData<MjolnirWatchedPolicyRoomsEvent>({
+    new FakePersistentConfigBackend<MjolnirWatchedPolicyRoomsEvent>({
       references: [policyRoom.policyRevisionIssuer.room],
     });
   const policyRoomsConfigResult =

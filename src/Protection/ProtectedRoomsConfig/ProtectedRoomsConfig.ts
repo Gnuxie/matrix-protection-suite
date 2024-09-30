@@ -76,10 +76,6 @@ export class MjolnirProtectedRoomsConfig
       const resolvedRef = await resolver.resolveRoom(ref);
       if (isError(resolvedRef)) {
         log.info(`Current config`, data.ok);
-        const rawData = await store.requestConfig();
-        if (isError(rawData)) {
-          return rawData;
-        }
         return await config.reportUseError('Unable to resolve room reference', {
           path: `/rooms/${i}`,
           value: ref,

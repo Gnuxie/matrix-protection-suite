@@ -4,19 +4,26 @@
 
 import AwaitLock from 'await-lock';
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
-import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
 import {
   DirectPropagationPolicyListRevisionIssuer,
   StandardDirectPropagationPolicyListRevisionIssuer,
 } from '../DirectPropagationPolicyListRevisionIssuer';
-import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
 import { AbstractPolicyListConfig } from './FakePolicyListConfig';
 import { PolicyListConfig, PropagationType } from './PolicyListConfig';
 import { RoomJoiner } from '../../Client/RoomJoiner';
 import { Logger } from '../../Logging/Logger';
 import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import {
+  PersistentConfigBackend,
+  PersistentConfigData,
+  StandardPersistentConfigData,
+} from '../../Config/PersistentConfigData';
+import {
+  MjolnirPolicyRoomsDescription,
+  MjolnirPolicyRoomsDescriptionEvent,
+} from './MjolnirPolicyRoomsDescription';
 
 const log = new Logger('MjolnirPolicyRoomsConfig');
 
@@ -26,7 +33,9 @@ export class MjolnirPolicyRoomsConfig
 {
   private readonly writeLock = new AwaitLock();
   private constructor(
-    private readonly store: MatrixAccountData<MjolnirWatchedPolicyRoomsEvent>,
+    private readonly config: PersistentConfigData<
+      typeof MjolnirPolicyRoomsDescription.schema
+    >,
     policyListRevisionIssuer: DirectPropagationPolicyListRevisionIssuer,
     policyRoomManager: PolicyRoomManager,
     private readonly roomJoiner: RoomJoiner,
@@ -36,22 +45,32 @@ export class MjolnirPolicyRoomsConfig
   }
 
   public static async createFromStore(
-    store: MatrixAccountData<MjolnirWatchedPolicyRoomsEvent>,
+    store: PersistentConfigBackend<MjolnirPolicyRoomsDescriptionEvent>,
     policyRoomManager: PolicyRoomManager,
     roomJoiner: RoomJoiner
   ): Promise<ActionResult<MjolnirPolicyRoomsConfig>> {
-    const watchedListsResult = await store.requestAccountData();
-    if (isError(watchedListsResult)) {
-      return watchedListsResult;
+    const config = new StandardPersistentConfigData(
+      MjolnirPolicyRoomsDescription,
+      store
+    );
+    const data = await config.requestConfig();
+    if (isError(data)) {
+      return data.elaborate(
+        'Failed to load MjolnirPolicyRoomsConfig from account data'
+      );
     }
-    const references = watchedListsResult.ok?.references ?? [];
     const issuers: PolicyRoomRevisionIssuer[] = [];
-    for (const reference of references) {
+    for (const [i, reference] of data.ok.references.entries()) {
       const joinResult = await roomJoiner.joinRoom(reference);
       if (isError(joinResult)) {
-        log.info(`raw app data:`, watchedListsResult.ok);
-        return joinResult.elaborate(
-          `Could not join a watched list ${reference.toRoomIDOrAlias()}`
+        log.info(`MjolnirPolicyRoomsConfig:`, data.ok);
+        return await config.reportUseError(
+          'Unable to join policy room from a provided reference',
+          {
+            path: `/rooms/${i}`,
+            value: reference,
+            cause: joinResult.error,
+          }
         );
       }
       const issuerResult = await policyRoomManager.getPolicyRoomRevisionIssuer(
@@ -64,7 +83,7 @@ export class MjolnirPolicyRoomsConfig
     }
     return Ok(
       new MjolnirPolicyRoomsConfig(
-        store,
+        config,
         new StandardDirectPropagationPolicyListRevisionIssuer(issuers),
         policyRoomManager,
         roomJoiner,
@@ -93,7 +112,7 @@ export class MjolnirPolicyRoomsConfig
     }
     await this.writeLock.acquireAsync();
     try {
-      const storeUpdateResult = await this.store.storeAccountData({
+      const storeUpdateResult = await this.config.saveConfig({
         references: [...this.policyListRevisionIssuer.references, list],
       });
       if (isError(storeUpdateResult)) {
@@ -117,7 +136,7 @@ export class MjolnirPolicyRoomsConfig
     }
     await this.writeLock.acquireAsync();
     try {
-      const storeUpdateResult = await this.store.storeAccountData({
+      const storeUpdateResult = await this.config.saveConfig({
         references: this.policyListRevisionIssuer.references.filter(
           (roomID) => roomID.toRoomIDOrAlias() === list.toRoomIDOrAlias()
         ),
