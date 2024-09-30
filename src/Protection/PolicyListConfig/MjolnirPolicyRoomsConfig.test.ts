@@ -9,8 +9,8 @@ import { Recommendation } from '../../PolicyList/PolicyRule';
 import { describeRoom } from '../../StateTracking/DeclareRoomState';
 import { FakePolicyRoomManager } from '../../StateTracking/FakePolicyRoomManager';
 import { MjolnirPolicyRoomsConfig } from './MjolnirPolicyRoomsConfig';
-import { MjolnirWatchedPolicyRoomsEvent } from './MjolnirWatchedListsEvent';
 import { DummyRoomJoiner } from '../../Client/DummyClientPlatform';
+import { MjolnirPolicyRoomsEncodedShape } from './MjolnirPolicyRoomsDescription';
 
 test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that already have policies in them', async function () {
   const targetUser = '@spam:example.com';
@@ -26,8 +26,8 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
     policyRoom.policyRevisionIssuer,
   ]);
   const policyListConfigAccountData =
-    new FakePersistentConfigBackend<MjolnirWatchedPolicyRoomsEvent>({
-      references: [policyRoom.policyRevisionIssuer.room],
+    new FakePersistentConfigBackend<MjolnirPolicyRoomsEncodedShape>({
+      references: [policyRoom.policyRevisionIssuer.room.toPermalink()],
     });
   const policyRoomsConfigResult =
     await MjolnirPolicyRoomsConfig.createFromStore(

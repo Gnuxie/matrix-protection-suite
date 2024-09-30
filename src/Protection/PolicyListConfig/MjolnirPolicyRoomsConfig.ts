@@ -22,7 +22,7 @@ import {
 } from '../../Config/PersistentConfigData';
 import {
   MjolnirPolicyRoomsDescription,
-  MjolnirPolicyRoomsDescriptionEvent,
+  MjolnirPolicyRoomsEncodedShape,
 } from './MjolnirPolicyRoomsDescription';
 
 const log = new Logger('MjolnirPolicyRoomsConfig');
@@ -45,7 +45,7 @@ export class MjolnirPolicyRoomsConfig
   }
 
   public static async createFromStore(
-    store: PersistentConfigBackend<MjolnirPolicyRoomsDescriptionEvent>,
+    store: PersistentConfigBackend<MjolnirPolicyRoomsEncodedShape>,
     policyRoomManager: PolicyRoomManager,
     roomJoiner: RoomJoiner
   ): Promise<ActionResult<MjolnirPolicyRoomsConfig>> {

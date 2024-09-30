@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Type } from '@sinclair/typebox';
+import { StaticEncode, Type } from '@sinclair/typebox';
 import { describeConfig } from '../../Config/describeConfig';
 import { PermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
 import { EDStatic } from '../../Interface/Static';
@@ -14,5 +14,9 @@ export const MjolnirPolicyRoomsDescription = describeConfig({
 });
 
 export type MjolnirPolicyRoomsDescriptionEvent = EDStatic<
+  typeof MjolnirPolicyRoomsDescription.schema
+>;
+
+export type MjolnirPolicyRoomsEncodedShape = StaticEncode<
   typeof MjolnirPolicyRoomsDescription.schema
 >;

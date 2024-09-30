@@ -16,8 +16,9 @@ import {
   ConfigPropertyError,
   ConfigRecoverableError,
 } from './ConfigParseError';
-import { TObject } from '@sinclair/typebox';
+import { StaticEncode, TObject } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
+import { Value } from '../Interface/Value';
 
 export type ConfigRecoveryOption = {
   readonly description: string;
@@ -64,26 +65,34 @@ export interface PersistentConfigData<T extends TObject> {
   ): Promise<Result<never>>;
 }
 
-export interface PersistentConfigBackend<T> {
+/**
+ * The backend for the `PersistentConfigData` class.
+ * Does not serialize or decode data in any way beyond basic JSON deserialization.
+ * This is so that the `PersistentConfigData` class has full control over serialization and transformation.
+ * @typeParam TEncodedShape This is the shape of the data once it has been transformed into a plain JSON object,
+ * without any other JS objects or types.
+ */
+export interface PersistentConfigBackend<
+  TEncodedShape extends Record<string, unknown> = Record<string, unknown>,
+> {
   requestConfig(): Promise<Result<Record<string, unknown> | undefined>>;
-  saveConfig(data: T): Promise<Result<void>>;
-  saveUnparsedConfig(data: Record<string, unknown>): Promise<Result<void>>;
+  saveEncodedConfig(data: TEncodedShape): Promise<Result<void>>;
 }
 
-// It doesn't look like this is doing much yet, but that's because we haven't injected
-// the recovery options yet, and this is where that is going to happen.
-export class StandardPersistentConfigData<T extends TObject>
-  implements PersistentConfigData<T>
+export class StandardPersistentConfigData<TConfigSchema extends TObject>
+  implements PersistentConfigData<TConfigSchema>
 {
   public constructor(
-    public readonly description: ConfigDescription<T>,
-    private readonly backend: PersistentConfigBackend<EDStatic<T>>
+    public readonly description: ConfigDescription<TConfigSchema>,
+    private readonly backend: PersistentConfigBackend<
+      StaticEncode<TConfigSchema>
+    >
   ) {
     // nothing to do.
   }
 
   public async requestConfig(): Promise<
-    Result<EDStatic<T>, ResultError | ConfigParseError>
+    Result<EDStatic<TConfigSchema>, ResultError | ConfigParseError>
   > {
     const loadResult = await this.backend.requestConfig();
     if (isError(loadResult)) {
@@ -98,8 +107,14 @@ export class StandardPersistentConfigData<T extends TObject>
     );
   }
 
-  public async saveConfig(config: EDStatic<T>): Promise<Result<void>> {
-    return this.backend.saveConfig(config);
+  public async saveConfig(
+    config: EDStatic<TConfigSchema>
+  ): Promise<Result<void>> {
+    const encodeResult = Value.Encode(this.description.schema, config);
+    if (isError(encodeResult)) {
+      return encodeResult;
+    }
+    return this.backend.saveEncodedConfig(encodeResult.ok);
   }
 
   private makeRecoveryOptionForConfig() {
@@ -107,7 +122,7 @@ export class StandardPersistentConfigData<T extends TObject>
       description: 'Reset the configuration to its default values.',
       recover: async () => {
         const newConfig = this.description.getDefaultConfig();
-        return await this.backend.saveConfig(newConfig);
+        return await this.saveConfig(newConfig);
       },
     };
   }
@@ -123,7 +138,7 @@ export class StandardPersistentConfigData<T extends TObject>
           const newConfig = this.description
             .toMirror()
             .removeProperty(key, config);
-          return await this.backend.saveUnparsedConfig(newConfig);
+          return await this.backend.saveEncodedConfig(newConfig);
         },
       },
       this.makeRecoveryOptionForConfig(),
@@ -142,7 +157,7 @@ export class StandardPersistentConfigData<T extends TObject>
           const newConfig = this.description
             .toMirror()
             .removeItem(config, key, index);
-          return await this.backend.saveUnparsedConfig(newConfig);
+          return await this.backend.saveEncodedConfig(newConfig);
         },
       },
       ...this.makeRecoveryOptionsForProperty(config, key),

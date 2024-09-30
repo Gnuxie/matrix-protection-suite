@@ -27,8 +27,8 @@ import {
   StandardPersistentConfigData,
 } from '../../Config/PersistentConfigData';
 import {
-  MjolnirProtectedRoomsConfigEvent,
   MjolnirProtectedRoomsDescription,
+  MjolnirProtectedRoomsEncodedShape,
 } from './MjolnirProtectedRoomsDescription';
 
 const log = new Logger('MjolnirProtectedroomsCofnig');
@@ -57,7 +57,7 @@ export class MjolnirProtectedRoomsConfig
     loggableConfigTracker.addLoggableConfig(this);
   }
   public static async createFromStore(
-    store: PersistentConfigBackend<MjolnirProtectedRoomsConfigEvent>,
+    store: PersistentConfigBackend<MjolnirProtectedRoomsEncodedShape>,
     resolver: RoomResolver,
     loggableConfigTracker: LoggableConfigTracker
   ): Promise<ActionResult<ProtectedRoomsConfig>> {

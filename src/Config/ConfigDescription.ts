@@ -44,7 +44,6 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
   public parseConfig(
     config: unknown
   ): Result<EDStatic<TConfigSchema>, ConfigParseError> {
-    const withDefaults = TBValue.Default(this.schema, config);
     const errors = [...TBValue.Errors(this.schema, config)];
     if (errors.length > 0) {
       return ConfigParseError.Result('Unable to parse this config', {
@@ -54,7 +53,7 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
         ),
       });
     } else {
-      return Ok(withDefaults as EDStatic<TConfigSchema>);
+      return Ok(TBValue.Decode(this.schema, config));
     }
   }
 

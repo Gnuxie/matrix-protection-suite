@@ -27,7 +27,7 @@ export class FakePersistentConfigBackend<T extends Record<string, unknown>>
   constructor(initialData: T) {
     this.fakePersistedData = initialData;
   }
-  saveUnparsedConfig(
+  saveEncodedConfig(
     data: Record<string, unknown>
   ): Promise<ActionResult<void>> {
     this.fakePersistedData = data as T;
@@ -35,9 +35,5 @@ export class FakePersistentConfigBackend<T extends Record<string, unknown>>
   }
   requestConfig(): Promise<ActionResult<Record<string, unknown> | undefined>> {
     return Promise.resolve(Ok(this.fakePersistedData));
-  }
-  saveConfig(data: T): Promise<ActionResult<void>> {
-    this.fakePersistedData = data;
-    return Promise.resolve(Ok(undefined));
   }
 }
