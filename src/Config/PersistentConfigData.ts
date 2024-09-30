@@ -104,7 +104,7 @@ export class StandardPersistentConfigData<T extends TObject>
 
   private makeRecoveryOptionForConfig() {
     return {
-      description: 'Reset the configuration to its default values',
+      description: 'Reset the configuration to its default values.',
       recover: async () => {
         const newConfig = this.description.getDefaultConfig();
         return await this.backend.saveConfig(newConfig);
@@ -118,7 +118,7 @@ export class StandardPersistentConfigData<T extends TObject>
   ): ConfigRecoveryOption[] {
     return [
       {
-        description: `Reset the property ${key} to its default value`,
+        description: `Reset the property "${key}" to its default value.`,
         recover: async () => {
           const newConfig = this.description
             .toMirror()
@@ -137,7 +137,7 @@ export class StandardPersistentConfigData<T extends TObject>
   ): ConfigRecoveryOption[] {
     return [
       {
-        description: `Remove the item ${config[key]?.[index] as string} from the property ${key}`,
+        description: `Remove the item "${config[key]?.[index] as string}" from the property "${key}".`,
         recover: async () => {
           const newConfig = this.description
             .toMirror()
