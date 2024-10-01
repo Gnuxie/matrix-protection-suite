@@ -135,6 +135,9 @@ export class StandardProtectedRoomsManager
     if (isError(joinResult)) {
       return joinResult;
     }
+    if (this.isProtectedRoom(room.toRoomIDOrAlias())) {
+      return Ok(undefined);
+    }
     const stateIssuer =
       await this.roomStateManager.getRoomStateRevisionIssuer(room);
     if (isError(stateIssuer)) {
@@ -149,23 +152,17 @@ export class StandardProtectedRoomsManager
     if (isError(storeResult)) {
       return storeResult;
     }
-    if (!this.isProtectedRoom(room.toRoomIDOrAlias())) {
-      // we must mark the room as protected first, so that the emitters for the set changes
-      // will know the room is now protected and be able to act accordingly.
-      this.protectedRooms.set(room.toRoomIDOrAlias(), room);
-      // I don't like that these emitters will work while there's still inconsistent state
-      // in the other set. The emit should be placed on the mirrors and called here too!
-      // Then the sets should be moved to the ProtectedRoomsManager subfolder.
-      // I also don't know whether it will matter when the state emitter is called
-      // before the membership emitter.
-      SetRoomStateMirror.addRoom(this.setRoomState, room, stateIssuer.ok);
-      SetMembershipMirror.addRoom(
-        this.setMembership,
-        room,
-        membershipIssuer.ok
-      );
-      this.emit('change', room, ProtectedRoomChangeType.Added);
-    }
+    // we must mark the room as protected first, so that the emitters for the set changes
+    // will know the room is now protected and be able to act accordingly.
+    this.protectedRooms.set(room.toRoomIDOrAlias(), room);
+    // I don't like that these emitters will work while there's still inconsistent state
+    // in the other set. The emit should be placed on the mirrors and called here too!
+    // Then the sets should be moved to the ProtectedRoomsManager subfolder.
+    // I also don't know whether it will matter when the state emitter is called
+    // before the membership emitter.
+    SetRoomStateMirror.addRoom(this.setRoomState, room, stateIssuer.ok);
+    SetMembershipMirror.addRoom(this.setMembership, room, membershipIssuer.ok);
+    this.emit('change', room, ProtectedRoomChangeType.Added);
     return Ok(undefined);
   }
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {

@@ -104,8 +104,16 @@ export class MjolnirProtectedRoomsConfig
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     await this.writeLock.acquireAsync();
     try {
+      // We would still like to persist the rooms even if the one being added is already there.
+      // This is just to make sure the account data is consistent with what's represented in the model.
+      // No, I don't know whether this is justified or not.
       const data = {
-        rooms: [...this.protectedRooms.keys(), room.toRoomIDOrAlias()],
+        rooms: [
+          ...this.protectedRooms.keys(),
+          ...(this.protectedRooms.has(room.toRoomIDOrAlias())
+            ? []
+            : [room.toRoomIDOrAlias()]),
+        ],
       };
       const result = await this.config.saveConfig(data);
       if (isError(result)) {
