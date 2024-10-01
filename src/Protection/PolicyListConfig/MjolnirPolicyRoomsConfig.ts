@@ -68,7 +68,7 @@ export class MjolnirPolicyRoomsConfig
         return await config.reportUseError(
           'Unable to join policy room from a provided reference',
           {
-            path: `/rooms/${i}`,
+            path: `/references/${i}`,
             value: reference,
             cause: joinResult.error,
           }
