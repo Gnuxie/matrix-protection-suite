@@ -8,13 +8,21 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import {
+  PersistentConfigBackend,
+  PersistentConfigData,
+  StandardPersistentConfigData,
+} from '../../Config/PersistentConfigData';
 import { ActionResult, Ok, isError, isOk } from '../../Interface/Action';
 import { LoggableConfigTracker } from '../../Interface/LoggableConfig';
-import { MatrixAccountData } from '../../Interface/PersistentMatrixData';
 import { SchemedDataManager } from '../../Interface/SchemedMatrixData';
 import { Logger } from '../../Logging/Logger';
 import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectionDescription, findProtection } from '../Protection';
+import {
+  MjolnirEnabledProtectionsDescription,
+  MjolnirEnabledProtectionsEncodedShape,
+} from './MjolnirEnabledProtectionsDescription';
 import { MjolnirEnabledProtectionsEvent } from './MjolnirEnabledProtectionsEvent';
 import {
   KnownEnabledProtections,
@@ -27,7 +35,9 @@ const log = new Logger('StandardProtectionsConfig');
 export type MissingProtectionCB = (protectionName: string) => void;
 
 async function loadProtecitons(
-  store: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
+  config: PersistentConfigData<
+    typeof MjolnirEnabledProtectionsDescription.schema
+  >,
   {
     migrationHandler,
   }: {
@@ -36,7 +46,7 @@ async function loadProtecitons(
       | undefined;
   }
 ): Promise<ActionResult<ProtectionsInfo>> {
-  const storeResult = await store.requestAccountData();
+  const storeResult = await config.requestConfig();
   if (isError(storeResult)) {
     return storeResult;
   }
@@ -97,7 +107,9 @@ function applyMissingProtectionCB(
 
 async function storeProtections(
   info: ProtectionsInfo,
-  store: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
+  config: PersistentConfigData<
+    typeof MjolnirEnabledProtectionsDescription.schema
+  >,
   enabledProtectionsMigration?: SchemedDataManager<MjolnirEnabledProtectionsEvent>
 ): Promise<ActionResult<void>> {
   const combinedEnabledProtections = new Set([
@@ -106,7 +118,7 @@ async function storeProtections(
     ),
     ...info.unknownEnabledProtections,
   ]);
-  return await store.storeAccountData({
+  return await config.saveConfig({
     enabled: [...combinedEnabledProtections],
     ...(enabledProtectionsMigration === undefined
       ? {}
@@ -119,7 +131,9 @@ async function storeProtections(
 
 export class MjolnirProtectionsConfig implements ProtectionsConfig {
   private constructor(
-    private readonly store: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
+    private readonly config: PersistentConfigData<
+      typeof MjolnirEnabledProtectionsDescription.schema
+    >,
     logTracker: LoggableConfigTracker,
     private info: ProtectionsInfo,
     private migrationHandler?: SchemedDataManager<MjolnirEnabledProtectionsEvent>
@@ -127,7 +141,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
     logTracker.addLoggableConfig(this);
   }
   public static async create(
-    store: MatrixAccountData<MjolnirEnabledProtectionsEvent>,
+    store: PersistentConfigBackend<MjolnirEnabledProtectionsEncodedShape>,
     logTracker: LoggableConfigTracker,
     {
       migrationHandler,
@@ -145,14 +159,18 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
       missingProtectionCB?: MissingProtectionCB;
     }
   ): Promise<ActionResult<MjolnirProtectionsConfig>> {
-    const protectionsInfo = await loadProtecitons(store, { migrationHandler });
+    const config = new StandardPersistentConfigData(
+      MjolnirEnabledProtectionsDescription,
+      store
+    );
+    const protectionsInfo = await loadProtecitons(config, { migrationHandler });
     if (isError(protectionsInfo)) {
       return protectionsInfo;
     }
     applyMissingProtectionCB(protectionsInfo.ok, missingProtectionCB);
     return Ok(
       new MjolnirProtectionsConfig(
-        store,
+        config,
         logTracker,
         protectionsInfo.ok,
         migrationHandler
@@ -182,7 +200,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
     };
     const storeResult = await storeProtections(
       nextInfo,
-      this.store,
+      this.config,
       this.migrationHandler
     );
     if (isOk(storeResult)) {
@@ -203,7 +221,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
         (name) => name !== protectionName
       ),
     };
-    const storeResult = await storeProtections(nextInfo, this.store);
+    const storeResult = await storeProtections(nextInfo, this.config);
     if (isOk(storeResult)) {
       this.info = nextInfo;
     }
