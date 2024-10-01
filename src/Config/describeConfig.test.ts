@@ -62,7 +62,7 @@ it('Is possible to get validation errors for adding garbage values', function ()
   );
 });
 
-it('Is possibel to get correct paths from wrong values', function () {
+it('Is possible to get correct paths from wrong values', function () {
   const config = TrustedReportersConfigDescription.parseConfig({
     mxids: ['@example:localhost'],
   }).expect('Config should have parsed');
