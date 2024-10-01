@@ -35,7 +35,9 @@ export type ConfigRecoveryOption = {
  */
 export interface PersistentConfigData<T extends TObject> {
   readonly description: ConfigDescription<T>;
-  requestConfig(): Promise<Result<EDStatic<T>, ResultError | ConfigParseError>>;
+  requestConfig(): Promise<
+    Result<EDStatic<T> | undefined, ResultError | ConfigParseError>
+  >;
   saveConfig(config: EDStatic<T>): Promise<Result<void>>;
   // FIXME: hmm is there a way of linking these together so that using a recovery effect
   // invalidates any of the associated recovery options?
@@ -92,14 +94,14 @@ export class StandardPersistentConfigData<TConfigSchema extends TObject>
   }
 
   public async requestConfig(): Promise<
-    Result<EDStatic<TConfigSchema>, ResultError | ConfigParseError>
+    Result<EDStatic<TConfigSchema> | undefined, ResultError | ConfigParseError>
   > {
     const loadResult = await this.backend.requestConfig();
     if (isError(loadResult)) {
       return loadResult;
     }
     if (loadResult.ok === undefined) {
-      return Ok(this.description.getDefaultConfig());
+      return Ok(undefined);
     }
     return this.addRecoveryOptionsToResult(
       loadResult.ok,

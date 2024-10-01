@@ -53,17 +53,18 @@ export class MjolnirPolicyRoomsConfig
       MjolnirPolicyRoomsDescription,
       store
     );
-    const data = await config.requestConfig();
-    if (isError(data)) {
-      return data.elaborate(
+    const dataResult = await config.requestConfig();
+    if (isError(dataResult)) {
+      return dataResult.elaborate(
         'Failed to load MjolnirPolicyRoomsConfig from account data'
       );
     }
+    const data = dataResult.ok ?? config.description.getDefaultConfig();
     const issuers: PolicyRoomRevisionIssuer[] = [];
-    for (const [i, reference] of data.ok.references.entries()) {
+    for (const [i, reference] of data.references.entries()) {
       const joinResult = await roomJoiner.joinRoom(reference);
       if (isError(joinResult)) {
-        log.info(`MjolnirPolicyRoomsConfig:`, data.ok);
+        log.info(`MjolnirPolicyRoomsConfig:`, data);
         return await config.reportUseError(
           'Unable to join policy room from a provided reference',
           {

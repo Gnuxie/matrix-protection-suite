@@ -65,17 +65,18 @@ export class MjolnirProtectedRoomsConfig
       MjolnirProtectedRoomsDescription,
       store
     );
-    const data = await config.requestConfig();
-    if (isError(data)) {
-      return data.elaborate(
+    const dataResult = await config.requestConfig();
+    if (isError(dataResult)) {
+      return dataResult.elaborate(
         `Failed to load ProtectedRoomsConfig when creating ProtectedRoomsConfig`
       );
     }
+    const data = dataResult.ok ?? config.description.getDefaultConfig();
     const protectedRooms = new Map<StringRoomID, MatrixRoomID>();
-    for (const [i, ref] of data.ok.rooms.entries()) {
+    for (const [i, ref] of data.rooms.entries()) {
       const resolvedRef = await resolver.resolveRoom(ref);
       if (isError(resolvedRef)) {
-        log.info(`Current config`, data.ok);
+        log.info(`Current config`, data);
         return await config.reportUseError('Unable to resolve room reference', {
           path: `/rooms/${i}`,
           value: ref,
@@ -88,7 +89,7 @@ export class MjolnirProtectedRoomsConfig
       new MjolnirProtectedRoomsConfig(
         config,
         protectedRooms,
-        data.ok,
+        data,
         loggableConfigTracker
       )
     );
