@@ -8,9 +8,14 @@ import {
   StringRoomID,
   MatrixRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
+import { Err, ResultError } from '@gnuxie/typescript-result';
+
+// FIXME: Tbh, i don't know why this doesn't just use the fake persistent
+// config store and use the real MjolnirPolicyRoomsConfig.
 
 export class AbstractProtectedRoomsConfig
-  implements Omit<ProtectedRoomsConfig, 'addRoom' | 'removeRoom'>
+  implements
+    Omit<ProtectedRoomsConfig, 'addRoom' | 'removeRoom' | 'reportUseError'>
 {
   private readonly protectedRooms = new Map<StringRoomID, MatrixRoomID>();
   public constructor(rooms: MatrixRoomID[]) {
@@ -50,5 +55,12 @@ export class FakeProtectedRoomsConfig
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     super.removeRoom(room);
     return Ok(undefined);
+  }
+  public async reportUseError(
+    _message: string,
+    _room: MatrixRoomID,
+    error: ResultError
+  ): Promise<ActionResult<never>> {
+    return Err(error);
   }
 }

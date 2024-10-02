@@ -30,6 +30,7 @@ import {
   MjolnirProtectedRoomsDescription,
   MjolnirProtectedRoomsEncodedShape,
 } from './MjolnirProtectedRoomsDescription';
+import { ResultError } from '@gnuxie/typescript-result';
 
 const log = new Logger('MjolnirProtectedroomsCofnig');
 
@@ -37,6 +38,11 @@ export interface ProtectedRoomsConfig {
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   getProtectedRooms(): MatrixRoomID[];
+  reportUseError(
+    message: string,
+    room: MatrixRoomID,
+    error: ResultError
+  ): Promise<ActionResult<never>>;
 }
 
 export class MjolnirProtectedRoomsConfig
@@ -148,5 +154,17 @@ export class MjolnirProtectedRoomsConfig
     } finally {
       this.writeLock.release();
     }
+  }
+
+  public async reportUseError(
+    message: string,
+    room: MatrixRoomID,
+    error: ResultError
+  ): Promise<ActionResult<never>> {
+    return await this.config.reportUseError(message, {
+      path: `/rooms/${this.getProtectedRooms().indexOf(room)}`,
+      value: room,
+      cause: error,
+    });
   }
 }

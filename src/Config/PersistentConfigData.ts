@@ -61,9 +61,8 @@ export interface PersistentConfigData<T extends TObject> {
     result: Result<T>
   ): Result<T>;
   reportUseError(
-    path: string,
-    value: unknown,
-    cause: ResultError
+    message: string,
+    options: { path: string; value: unknown; cause: ResultError }
   ): Promise<Result<never>>;
 }
 
