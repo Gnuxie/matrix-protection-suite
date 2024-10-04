@@ -66,6 +66,7 @@ export class StandardConfigMirror<TSchema extends TObject>
       return ConfigPropertyError.Result(errors[0].message, {
         path: `/${key.toString()}`,
         value,
+        description: this.description as never,
       });
     }
     const newConfig = {
@@ -125,6 +126,7 @@ export class StandardConfigMirror<TSchema extends TObject>
       return ConfigPropertyError.Result(errors[0].message, {
         path: `/${key.toString()}${errors[0].path}`,
         value,
+        description: this.description as never,
       });
     }
     return Ok(this.addUnparsedItem(config, key, value));

@@ -24,7 +24,7 @@ export type ConfigPropertyDescription = {
   default: unknown;
 };
 
-export type ConfigDescription<TConfigSchema extends TObject> = {
+export type ConfigDescription<TConfigSchema extends TObject = TObject> = {
   readonly schema: TConfigSchema;
   parseConfig(
     config: unknown
@@ -51,8 +51,17 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
       return ConfigParseError.Result('Unable to parse this config', {
         errors: errors.map(
           (error) =>
-            new ConfigPropertyError(error.message, error.path, error.value)
+            new ConfigPropertyError(
+              error.message,
+              this as unknown as ConfigDescription,
+              error.path,
+              error.value
+            )
         ),
+        config: withDefaults,
+        // We have a contravariance issue on the `toMirror` method because
+        // the mirror accepts specific config shapes.
+        description: this as never,
       });
     } else {
       return Ok(TBValue.Decode(this.schema, withDefaults));

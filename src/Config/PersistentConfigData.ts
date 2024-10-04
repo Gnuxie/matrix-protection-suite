@@ -14,6 +14,7 @@ import {
   ConfigErrorDiagnosis,
   ConfigParseError,
   ConfigPropertyError,
+  ConfigPropertyUseError,
   ConfigRecoverableError,
 } from './ConfigParseError';
 import { StaticEncode, TObject } from '@sinclair/typebox';
@@ -33,7 +34,7 @@ export type ConfigRecoveryOption = {
  * Draupnir maintains a list of these which are editable generically
  * via safe mode.
  */
-export interface PersistentConfigData<T extends TObject> {
+export interface PersistentConfigData<T extends TObject = TObject> {
   readonly description: ConfigDescription<T>;
   requestConfig(): Promise<
     Result<EDStatic<T> | undefined, ResultError | ConfigParseError>
@@ -222,7 +223,10 @@ export class StandardPersistentConfigData<TConfigSchema extends TObject>
     }
     return this.addRecoveryOptionsToResult(
       loadResult.ok,
-      ConfigPropertyError.Result(message, options)
+      ConfigPropertyUseError.Result(message, {
+        ...options,
+        description: this.description as unknown as ConfigDescription,
+      })
     );
   }
 }
