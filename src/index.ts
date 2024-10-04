@@ -108,15 +108,18 @@ export * from './Protection/Capability/CapabilitySet';
 export * from './Protection/PolicyListConfig/FakePolicyListConfig';
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
 export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
+export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsDescription';
 export * from './Protection/PolicyListConfig/PolicyListConfig';
 
 export * from './Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
+export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsDescription';
 export * from './Protection/ProtectedRoomsConfig/MjolnirProtectedRoomsEvent';
 export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 
 export * from './Protection/ProtectedRoomsManager/ProtectedRoomsManager';
 export * from './Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
 
+export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsDescription';
 export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsEvent';
 export * from './Protection/ProtectionsConfig/ProtectionsConfig';
 export * from './Protection/ProtectionsConfig/StandardProtectionsConfig';

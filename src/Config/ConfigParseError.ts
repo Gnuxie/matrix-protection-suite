@@ -4,9 +4,17 @@
 
 import { Err, ResultError } from '@gnuxie/typescript-result';
 import { ConfigRecoveryOption } from './PersistentConfigData';
+import { ConfigDescription } from './ConfigDescription';
 
 export class ConfigRecoverableError extends ResultError {
   public readonly recoveryOptions: ConfigRecoveryOption[] = [];
+
+  public constructor(
+    message: string,
+    public readonly configDescription: ConfigDescription
+  ) {
+    super(message);
+  }
 
   addRecoveryOptions(options: ConfigRecoveryOption[]): this {
     this.recoveryOptions.push(...options);
@@ -25,16 +33,29 @@ export enum ConfigErrorDiagnosis {
 export class ConfigParseError extends ConfigRecoverableError {
   constructor(
     message: string,
-    public readonly errors: ConfigPropertyError[]
+    description: ConfigDescription,
+    public readonly errors: ConfigPropertyError[],
+    public readonly config: unknown
   ) {
-    super(message);
+    super(message, description);
   }
 
   public static Result(
     message: string,
-    options: { errors: ConfigPropertyError[] }
+    options: {
+      errors: ConfigPropertyError[];
+      description: ConfigDescription;
+      config: unknown;
+    }
   ) {
-    return Err(new ConfigParseError(message, options.errors));
+    return Err(
+      new ConfigParseError(
+        message,
+        options.description,
+        options.errors,
+        options.config
+      )
+    );
   }
 }
 
@@ -45,10 +66,11 @@ export class ConfigPropertyError extends ConfigRecoverableError {
   public readonly diagnosis: ConfigErrorDiagnosis;
   constructor(
     message: string,
+    description: ConfigDescription,
     public readonly path: string,
     public readonly value: unknown
   ) {
-    super(message);
+    super(message, description);
     if (/\d+$/.test(path)) {
       this.diagnosis = ConfigErrorDiagnosis.ProblematicArrayItem;
     } else {
@@ -58,9 +80,16 @@ export class ConfigPropertyError extends ConfigRecoverableError {
 
   public static Result(
     message: string,
-    options: { path: string; value: unknown }
+    options: { path: string; value: unknown; description: ConfigDescription }
   ) {
-    return Err(new ConfigPropertyError(message, options.path, options.value));
+    return Err(
+      new ConfigPropertyError(
+        message,
+        options.description,
+        options.path,
+        options.value
+      )
+    );
   }
 
   public toReadableString(): string {
@@ -87,20 +116,27 @@ export class ConfigPropertyError extends ConfigRecoverableError {
 export class ConfigPropertyUseError extends ConfigPropertyError {
   constructor(
     message: string,
+    description: ConfigDescription,
     path: string,
     value: unknown,
     public readonly cause: ResultError
   ) {
-    super(message, path, value);
+    super(message, description, path, value);
   }
 
   public static Result(
     message: string,
-    options: { path: string; value: unknown; cause: ResultError }
+    options: {
+      path: string;
+      value: unknown;
+      cause: ResultError;
+      description: ConfigDescription;
+    }
   ) {
     return Err(
       new ConfigPropertyUseError(
         message,
+        options.description,
         options.path,
         options.value,
         options.cause

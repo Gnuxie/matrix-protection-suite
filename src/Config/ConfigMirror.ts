@@ -15,18 +15,18 @@ import { ConfigPropertyError } from './ConfigParseError';
 import { Ok, Result } from '@gnuxie/typescript-result';
 import { Value as TBValue } from '@sinclair/typebox/value';
 
-export interface ConfigMirror<TSchema extends TObject> {
-  readonly description: ConfigDescription<TSchema>;
+export interface ConfigMirror<TConfigSchema extends TObject = TObject> {
+  readonly description: ConfigDescription<TConfigSchema>;
   setValue(
-    config: EDStatic<TSchema>,
-    key: keyof EDStatic<TSchema>,
+    config: EDStatic<TConfigSchema>,
+    key: keyof EDStatic<TConfigSchema>,
     value: unknown
-  ): Result<EDStatic<TSchema>, ConfigPropertyError>;
+  ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
   addItem(
-    config: EDStatic<TSchema>,
-    key: keyof EDStatic<TSchema>,
+    config: EDStatic<TConfigSchema>,
+    key: keyof EDStatic<TConfigSchema>,
     value: unknown
-  ): Result<EDStatic<TSchema>, ConfigPropertyError>;
+  ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
   // needed for when additionalProperties is true.
   removeProperty<TKey extends string>(
     key: TKey,
@@ -44,17 +44,19 @@ export interface ConfigMirror<TSchema extends TObject> {
   ): Record<TKey, unknown[]>;
 }
 
-export class StandardConfigMirror<TSchema extends TObject>
-  implements ConfigMirror<TSchema>
+export class StandardConfigMirror<TConfigSchema extends TObject>
+  implements ConfigMirror<TConfigSchema>
 {
-  public constructor(public readonly description: ConfigDescription<TSchema>) {
+  public constructor(
+    public readonly description: ConfigDescription<TConfigSchema>
+  ) {
     // nothing to do.
   }
   setValue(
-    config: Evaluate<StaticDecode<TSchema>>,
-    key: keyof Evaluate<StaticDecode<TSchema>>,
+    config: Evaluate<StaticDecode<TConfigSchema>>,
+    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
     value: unknown
-  ): Result<Evaluate<StaticDecode<TSchema>>, ConfigPropertyError> {
+  ): Result<Evaluate<StaticDecode<TConfigSchema>>, ConfigPropertyError> {
     const schema = this.description.schema.properties[key as keyof TProperties];
     if (schema === undefined) {
       throw new TypeError(
@@ -66,19 +68,20 @@ export class StandardConfigMirror<TSchema extends TObject>
       return ConfigPropertyError.Result(errors[0].message, {
         path: `/${key.toString()}`,
         value,
+        description: this.description as unknown as ConfigDescription,
       });
     }
     const newConfig = {
       ...config,
       [key]: TBValue.Decode(schema, value),
     };
-    return Ok(newConfig as EDStatic<TSchema>);
+    return Ok(newConfig as EDStatic<TConfigSchema>);
   }
   private addUnparsedItem(
-    config: Evaluate<StaticDecode<TSchema>>,
-    key: keyof Evaluate<StaticDecode<TSchema>>,
+    config: Evaluate<StaticDecode<TConfigSchema>>,
+    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
     value: unknown
-  ): Evaluate<StaticDecode<TSchema>> {
+  ): Evaluate<StaticDecode<TConfigSchema>> {
     const schema = this.description.schema.properties[key as keyof TProperties];
     if (schema === undefined) {
       throw new TypeError(
@@ -104,10 +107,10 @@ export class StandardConfigMirror<TSchema extends TObject>
     }
   }
   addItem(
-    config: Evaluate<StaticDecode<TSchema>>,
-    key: keyof Evaluate<StaticDecode<TSchema>>,
+    config: Evaluate<StaticDecode<TConfigSchema>>,
+    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
     value: unknown
-  ): Result<Evaluate<StaticDecode<TSchema>>, ConfigPropertyError> {
+  ): Result<Evaluate<StaticDecode<TConfigSchema>>, ConfigPropertyError> {
     const schema = this.description.schema.properties[key as keyof TProperties];
     if (schema === undefined) {
       throw new TypeError(
@@ -125,6 +128,7 @@ export class StandardConfigMirror<TSchema extends TObject>
       return ConfigPropertyError.Result(errors[0].message, {
         path: `/${key.toString()}${errors[0].path}`,
         value,
+        description: this.description as unknown as ConfigDescription,
       });
     }
     return Ok(this.addUnparsedItem(config, key, value));
