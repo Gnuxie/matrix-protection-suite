@@ -8,9 +8,15 @@ import { PermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
 import { EDStatic } from '../../Interface/Static';
 
 export const MjolnirPolicyRoomsDescription = describeConfig({
-  schema: Type.Object({
-    references: Type.Array(PermalinkSchema, { default: [], uniqueItems: true }),
-  }),
+  schema: Type.Object(
+    {
+      references: Type.Array(PermalinkSchema, {
+        default: [],
+        uniqueItems: true,
+      }),
+    },
+    { title: 'PolicyRoomsConfig' }
+  ),
 });
 
 export type MjolnirPolicyRoomsDescriptionEvent = EDStatic<

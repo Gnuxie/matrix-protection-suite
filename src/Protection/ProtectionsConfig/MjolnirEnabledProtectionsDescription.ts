@@ -8,10 +8,13 @@ import { EDStatic } from '../../Interface/Static';
 import { DRAUPNIR_SCHEMA_VERSION_KEY } from '../../Interface/SchemedMatrixData';
 
 export const MjolnirEnabledProtectionsDescription = describeConfig({
-  schema: Type.Object({
-    enabled: Type.Array(Type.String(), { default: [], uniqueItems: true }),
-    [DRAUPNIR_SCHEMA_VERSION_KEY]: Type.Optional(Type.Number()),
-  }),
+  schema: Type.Object(
+    {
+      enabled: Type.Array(Type.String(), { default: [], uniqueItems: true }),
+      [DRAUPNIR_SCHEMA_VERSION_KEY]: Type.Optional(Type.Number()),
+    },
+    { title: 'EnabledProtectionsConfig' }
+  ),
 });
 
 export type MjolnirEnabledProtectionsDescriptionEvent = EDStatic<
