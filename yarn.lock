@@ -1793,10 +1793,10 @@ ignore@^5.2.0, ignore@^5.3.1:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.3.1.tgz#5073e554cd42c5b33b394375f538b8593e34d4ef"
   integrity sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==
 
-immutable@^5.0.0-beta.5:
-  version "5.0.0-beta.5"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-5.0.0-beta.5.tgz#57dcaeadefae61ebc2d3feb6ea5b584a65282b61"
-  integrity sha512-1RO6wxfJdh/uyWb2MTn3RuCPXYmpRiAhoKm8vEnA50+2Gy0j++6GBtu5q6sq2d4tpcL+e1sCHzk8NkWnRhT2/Q==
+immutable@^5.0.0-rc.1:
+  version "5.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-5.0.0-rc.1.tgz#3011064998a575a70f17bf2ea4bc35394caec993"
+  integrity sha512-sW2Rt1jlDeEBTqHapJp6owkChOUwoHtbXhDHTa1tXJUl3WuLghuHaxjBZrL0Ih76awAdkcThu0m8QIXYU6nlrw==
 
 import-fresh@^3.2.1:
   version "3.3.0"
@@ -2396,10 +2396,10 @@ kleur@^3.0.3:
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
 
-layerr@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/layerr/-/layerr-2.0.1.tgz#0c98e6f599de4f76b75c7a6522c54b8c6c591ff0"
-  integrity sha512-z0730CwG/JO24evdORnyDkwG1Q7b7mF2Tp1qRQ0YvrMMARbt1DFG694SOv439Gm7hYKolyZyaB49YIrYIfZBdg==
+layerr@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/layerr/-/layerr-3.0.0.tgz#bc4e0e5986ffd3ab8c3c88b458f53be8dceea29e"
+  integrity sha512-tv754Ki2dXpPVApOrjTyRo4/QegVb9eVFq4mjqp4+NM5NaX7syQvN5BBNfV/ZpAHCEHV24XdUVrBAoka4jt3pA==
 
 leven@^3.1.0:
   version "3.1.0"
@@ -3225,12 +3225,12 @@ uc.micro@^2.0.0, uc.micro@^2.1.0:
   resolved "https://registry.yarnpkg.com/uc.micro/-/uc.micro-2.1.0.tgz#f8d3f7d0ec4c3dea35a7e3c8efa4cb8b45c9e7ee"
   integrity sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==
 
-ulidx@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/ulidx/-/ulidx-2.3.0.tgz#0ed0360b40b7f5ddb88f636d470c51ffebdbee58"
-  integrity sha512-36piWNqcdp9hKlQewyeehCaALy4lyx3FodsCxHuV6i0YdexSkjDOubwxEVr2yi4kh62L/0MgyrxqG4K+qtovnw==
+ulidx@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/ulidx/-/ulidx-2.4.1.tgz#c0f60f0552f84d115d42fd52a306033f13404c55"
+  integrity sha512-xY7c8LPyzvhvew0Fn+Ek3wBC9STZAuDI/Y5andCKi9AX6/jvfaX45PhsDX8oxgPL0YFp0Jhr8qWMbS/p9375Xg==
   dependencies:
-    layerr "^2.0.1"
+    layerr "^3.0.0"
 
 undici-types@~5.26.4:
   version "5.26.5"
