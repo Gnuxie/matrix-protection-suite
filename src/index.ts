@@ -55,6 +55,7 @@ export * from './MatrixTypes/SynapseAdmin/APIBodies';
 export * from './MatrixTypes/CreateRoom';
 export * from './MatrixTypes/EventDecoder';
 export * from './MatrixTypes/Events';
+export * from './MatrixTypes/JoinRules';
 export * from './MatrixTypes/MembershipEvent';
 export * from './MatrixTypes/PermalinkSchema';
 export * from './MatrixTypes/PolicyEvents';
