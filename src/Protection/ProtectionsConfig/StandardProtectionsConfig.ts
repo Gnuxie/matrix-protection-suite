@@ -17,18 +17,13 @@ import { ActionResult, Ok, isError, isOk } from '../../Interface/Action';
 import { LoggableConfigTracker } from '../../Interface/LoggableConfig';
 import { SchemedDataManager } from '../../Interface/SchemedMatrixData';
 import { Logger } from '../../Logging/Logger';
-import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectionDescription, findProtection } from '../Protection';
 import {
   MjolnirEnabledProtectionsDescription,
   MjolnirEnabledProtectionsEncodedShape,
 } from './MjolnirEnabledProtectionsDescription';
 import { MjolnirEnabledProtectionsEvent } from './MjolnirEnabledProtectionsEvent';
-import {
-  KnownEnabledProtections,
-  ProtectionsConfig,
-  ProtectionsInfo,
-} from './ProtectionsConfig';
+import { ProtectionsConfig, ProtectionsInfo } from './ProtectionsConfig';
 
 const log = new Logger('StandardProtectionsConfig');
 
@@ -74,17 +69,14 @@ async function loadProtecitons(
     log.error(`Unable to migrate raw data `, rawData, migratedData.error);
     return migratedData;
   }
-  const knownEnabledProtections: KnownEnabledProtections[] = [];
+  const knownEnabledProtections: ProtectionDescription[] = [];
   const unknownEnabledProtections: string[] = [];
   for (const protecitonName of migratedData.ok.enabled) {
     const description = findProtection(protecitonName);
     if (description === undefined) {
       unknownEnabledProtections.push(protecitonName);
     } else {
-      knownEnabledProtections.push({
-        protectionDescription: description,
-        capabilityProviderSet: description.defaultCapabilities,
-      });
+      knownEnabledProtections.push(description);
     }
   }
   return Ok({
@@ -113,9 +105,7 @@ async function storeProtections(
   enabledProtectionsMigration?: SchemedDataManager<MjolnirEnabledProtectionsEvent>
 ): Promise<ActionResult<void>> {
   const combinedEnabledProtections = new Set([
-    ...info.knownEnabledProtections.map(
-      (protection) => protection.protectionDescription.name
-    ),
+    ...info.knownEnabledProtections.map((protection) => protection.name),
     ...info.unknownEnabledProtections,
   ]);
   return await config.saveConfig({
@@ -185,15 +175,11 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
   public async enableProtection<
     TProtectionDescription extends ProtectionDescription,
   >(
-    protectionDescription: TProtectionDescription,
-    capabilityProviderSet: CapabilityProviderSet
+    protectionDescription: TProtectionDescription
   ): Promise<ActionResult<void>> {
     const nextInfo = {
       knownEnabledProtections: [
-        {
-          protectionDescription,
-          capabilityProviderSet,
-        },
+        protectionDescription,
         ...this.getKnownEnabledProtections(),
       ],
       unknownEnabledProtections: this.getUnknownEnabledProtections(),
@@ -214,8 +200,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
   ): Promise<ActionResult<void>> {
     const nextInfo: ProtectionsInfo = {
       knownEnabledProtections: this.getKnownEnabledProtections().filter(
-        (description) =>
-          description.protectionDescription.name !== protectionName
+        (description) => description.name !== protectionName
       ),
       unknownEnabledProtections: this.getUnknownEnabledProtections().filter(
         (name) => name !== protectionName
@@ -228,7 +213,7 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
     return storeResult;
   }
 
-  getKnownEnabledProtections(): KnownEnabledProtections[] {
+  getKnownEnabledProtections(): ProtectionDescription[] {
     return this.info.knownEnabledProtections;
   }
   getUnknownEnabledProtections(): string[] {

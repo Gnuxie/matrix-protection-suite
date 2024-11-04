@@ -10,18 +10,12 @@
 
 import { ActionResult } from '../../Interface/Action';
 import { LoggableConfig } from '../../Interface/LoggableConfig';
-import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectionDescription } from '../Protection';
 
 export type ProtectionsInfo = {
-  knownEnabledProtections: KnownEnabledProtections[];
+  knownEnabledProtections: ProtectionDescription[];
   /** protection names that have no matching description */
   unknownEnabledProtections: string[];
-};
-
-export type KnownEnabledProtections = {
-  protectionDescription: ProtectionDescription;
-  capabilityProviderSet: CapabilityProviderSet;
 };
 
 /**
@@ -41,11 +35,10 @@ export type KnownEnabledProtections = {
  */
 export interface ProtectionsConfig extends LoggableConfig {
   enableProtection(
-    protectionDescription: ProtectionDescription,
-    capabilityProviderSet: CapabilityProviderSet
+    protectionDescription: ProtectionDescription
   ): Promise<ActionResult<void>>;
   disableProtection(protectionName: string): Promise<ActionResult<void>>;
-  getKnownEnabledProtections(): KnownEnabledProtections[];
+  getKnownEnabledProtections(): ProtectionDescription[];
   /**
    * Return the names of any enabled protections for which a description
    * cannot be found.
