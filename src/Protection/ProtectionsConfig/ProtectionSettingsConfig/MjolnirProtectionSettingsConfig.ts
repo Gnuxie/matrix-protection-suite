@@ -20,6 +20,18 @@ export class MjolnirProtectionSettingsConfig
   ) {
     // nothing to do mare.
   }
+  public async storeProtectionSettings(
+    protectionDescription: ProtectionDescription,
+    settings: Record<string, unknown>
+  ): Promise<Result<void>> {
+    const persistentConfigData = this.makePersistentConfigBackend(
+      protectionDescription
+    );
+    if (isError(persistentConfigData)) {
+      return persistentConfigData;
+    }
+    return await persistentConfigData.ok.saveConfig(settings);
+  }
   public async getProtectionSettings<TConfigSchema extends TObject = TObject>(
     protectionDescription: ProtectionDescription
   ): Promise<Result<TConfigSchema>> {

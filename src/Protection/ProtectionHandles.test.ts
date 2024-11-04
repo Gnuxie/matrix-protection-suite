@@ -76,7 +76,6 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
   };
   const protectionAddResult = await protectedRoomsSet.protections.addProtection(
     protectionDescription,
-    {},
     protectedRoomsSet,
     undefined
   );

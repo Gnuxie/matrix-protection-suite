@@ -10,12 +10,23 @@ import { ProtectionCapabilityProviderSetConfig } from './ProtectionCapabilityPro
 export class StandardProtectionCapabilityProviderSetConfig
   implements ProtectionCapabilityProviderSetConfig
 {
+  private readonly activeProviders = new Map<string, CapabilityProviderSet>();
+  public async storeActivateCapabilityProviderSet(
+    protectionDescription: ProtectionDescription,
+    capabilityproviderSet: CapabilityProviderSet
+  ): Promise<Result<void>> {
+    this.activeProviders.set(protectionDescription.name, capabilityproviderSet);
+    return Ok(undefined);
+  }
   public async getCapabilityProviderSet<
     TProtectionDescription extends
       ProtectionDescription = ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription
   ): Promise<Result<CapabilityProviderSet>> {
-    return Ok(protectionDescription.defaultCapabilities);
+    return Ok(
+      this.activeProviders.get(protectionDescription.name) ??
+        protectionDescription.defaultCapabilities
+    );
   }
 }

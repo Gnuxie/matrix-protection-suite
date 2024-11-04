@@ -120,7 +120,7 @@ async function storeProtections(
 }
 
 export class MjolnirProtectionsConfig implements ProtectionsConfig {
-  private constructor(
+  protected constructor(
     private readonly config: PersistentConfigData<
       typeof MjolnirEnabledProtectionsDescription.schema
     >,
