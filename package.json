@@ -34,7 +34,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/glob-to-regexp": "^0.4.4",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.14.9",
+    "@types/node": "^22.0.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.6.0",
     "husky": "^9.0.11",
