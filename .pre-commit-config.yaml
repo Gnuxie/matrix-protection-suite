@@ -1,15 +1,16 @@
-# SPDX-FileCopyrightText: 2024 Aminda Suomalainen <suomalainen+git@mikaela.info>
+# SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
 #
-# SPDX-License-Identifier: AFL-3.0
+# SPDX-License-Identifier: CC0-1.0
 
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 # See https://pre-commit.ci for more information
 ci:
-  autoupdate_schedule: weekly
+  autoupdate_schedule: monthly
+  skip: [yarn-lint]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         args: ["--markdown-linebreak-ext", "md"]
@@ -18,11 +19,22 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: "2.7.3"
+    rev: "3.0.3"
     hooks:
       - id: editorconfig-checker
         alias: ec
   - repo: https://github.com/fsfe/reuse-tool
-    rev: v3.0.2
+    rev: v4.0.3
     hooks:
       - id: reuse
+  - repo: local
+    hooks:
+      - id: yarn-lint
+        name: linter
+        entry: corepack yarn lint
+        language: system
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.29.4
+    hooks:
+      - id: check-renovate
+        additional_dependencies: ["pyjson5"]

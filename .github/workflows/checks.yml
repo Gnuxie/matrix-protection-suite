@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
 #
-# SPDX-License-Identifier: AFL-3.0
+# SPDX-License-Identifier: CC0-1.0
 
 name: Checks
 
@@ -19,7 +19,7 @@ jobs:
       - name: Specifically use node LTS.
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
       - run: yarn install
       - run: yarn build
       - run: yarn lint
@@ -32,7 +32,7 @@ jobs:
       - name: Specifically use node LTS.
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
       - run: yarn install
       - run: yarn build
       - run: yarn test
