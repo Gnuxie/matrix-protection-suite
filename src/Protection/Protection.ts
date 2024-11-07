@@ -40,6 +40,7 @@ import {
 import {
   ConfigDescription,
   StandardConfigDescription,
+  UnknownConfig,
 } from '../Config/ConfigDescription';
 import { TObject, Type } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
@@ -57,7 +58,7 @@ import { EDStatic } from '../Interface/Static';
  */
 export type ProtectionFactoryMethod<
   Context = unknown,
-  TConfigSchema extends TObject = TObject,
+  TConfigSchema extends TObject = UnknownConfig,
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = (
   description: ProtectionDescription<Context, TConfigSchema, TCapabilitySet>,
@@ -75,7 +76,7 @@ export type ProtectionFactoryMethod<
  */
 export interface ProtectionDescription<
   Context = unknown,
-  TConfigSchema extends TObject = TObject,
+  TConfigSchema extends TObject = UnknownConfig,
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 > {
   readonly name: string;
@@ -202,7 +203,7 @@ const PROTECTIONS = new Map<string, ProtectionDescription>();
 
 export function registerProtection<
   Context = unknown,
-  TConfigSchema extends TObject = TObject,
+  TConfigSchema extends TObject = UnknownConfig,
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 >(
   description: ProtectionDescription<Context, TConfigSchema, TCapabilitySet>
@@ -228,7 +229,7 @@ export function findProtection(
 export function describeProtection<
   TCapabilitySet extends CapabilitySet = CapabilitySet,
   Context = unknown,
-  TConfigSchema extends TObject = TObject,
+  TConfigSchema extends TObject = UnknownConfig,
 >({
   name,
   description,

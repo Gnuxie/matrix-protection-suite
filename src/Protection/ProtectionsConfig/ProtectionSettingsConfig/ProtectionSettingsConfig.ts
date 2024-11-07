@@ -5,10 +5,11 @@
 import { TObject } from '@sinclair/typebox';
 import { ProtectionDescription } from '../../Protection';
 import { Result } from '@gnuxie/typescript-result';
+import { UnknownConfig } from '../../../Config/ConfigDescription';
 
 export interface ProtectionSettingsConfig {
   // FIXME: replace TConfigSchema with TProtectionDescription and destructure the ConfigSchema to return from there.
-  getProtectionSettings<TConfigSchema extends TObject = TObject>(
+  getProtectionSettings<TConfigSchema extends TObject = UnknownConfig>(
     protectionDescription: ProtectionDescription
   ): Promise<Result<TConfigSchema>>;
 

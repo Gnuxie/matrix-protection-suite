@@ -14,6 +14,7 @@ import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 import { EDStatic } from '../../Interface/Static';
+import { UnknownConfig } from '../../Config/ConfigDescription';
 
 /**
  * The idea needs to be that protections are defined using a state event
@@ -113,7 +114,7 @@ export interface ProtectionsManager<Context = unknown> {
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<CapabilityProviderSet>>;
 
-  getProtectionSettings<TConfigSchema extends TObject = TObject>(
+  getProtectionSettings<TConfigSchema extends TObject = UnknownConfig>(
     protectionDescription: ProtectionDescription
   ): Promise<ActionResult<EDStatic<TConfigSchema>>>;
 

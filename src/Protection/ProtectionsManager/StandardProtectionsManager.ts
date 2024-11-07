@@ -25,6 +25,7 @@ import { ProtectionsConfig } from '../ProtectionsConfig/ProtectionsConfig';
 import { Logger } from '../../Logging/Logger';
 import { TObject } from '@sinclair/typebox';
 import { EDStatic } from '../../Interface/Static';
+import { UnknownConfig } from '../../Config/ConfigDescription';
 
 const log = new Logger('StandardProtectionsManager');
 
@@ -237,7 +238,9 @@ export class StandardProtectionsManager<Context = unknown>
       protectionDescription
     );
   }
-  public async getProtectionSettings<TConfigSchema extends TObject = TObject>(
+  public async getProtectionSettings<
+    TConfigSchema extends TObject = UnknownConfig,
+  >(
     protectionDescription: ProtectionDescription
   ): Promise<Result<EDStatic<TConfigSchema>>> {
     return (await this.settingsConfig.getProtectionSettings(

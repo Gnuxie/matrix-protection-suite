@@ -7,6 +7,7 @@ import { ProtectionDescription } from '../../Protection';
 import { ProtectionSettingsConfig } from './ProtectionSettingsConfig';
 import { Result, isError } from '@gnuxie/typescript-result';
 import { PersistentConfigData } from '../../../Config/PersistentConfigData';
+import { UnknownConfig } from '../../../Config/ConfigDescription';
 
 export type MakePersistentConfigBackendForMjolnirProtectionSettings = (
   protectionDescription: ProtectionDescription
@@ -32,7 +33,9 @@ export class MjolnirProtectionSettingsConfig
     }
     return await persistentConfigData.ok.saveConfig(settings);
   }
-  public async getProtectionSettings<TConfigSchema extends TObject = TObject>(
+  public async getProtectionSettings<
+    TConfigSchema extends TObject = UnknownConfig,
+  >(
     protectionDescription: ProtectionDescription
   ): Promise<Result<TConfigSchema>> {
     const persistentConfigData = this.makePersistentConfigBackend(
