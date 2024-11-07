@@ -8,11 +8,12 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { TObject } from '@sinclair/typebox';
 import { ActionError, ActionResult } from '../../Interface/Action';
 import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
-import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
+import { EDStatic } from '../../Interface/Static';
 
 /**
  * The idea needs to be that protections are defined using a state event
@@ -112,11 +113,9 @@ export interface ProtectionsManager<Context = unknown> {
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<CapabilityProviderSet>>;
 
-  getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  >(
+  getProtectionSettings<TConfigSchema extends TObject = TObject>(
     protectionDescription: ProtectionDescription
-  ): Promise<ActionResult<TSettings>>;
+  ): Promise<ActionResult<EDStatic<TConfigSchema>>>;
 
   isEnabledProtection(protectionDescription: ProtectionDescription): boolean;
 

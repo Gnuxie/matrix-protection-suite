@@ -15,7 +15,6 @@ import {
 } from '../Capability/CapabilitySet';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
-import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import {
   ProtectionFailedToStartCB,
   ProtectionsManager,
@@ -24,6 +23,8 @@ import { ProtectionSettingsConfig } from '../ProtectionsConfig/ProtectionSetting
 import { ProtectionCapabilityProviderSetConfig } from '../ProtectionsConfig/ProtectionCapabilityProviderSetConfig/ProtectionCapabilityProviderSetConfig';
 import { ProtectionsConfig } from '../ProtectionsConfig/ProtectionsConfig';
 import { Logger } from '../../Logging/Logger';
+import { TObject } from '@sinclair/typebox';
+import { EDStatic } from '../../Interface/Static';
 
 const log = new Logger('StandardProtectionsManager');
 
@@ -192,7 +193,7 @@ export class StandardProtectionsManager<Context = unknown>
     protectionDescription: ProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
-    settings: UnknownSettings<string>
+    settings: Record<string, unknown>
   ): Promise<Result<void>> {
     const result = await this.startProtection(
       protectionDescription,
@@ -236,12 +237,12 @@ export class StandardProtectionsManager<Context = unknown>
       protectionDescription
     );
   }
-  public async getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  >(protectionDescription: ProtectionDescription): Promise<Result<TSettings>> {
+  public async getProtectionSettings<TConfigSchema extends TObject = TObject>(
+    protectionDescription: ProtectionDescription
+  ): Promise<Result<EDStatic<TConfigSchema>>> {
     return (await this.settingsConfig.getProtectionSettings(
       protectionDescription
-    )) as Result<TSettings>;
+    )) as Result<EDStatic<TConfigSchema>>;
   }
   isEnabledProtection(protectionDescription: ProtectionDescription): boolean {
     return this.enabledProtections.has(protectionDescription.name);

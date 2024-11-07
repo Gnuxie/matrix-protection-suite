@@ -20,11 +20,6 @@ import {
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
 import { ProtectedRoomsSet } from './ProtectedRoomsSet';
-import { UnknownSettings } from './ProtectionSettings/ProtectionSetting';
-import {
-  ProtectionSettings,
-  StandardProtectionSettings,
-} from './ProtectionSettings/ProtectionSettings';
 import {
   CapabilityInterfaceSet,
   CapabilityProviderSet,
@@ -42,6 +37,12 @@ import {
   MatrixRoomID,
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
+import {
+  ConfigDescription,
+  StandardConfigDescription,
+} from '../Config/ConfigDescription';
+import { TObject, Type } from '@sinclair/typebox';
+import { EDStatic } from '../Interface/Static';
 
 /**
  * @param description The description for the protection being constructed.
@@ -56,16 +57,16 @@ import {
  */
 export type ProtectionFactoryMethod<
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  TConfigSchema extends TObject = TObject,
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = (
-  description: ProtectionDescription<Context, TSettings, TCapabilitySet>,
+  description: ProtectionDescription<Context, TConfigSchema, TCapabilitySet>,
   protectedRoomsSet: ProtectedRoomsSet,
   context: Context,
   capabilities: TCapabilitySet,
-  settings: TSettings
+  settings: EDStatic<TConfigSchema>
 ) => ActionResult<
-  Protection<ProtectionDescription<Context, TSettings, TCapabilitySet>>
+  Protection<ProtectionDescription<Context, TConfigSchema, TCapabilitySet>>
 >;
 
 /**
@@ -74,14 +75,18 @@ export type ProtectionFactoryMethod<
  */
 export interface ProtectionDescription<
   Context = unknown,
-  TSettings extends UnknownSettings<string> = UnknownSettings<string>,
+  TConfigSchema extends TObject = TObject,
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 > {
   readonly name: string;
   readonly description: string;
   readonly capabilities: CapabilityInterfaceSet<TCapabilitySet>;
-  readonly factory: ProtectionFactoryMethod<Context, TSettings, TCapabilitySet>;
-  readonly protectionSettings: ProtectionSettings<TSettings>;
+  readonly factory: ProtectionFactoryMethod<
+    Context,
+    TConfigSchema,
+    TCapabilitySet
+  >;
+  readonly protectionSettings: ConfigDescription<TConfigSchema>;
   readonly defaultCapabilities: CapabilityProviderSet<TCapabilitySet>;
 }
 
@@ -197,17 +202,20 @@ const PROTECTIONS = new Map<string, ProtectionDescription>();
 
 export function registerProtection<
   Context = unknown,
-  TSettings extends UnknownSettings<string> = UnknownSettings<string>,
+  TConfigSchema extends TObject = TObject,
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 >(
-  description: ProtectionDescription<Context, TSettings, TCapabilitySet>
-): ProtectionDescription<Context, TSettings, TCapabilitySet> {
+  description: ProtectionDescription<Context, TConfigSchema, TCapabilitySet>
+): ProtectionDescription<Context, TConfigSchema, TCapabilitySet> {
   if (PROTECTIONS.has(description.name)) {
     throw new TypeError(
       `There is already a protection registered with the name ${description.name}`
     );
   }
-  PROTECTIONS.set(description.name, description as ProtectionDescription);
+  PROTECTIONS.set(
+    description.name,
+    description as unknown as ProtectionDescription
+  );
   return description;
 }
 
@@ -220,25 +228,26 @@ export function findProtection(
 export function describeProtection<
   TCapabilitySet extends CapabilitySet = CapabilitySet,
   Context = unknown,
-  TSettings extends Record<string, unknown> = Record<string, unknown>,
+  TConfigSchema extends TObject = TObject,
 >({
   name,
   description,
   capabilityInterfaces,
   defaultCapabilities,
   factory,
-  protectionSettings = new StandardProtectionSettings<TSettings>(
-    {} as Record<keyof TSettings, never>,
-    {} as TSettings
-  ),
+  configSchema,
 }: {
   name: string;
   description: string;
-  factory: ProtectionDescription<Context, TSettings, TCapabilitySet>['factory'];
+  factory: ProtectionDescription<
+    Context,
+    TConfigSchema,
+    TCapabilitySet
+  >['factory'];
   capabilityInterfaces: GenericCapabilityDescription<TCapabilitySet>;
   defaultCapabilities: GenericCapabilityDescription<TCapabilitySet>;
-  protectionSettings?: ProtectionSettings<TSettings>;
-}): ProtectionDescription<Context, TSettings, TCapabilitySet> {
+  configSchema?: TConfigSchema;
+}): ProtectionDescription<Context, TConfigSchema, TCapabilitySet> {
   const capabilityInterfaceSet =
     findCapabilityInterfaceSet(capabilityInterfaces);
   const defaultCapabilitySet = findCapabilityProviderSet(defaultCapabilities);
@@ -248,10 +257,16 @@ export function describeProtection<
     capabilities: capabilityInterfaceSet,
     defaultCapabilities: defaultCapabilitySet,
     factory,
-    protectionSettings,
+    protectionSettings: new StandardConfigDescription(
+      configSchema ?? Type.Object({})
+    ),
   };
-  registerProtection(protectionDescription);
-  return protectionDescription;
+  registerProtection(protectionDescription as unknown as ProtectionDescription);
+  return protectionDescription as unknown as ProtectionDescription<
+    Context,
+    TConfigSchema,
+    TCapabilitySet
+  >;
 }
 
 export function getAllProtections(): IterableIterator<ProtectionDescription> {
