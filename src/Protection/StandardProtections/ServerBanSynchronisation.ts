@@ -26,24 +26,18 @@ import {
   ProtectionDescription,
   describeProtection,
 } from '../Protection';
-import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
+import { UnknownConfig } from '../../Config/ConfigDescription';
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
-    ProtectionDescription<unknown, UnknownSettings<string>, Capabilities>
+    ProtectionDescription<unknown, UnknownConfig, Capabilities>
   >
   implements
-    Protection<
-      ProtectionDescription<unknown, UnknownSettings<string>, Capabilities>
-    >
+    Protection<ProtectionDescription<unknown, UnknownConfig, Capabilities>>
 {
   private readonly serverConsequences: ServerConsequences;
   constructor(
-    description: ProtectionDescription<
-      unknown,
-      UnknownSettings<string>,
-      Capabilities
-    >,
+    description: ProtectionDescription<unknown, UnknownConfig, Capabilities>,
     capabilities: Capabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {

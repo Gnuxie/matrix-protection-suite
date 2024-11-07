@@ -125,13 +125,6 @@ export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsEvent';
 export * from './Protection/ProtectionsConfig/ProtectionsConfig';
 export * from './Protection/ProtectionsConfig/StandardProtectionsConfig';
 
-export * from './Protection/ProtectionSettings/ProtectionSetting';
-export * from './Protection/ProtectionSettings/ProtectionSettings';
-export * from './Protection/ProtectionSettings/SafeIntegerProtectionSetting';
-export * from './Protection/ProtectionSettings/SetProtectionSetting';
-export * from './Protection/ProtectionSettings/StringSetProtectionSetting';
-export * from './Protection/ProtectionSettings/StringUserIDSetProtectionSetting';
-
 export * from './Protection/ProtectionsManager/FakeProtectionsManager';
 export * from './Protection/ProtectionsManager/StandardProtectionsManager';
 export * from './Protection/ProtectionsManager/ProtectionsManager';

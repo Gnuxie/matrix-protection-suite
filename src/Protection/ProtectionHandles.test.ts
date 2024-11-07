@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { Type } from '@sinclair/typebox';
 import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
+import { StandardConfigDescription } from '../Config/ConfigDescription';
 import { Ok, isError } from '../Interface/Action';
 import { Logger } from '../Logging/Logger';
 import { PowerLevelsEventContent } from '../MatrixTypes/PowerLevels';
@@ -13,8 +15,6 @@ import {
 } from '../StateTracking/DeclareRoomState';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { ProtectionDescription } from './Protection';
-import { ProtectionSetting } from './ProtectionSettings/ProtectionSetting';
-import { StandardProtectionSettings } from './ProtectionSettings/ProtectionSettings';
 
 const log = new Logger('ProtectionHandles.test');
 
@@ -50,10 +50,7 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
     description: 'test description',
     capabilities: {},
     defaultCapabilities: {},
-    protectionSettings: new StandardProtectionSettings(
-      new Map<never, ProtectionSetting<string, Record<never, never>>>(),
-      {}
-    ),
+    protectionSettings: new StandardConfigDescription(Type.Object({})),
     factory(
       description,
       _protectedRoomsSet,
@@ -76,7 +73,6 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
   };
   const protectionAddResult = await protectedRoomsSet.protections.addProtection(
     protectionDescription,
-    {},
     protectedRoomsSet,
     undefined
   );

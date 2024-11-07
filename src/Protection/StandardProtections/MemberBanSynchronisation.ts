@@ -27,16 +27,16 @@ import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../PolicyList/PolicyRule';
 import { MultipleErrors } from '../../Interface/MultipleErrors';
 import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
-import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
 import '../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
 import { Task } from '../../Interface/Task';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { UnknownConfig } from '../../Config/ConfigDescription';
 
 export type MemberBanSynchronisationProtectionDescription =
   ProtectionDescription<
     unknown,
-    UnknownSettings<string>,
+    UnknownConfig,
     MemberBanSynchronisationProtectionCapabilities
   >;
 
