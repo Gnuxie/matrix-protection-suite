@@ -25,6 +25,8 @@ export type ConfigPropertyDescription = {
   name: string;
   description: string | undefined;
   default: unknown;
+  isArray: boolean;
+  isUniqueItems: boolean;
 };
 
 export type ConfigDescription<TConfigSchema extends TObject = TObject> = {
@@ -83,6 +85,8 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
       path: '/' + name,
       description: schema.description,
       default: schema.default as unknown,
+      isUniqueItems: 'uniqueItems' in schema && schema.uniqueItems === true,
+      isArray: 'items' in schema,
     }));
   }
 
@@ -96,6 +100,8 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
       path: '/' + key,
       description: schema.description,
       default: schema.default as unknown,
+      isUniqueItems: 'uniqueItems' in schema && schema.uniqueItems === true,
+      isArray: 'items' in schema,
     };
   }
 
