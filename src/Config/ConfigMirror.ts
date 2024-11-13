@@ -15,16 +15,17 @@ import { ConfigPropertyError } from './ConfigParseError';
 import { Ok, Result } from '@gnuxie/typescript-result';
 import { Value as TBValue } from '@sinclair/typebox/value';
 
+// We should really have a conditional type here for unknown config.
 export interface ConfigMirror<TConfigSchema extends TObject = TObject> {
   readonly description: ConfigDescription<TConfigSchema>;
-  setValue(
+  setValue<TKey extends string>(
     config: EDStatic<TConfigSchema>,
-    key: keyof EDStatic<TConfigSchema>,
+    key: TKey,
     value: unknown
   ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
-  addItem(
+  addItem<TKey extends string>(
     config: EDStatic<TConfigSchema>,
-    key: keyof EDStatic<TConfigSchema>,
+    key: TKey,
     value: unknown
   ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
   // needed for when additionalProperties is true.
@@ -54,7 +55,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
   }
   setValue(
     config: Evaluate<StaticDecode<TConfigSchema>>,
-    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
+    key: string,
     value: unknown
   ): Result<Evaluate<StaticDecode<TConfigSchema>>, ConfigPropertyError> {
     const schema = this.description.schema.properties[key as keyof TProperties];
@@ -108,7 +109,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
   }
   addItem(
     config: Evaluate<StaticDecode<TConfigSchema>>,
-    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
+    key: string,
     value: unknown
   ): Result<Evaluate<StaticDecode<TConfigSchema>>, ConfigPropertyError> {
     const schema = this.description.schema.properties[key as keyof TProperties];
@@ -117,12 +118,15 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
         `Property ${key.toString()} does not exist in schema`
       );
     }
-    const currentItems = config[key];
+    const currentItems = config[key as keyof EDStatic<TConfigSchema>];
     if (!Array.isArray(currentItems)) {
       throw new TypeError(`Property ${key.toString()} is not an array`);
     }
     const errors = [
-      ...TBValue.Errors(schema, [...(config[key] as unknown[]), value]),
+      ...TBValue.Errors(schema, [
+        ...(config[key as keyof EDStatic<TConfigSchema>] as unknown[]),
+        value,
+      ]),
     ];
     if (errors[0] !== undefined) {
       return ConfigPropertyError.Result(errors[0].message, {
@@ -131,7 +135,9 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
         description: this.description as unknown as ConfigDescription,
       });
     }
-    return Ok(this.addUnparsedItem(config, key, value));
+    return Ok(
+      this.addUnparsedItem(config, key as keyof EDStatic<TConfigSchema>, value)
+    );
   }
   removeProperty<TKey extends string>(
     key: TKey,
