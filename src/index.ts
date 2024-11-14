@@ -120,6 +120,12 @@ export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 export * from './Protection/ProtectedRoomsManager/ProtectedRoomsManager';
 export * from './Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
 
+export * from './Protection/ProtectionsConfig/ProtectionCapabilityProviderSetConfig/ProtectionCapabilityProviderSetConfig';
+export * from './Protection/ProtectionsConfig/ProtectionCapabilityProviderSetConfig/StandardProtectionCapabilityProviderSetConfig';
+
+export * from './Protection/ProtectionsConfig/ProtectionSettingsConfig/MjolnirProtectionSettingsConfig';
+export * from './Protection/ProtectionsConfig/ProtectionSettingsConfig/ProtectionSettingsConfig';
+
 export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsDescription';
 export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsEvent';
 export * from './Protection/ProtectionsConfig/ProtectionsConfig';
