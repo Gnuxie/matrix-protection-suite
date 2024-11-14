@@ -8,9 +8,6 @@ import { StandardProtectionCapabilityProviderSetConfig } from '../ProtectionsCon
 import { MjolnirProtectionSettingsConfig } from '../ProtectionsConfig/ProtectionSettingsConfig/MjolnirProtectionSettingsConfig';
 import { StandardProtectionsManager } from './StandardProtectionsManager';
 import { FakePersistentConfigBackend } from '../../Interface/FakePersistentMatrixData';
-import { StandardPersistentConfigData } from '../../Config/PersistentConfigData';
-import { describeConfig } from '../../Config/describeConfig';
-import { Type } from '@sinclair/typebox';
 
 export class FakeProtectionsManager extends StandardProtectionsManager {
   constructor() {
@@ -18,15 +15,7 @@ export class FakeProtectionsManager extends StandardProtectionsManager {
       new FakeProtectionsConfig(),
       new StandardProtectionCapabilityProviderSetConfig(),
       new MjolnirProtectionSettingsConfig(function () {
-        const backend = new FakePersistentConfigBackend({});
-        return Ok(
-          new StandardPersistentConfigData(
-            describeConfig({
-              schema: Type.Object({}, { additionalProperties: true }),
-            }),
-            backend
-          )
-        );
+        return Ok(new FakePersistentConfigBackend({}));
       })
     );
   }

@@ -6,12 +6,15 @@ import { TObject } from '@sinclair/typebox';
 import { ProtectionDescription } from '../../Protection';
 import { ProtectionSettingsConfig } from './ProtectionSettingsConfig';
 import { Result, isError } from '@gnuxie/typescript-result';
-import { PersistentConfigData } from '../../../Config/PersistentConfigData';
+import {
+  PersistentConfigBackend,
+  StandardPersistentConfigData,
+} from '../../../Config/PersistentConfigData';
 import { UnknownConfig } from '../../../Config/ConfigDescription';
 
 export type MakePersistentConfigBackendForMjolnirProtectionSettings = (
   protectionDescription: ProtectionDescription
-) => Result<PersistentConfigData>;
+) => Result<PersistentConfigBackend>;
 
 export class MjolnirProtectionSettingsConfig
   implements ProtectionSettingsConfig
@@ -25,13 +28,17 @@ export class MjolnirProtectionSettingsConfig
     protectionDescription: ProtectionDescription,
     settings: Record<string, unknown>
   ): Promise<Result<void>> {
-    const persistentConfigData = this.makePersistentConfigBackend(
+    const persistentConfigBackend = this.makePersistentConfigBackend(
       protectionDescription
     );
-    if (isError(persistentConfigData)) {
-      return persistentConfigData;
+    if (isError(persistentConfigBackend)) {
+      return persistentConfigBackend;
     }
-    return await persistentConfigData.ok.saveConfig(settings);
+    const persistentConfigData = new StandardPersistentConfigData(
+      protectionDescription.protectionSettings,
+      persistentConfigBackend.ok
+    );
+    return await persistentConfigData.saveConfig(settings);
   }
   public async getProtectionSettings<
     TConfigSchema extends TObject = UnknownConfig,
