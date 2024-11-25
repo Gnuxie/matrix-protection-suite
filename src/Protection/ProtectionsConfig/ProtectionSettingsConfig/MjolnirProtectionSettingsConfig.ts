@@ -5,12 +5,13 @@
 import { TObject } from '@sinclair/typebox';
 import { ProtectionDescription } from '../../Protection';
 import { ProtectionSettingsConfig } from './ProtectionSettingsConfig';
-import { Result, isError } from '@gnuxie/typescript-result';
+import { Ok, Result, isError } from '@gnuxie/typescript-result';
 import {
   PersistentConfigBackend,
   StandardPersistentConfigData,
 } from '../../../Config/PersistentConfigData';
 import { UnknownConfig } from '../../../Config/ConfigDescription';
+import { EDStatic } from '../../../Interface/Static';
 
 export type MakePersistentConfigBackendForMjolnirProtectionSettings = (
   protectionDescription: ProtectionDescription
@@ -44,13 +45,22 @@ export class MjolnirProtectionSettingsConfig
     TConfigSchema extends TObject = UnknownConfig,
   >(
     protectionDescription: ProtectionDescription
-  ): Promise<Result<TConfigSchema>> {
+  ): Promise<Result<EDStatic<TConfigSchema>>> {
     const persistentConfigData = this.makePersistentConfigBackend(
       protectionDescription
     );
     if (isError(persistentConfigData)) {
       return persistentConfigData;
     }
-    return (await persistentConfigData.ok.requestConfig()) as Result<TConfigSchema>;
+    const result = await persistentConfigData.ok.requestConfig();
+    if (isError(result)) {
+      return result;
+    }
+    if (result.ok === undefined) {
+      return Ok(
+        protectionDescription.protectionSettings.getDefaultConfig() as EDStatic<TConfigSchema>
+      );
+    }
+    return result as Result<EDStatic<TConfigSchema>>;
   }
 }
