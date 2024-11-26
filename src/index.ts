@@ -120,17 +120,16 @@ export * from './Protection/ProtectedRoomsConfig/ProtectedRoomsConfig';
 export * from './Protection/ProtectedRoomsManager/ProtectedRoomsManager';
 export * from './Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
 
+export * from './Protection/ProtectionsConfig/ProtectionCapabilityProviderSetConfig/ProtectionCapabilityProviderSetConfig';
+export * from './Protection/ProtectionsConfig/ProtectionCapabilityProviderSetConfig/StandardProtectionCapabilityProviderSetConfig';
+
+export * from './Protection/ProtectionsConfig/ProtectionSettingsConfig/MjolnirProtectionSettingsConfig';
+export * from './Protection/ProtectionsConfig/ProtectionSettingsConfig/ProtectionSettingsConfig';
+
 export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsDescription';
 export * from './Protection/ProtectionsConfig/MjolnirEnabledProtectionsEvent';
 export * from './Protection/ProtectionsConfig/ProtectionsConfig';
 export * from './Protection/ProtectionsConfig/StandardProtectionsConfig';
-
-export * from './Protection/ProtectionSettings/ProtectionSetting';
-export * from './Protection/ProtectionSettings/ProtectionSettings';
-export * from './Protection/ProtectionSettings/SafeIntegerProtectionSetting';
-export * from './Protection/ProtectionSettings/SetProtectionSetting';
-export * from './Protection/ProtectionSettings/StringSetProtectionSetting';
-export * from './Protection/ProtectionSettings/StringUserIDSetProtectionSetting';
 
 export * from './Protection/ProtectionsManager/FakeProtectionsManager';
 export * from './Protection/ProtectionsManager/StandardProtectionsManager';

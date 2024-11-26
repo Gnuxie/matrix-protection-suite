@@ -12,20 +12,32 @@ import {
 import { ConfigDescription } from './ConfigDescription';
 import { EDStatic } from '../Interface/Static';
 import { ConfigPropertyError } from './ConfigParseError';
-import { Ok, Result } from '@gnuxie/typescript-result';
+import { Ok, Result, isError } from '@gnuxie/typescript-result';
 import { Value as TBValue } from '@sinclair/typebox/value';
+import { Value } from '../Interface/Value';
 
+// We should really have a conditional type here for unknown config.
 export interface ConfigMirror<TConfigSchema extends TObject = TObject> {
   readonly description: ConfigDescription<TConfigSchema>;
-  setValue(
+  setValue<TKey extends string>(
     config: EDStatic<TConfigSchema>,
-    key: keyof EDStatic<TConfigSchema>,
+    key: TKey,
     value: unknown
   ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
-  addItem(
+  setSerializedValue<TKey extends string>(
     config: EDStatic<TConfigSchema>,
-    key: keyof EDStatic<TConfigSchema>,
+    key: TKey,
+    value: string
+  ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
+  addItem<TKey extends string>(
+    config: EDStatic<TConfigSchema>,
+    key: TKey,
     value: unknown
+  ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
+  addSerializedItem<TKey extends string>(
+    config: EDStatic<TConfigSchema>,
+    key: TKey,
+    value: string
   ): Result<EDStatic<TConfigSchema>, ConfigPropertyError>;
   // needed for when additionalProperties is true.
   removeProperty<TKey extends string>(
@@ -54,7 +66,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
   }
   setValue(
     config: Evaluate<StaticDecode<TConfigSchema>>,
-    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
+    key: string,
     value: unknown
   ): Result<Evaluate<StaticDecode<TConfigSchema>>, ConfigPropertyError> {
     const schema = this.description.schema.properties[key as keyof TProperties];
@@ -108,7 +120,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
   }
   addItem(
     config: Evaluate<StaticDecode<TConfigSchema>>,
-    key: keyof Evaluate<StaticDecode<TConfigSchema>>,
+    key: string,
     value: unknown
   ): Result<Evaluate<StaticDecode<TConfigSchema>>, ConfigPropertyError> {
     const schema = this.description.schema.properties[key as keyof TProperties];
@@ -117,12 +129,15 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
         `Property ${key.toString()} does not exist in schema`
       );
     }
-    const currentItems = config[key];
+    const currentItems = config[key as keyof EDStatic<TConfigSchema>];
     if (!Array.isArray(currentItems)) {
       throw new TypeError(`Property ${key.toString()} is not an array`);
     }
     const errors = [
-      ...TBValue.Errors(schema, [...(config[key] as unknown[]), value]),
+      ...TBValue.Errors(schema, [
+        ...(config[key as keyof EDStatic<TConfigSchema>] as unknown[]),
+        value,
+      ]),
     ];
     if (errors[0] !== undefined) {
       return ConfigPropertyError.Result(errors[0].message, {
@@ -131,7 +146,62 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
         description: this.description as unknown as ConfigDescription,
       });
     }
-    return Ok(this.addUnparsedItem(config, key, value));
+    return Ok(
+      this.addUnparsedItem(config, key as keyof EDStatic<TConfigSchema>, value)
+    );
+  }
+  addSerializedItem<TKey extends string>(
+    config: EDStatic<TConfigSchema>,
+    key: TKey,
+    value: string
+  ): Result<EDStatic<TConfigSchema>, ConfigPropertyError> {
+    const propertySchema =
+      this.description.schema.properties[key as keyof TProperties];
+    if (propertySchema === undefined) {
+      throw new TypeError(
+        `Property ${key.toString()} does not exist in schema`
+      );
+    }
+    if (!('items' in propertySchema)) {
+      throw new TypeError(`Property ${key.toString()} is not an array`);
+    }
+    const itemSchema = (propertySchema as TArray).items;
+    const decodeResult = Value.Decode(itemSchema, value);
+    if (isError(decodeResult)) {
+      return ConfigPropertyError.Result(decodeResult.error.message, {
+        path: `/${key.toString()}`,
+        value,
+        description: this.description as unknown as ConfigDescription,
+      });
+    }
+    return Ok(
+      this.addUnparsedItem(
+        config,
+        key as unknown as keyof EDStatic<TConfigSchema>,
+        decodeResult.ok
+      )
+    );
+  }
+  setSerializedValue<TKey extends string>(
+    config: EDStatic<TConfigSchema>,
+    key: TKey,
+    value: string
+  ): Result<EDStatic<TConfigSchema>, ConfigPropertyError> {
+    const schema = this.description.schema.properties[key as keyof TProperties];
+    if (schema === undefined) {
+      throw new TypeError(
+        `Property ${key.toString()} does not exist in schema`
+      );
+    }
+    const decodeResult = Value.Decode(schema, value);
+    if (isError(decodeResult)) {
+      return ConfigPropertyError.Result(decodeResult.error.message, {
+        path: `/${key.toString()}`,
+        value,
+        description: this.description as unknown as ConfigDescription,
+      });
+    }
+    return this.setValue(config, key, decodeResult.ok);
   }
   removeProperty<TKey extends string>(
     key: TKey,

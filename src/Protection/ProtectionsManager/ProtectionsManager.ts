@@ -8,11 +8,13 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import { TObject } from '@sinclair/typebox';
 import { ActionError, ActionResult } from '../../Interface/Action';
 import { CapabilityProviderSet } from '../Capability/CapabilitySet';
 import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
-import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
+import { EDStatic } from '../../Interface/Static';
+import { UnknownConfig } from '../../Config/ConfigDescription';
 
 /**
  * The idea needs to be that protections are defined using a state event
@@ -26,9 +28,8 @@ import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
 /**
  * A callback that will be called when a protection fails to start
  * for the first time when loading protections.
- */
-/**
- * Callback when a protection failed to start.
+ * So for Draupnir, this would only be when Draupnir starts up, and explicitly
+ * not when a protection is added or removed or the settings are changed.
  */
 export type ProtectionFailedToStartCB = (
   /** The problem leading to the failure. */
@@ -41,15 +42,24 @@ export type ProtectionFailedToStartCB = (
 
 export interface ProtectionsManager<Context = unknown> {
   readonly allProtections: Protection<ProtectionDescription<Context>>[];
+  /**
+   * Activate a protection, constructing it from the description by using the
+   * pre-configured context,
+   * protectedRoomsSet,
+   * and capabilityProviderSet as arguments to the factory located in the protectionDescription.
+   */
   addProtection(
     protectionDescription: ProtectionDescription<Context>,
-    capabilityProviderSet: CapabilityProviderSet,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
   ): Promise<ActionResult<void>>;
+  /**
+   * If an instance of the protection is running then stop it and disable it.
+   */
   removeProtection(
     protection: ProtectionDescription<Context>
   ): Promise<ActionResult<void>>;
+
   /**
    * Load protections for the first time after instantiating ProtectionsConfig
    * and the entire ProtectedRoomsSet.
@@ -75,23 +85,27 @@ export interface ProtectionsManager<Context = unknown> {
    * @param settings The parsed settings for the protection. If these are wrong,
    * then this method will fail.
    */
-  changeProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-    TProtectionDescription extends ProtectionDescription<
-      Context,
-      TSettings
-    > = ProtectionDescription<Context, TSettings>,
-  >(
-    protectionDescription: TProtectionDescription,
+  changeProtectionSettings(
+    protectionDescription: ProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
-    settings: TSettings
+    settings: Record<string, unknown>
   ): Promise<ActionResult<void>>;
 
   /**
-   * Return the consequence provider description that has been set for a protection.
+   * Change the active capability provider for the protection.
+   * If the protetion is enabled, it will be recreated and restarted.
+   */
+  changeCapabilityProviderSet(
+    protectionDescription: ProtectionDescription,
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
+    capabilityProviderSet: CapabilityProviderSet
+  ): Promise<ActionResult<void>>;
+
+  /**
+   * @returns The capability provider set that has been configurd for a protection.
    * @param protectionDescription The protection description to find the configured
-   * consequence provider description for.
    */
   getCapabilityProviderSet<
     TProtectionDescription extends
@@ -100,11 +114,9 @@ export interface ProtectionsManager<Context = unknown> {
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<CapabilityProviderSet>>;
 
-  getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  >(
-    protectionDescription: ProtectionDescription<Context, TSettings>
-  ): Promise<ActionResult<TSettings>>;
+  getProtectionSettings<TConfigSchema extends TObject = UnknownConfig>(
+    protectionDescription: ProtectionDescription
+  ): Promise<ActionResult<EDStatic<TConfigSchema>>>;
 
   isEnabledProtection(protectionDescription: ProtectionDescription): boolean;
 

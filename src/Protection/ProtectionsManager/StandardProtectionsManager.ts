@@ -1,4 +1,4 @@
-// Copyright 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2023 - 2024 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 2022 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -8,119 +8,176 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { ProtectionDescription } from '../Protection';
+import { Ok, Result, isError } from '@gnuxie/typescript-result';
+import {
+  CapabilityProviderSet,
+  initializeCapabilitySet,
+} from '../Capability/CapabilitySet';
+import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+import { Protection, ProtectionDescription } from '../Protection';
 import {
   ProtectionFailedToStartCB,
   ProtectionsManager,
 } from './ProtectionsManager';
-import { MatrixStateData } from '../../Interface/PersistentMatrixData';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
-import { UnknownSettings } from '../ProtectionSettings/ProtectionSetting';
-import { AbstractProtectionsManager as AbstractProtectionsManager } from './FakeProtectionsManager';
-import { CapabilityProviderSet } from '../Capability/CapabilitySet';
-import { MjolnirProtectionSettingsEventContent } from '../ProtectionsConfig/MjolnirEnabledProtectionsEvent';
+import { ProtectionSettingsConfig } from '../ProtectionsConfig/ProtectionSettingsConfig/ProtectionSettingsConfig';
+import { ProtectionCapabilityProviderSetConfig } from '../ProtectionsConfig/ProtectionCapabilityProviderSetConfig/ProtectionCapabilityProviderSetConfig';
 import { ProtectionsConfig } from '../ProtectionsConfig/ProtectionsConfig';
+import { Logger } from '../../Logging/Logger';
+import { TObject } from '@sinclair/typebox';
+import { EDStatic } from '../../Interface/Static';
+import { UnknownConfig } from '../../Config/ConfigDescription';
 
-// FIXME: In the future we will have to find a way of persisting ConsequenceProviders.
-// A boring way is by naming them like protections and just matching the provider name to the protection name.
+const log = new Logger('StandardProtectionsManager');
+
+// FIXME: Dialemma, if we want to be able to change protection settings
+// or dry run protections with dummy capabilities, we need to know whether
+// the protection has external resources that will conflict.
+// So for example, a webserver or something like that, we need to make sure that
+// both protections can run at the same time. This would mean duplicating
+// the listeners for a webserver and we need to warn protections about this
+// in the documentation.
 
 export class StandardProtectionsManager<Context = unknown>
-  extends AbstractProtectionsManager<Context>
   implements ProtectionsManager<Context>
 {
+  private readonly enabledProtections = new Map<
+    /** protection name */ string,
+    Protection<ProtectionDescription>
+  >();
   public constructor(
-    private readonly protectionsConfig: ProtectionsConfig,
-    private readonly protectionSettingsStore: MatrixStateData<MjolnirProtectionSettingsEventContent>
+    private readonly enabledProtectionsConfig: ProtectionsConfig,
+    private readonly capabilityProviderSetConfig: ProtectionCapabilityProviderSetConfig,
+    private readonly settingsConfig: ProtectionSettingsConfig
   ) {
-    super();
+    // nothing to do mare.
+  }
+
+  public get allProtections() {
+    return [...this.enabledProtections.values()];
+  }
+
+  private async startProtection(
+    protectionDescription: ProtectionDescription,
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
+    {
+      settings,
+      capabilityProviderSet,
+    }: {
+      settings?: Record<string, unknown> | undefined;
+      capabilityProviderSet?: CapabilityProviderSet | undefined;
+    }
+  ): Promise<Result<Protection<ProtectionDescription>>> {
+    if (settings === undefined) {
+      const settingsResult = await this.settingsConfig.getProtectionSettings(
+        protectionDescription
+      );
+      if (isError(settingsResult)) {
+        return settingsResult;
+      }
+      settings = settingsResult.ok;
+    }
+    if (capabilityProviderSet === undefined) {
+      const capabilityProviders =
+        await this.capabilityProviderSetConfig.getCapabilityProviderSet(
+          protectionDescription
+        );
+      if (isError(capabilityProviders)) {
+        return capabilityProviders.elaborate(
+          `Couldn't find the capability provider set for ${protectionDescription.name}`
+        );
+      }
+      capabilityProviderSet = capabilityProviders.ok;
+    }
+    const capabilities = initializeCapabilitySet(
+      protectionDescription,
+      capabilityProviderSet,
+      context
+    );
+    const protectionResult = protectionDescription.factory(
+      protectionDescription,
+      protectedRoomsSet,
+      context,
+      capabilities,
+      settings
+    );
+    if (isError(protectionResult)) {
+      return protectionResult;
+    }
+    const enabledProtection = this.enabledProtections.get(
+      protectionDescription.name
+    );
+    if (enabledProtection !== undefined) {
+      this.removeProtectionWithoutStore(protectionDescription);
+    }
+    this.enabledProtections.set(
+      protectionDescription.name,
+      protectionResult.ok
+    );
+    return protectionResult;
   }
 
   public async addProtection(
     protectionDescription: ProtectionDescription,
-    capabilities: CapabilityProviderSet,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context
-  ): Promise<ActionResult<void>> {
-    const startResult = this.startProtection(
+  ): Promise<Result<void>> {
+    const startResult = await this.startProtection(
       protectionDescription,
-      capabilities,
       protectedRoomsSet,
-      context
+      context,
+      {}
     );
     if (isError(startResult)) {
       return startResult;
     }
-    const storeResult = await this.protectionsConfig.enableProtection(
-      protectionDescription,
-      capabilities
+    const storeResult = await this.enabledProtectionsConfig.enableProtection(
+      protectionDescription
     );
     return storeResult;
   }
-
+  private removeProtectionWithoutStore(
+    protectionDescription: ProtectionDescription
+  ): void {
+    const protection = this.enabledProtections.get(protectionDescription.name);
+    this.enabledProtections.delete(protectionDescription.name);
+    if (protection !== undefined) {
+      try {
+        protection.handleProtectionDisable?.();
+      } catch (ex) {
+        log.error(
+          `Caught unhandled exception while disabling ${protectionDescription.name}:`,
+          ex
+        );
+      }
+    }
+  }
   public async removeProtection(
     protection: ProtectionDescription
-  ): Promise<ActionResult<void>> {
-    const storeResult = await this.protectionsConfig.disableProtection(
+  ): Promise<Result<void>> {
+    const storeResult = await this.enabledProtectionsConfig.disableProtection(
       protection.name
     );
     if (isError(storeResult)) {
       return storeResult;
     }
-    super.removeProtectionSync(protection);
+    this.removeProtectionWithoutStore(protection);
     return Ok(undefined);
   }
-
-  private startProtection(
-    protectionDescription: ProtectionDescription,
-    capabilities: CapabilityProviderSet,
-    protectedRoomsSet: ProtectedRoomsSet,
-    context: Context
-  ): ActionResult<void> {
-    const settings = this.protectionSettingsStore.requestStateContent(
-      protectionDescription.name
-    );
-    const protectionResult = super.addProtectionSync(
-      protectionDescription,
-      capabilities,
-      protectedRoomsSet,
-      context,
-      settings ?? protectionDescription.protectionSettings.defaultSettings
-    );
-    if (isError(protectionResult)) {
-      return protectionResult;
-    }
-    return Ok(undefined);
-  }
-
   public async loadProtections(
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     protectionFailedToStart: ProtectionFailedToStartCB
-  ): Promise<ActionResult<void>> {
+  ): Promise<Result<void>> {
     if (this.allProtections.length > 0) {
       throw new TypeError('This can only be used at startup');
     }
-    for (const {
-      protectionDescription,
-    } of this.protectionsConfig.getKnownEnabledProtections()) {
-      const capabilityProviderSet = await this.getCapabilityProviderSet(
-        protectionDescription
-      );
-      if (isError(capabilityProviderSet)) {
-        await protectionFailedToStart(
-          capabilityProviderSet.error.elaborate(
-            `Couldn't find the capability provider set for ${protectionDescription.name}`
-          ),
-          protectionDescription.name
-        );
-        continue;
-      }
-      const startResult = this.startProtection(
+    for (const protectionDescription of this.enabledProtectionsConfig.getKnownEnabledProtections()) {
+      const startResult = await this.startProtection(
         protectionDescription,
-        capabilityProviderSet.ok,
         protectedRoomsSet,
-        context
+        context,
+        {}
       );
       if (isError(startResult)) {
         await protectionFailedToStart(
@@ -133,49 +190,80 @@ export class StandardProtectionsManager<Context = unknown>
     }
     return Ok(undefined);
   }
-
-  public async changeProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-    TProtectionDescription extends ProtectionDescription<
-      Context,
-      TSettings
-    > = ProtectionDescription<Context, TSettings>,
-  >(
-    protectionDescription: TProtectionDescription,
+  public async changeProtectionSettings(
+    protectionDescription: ProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
-    settings: TSettings
-  ): Promise<ActionResult<void>> {
-    const changeResult = await super.changeProtectionSettings(
+    settings: Record<string, unknown>
+  ): Promise<Result<void>> {
+    const result = await this.startProtection(
       protectionDescription,
       protectedRoomsSet,
       context,
-      settings
+      { settings }
     );
-    if (isError(changeResult)) {
-      return changeResult;
+    if (isError(result)) {
+      return result;
     }
-    return await this.protectionSettingsStore.storeStateContent(
-      protectionDescription.name,
-      protectionDescription.protectionSettings.toJSON(settings)
+    return await this.settingsConfig.storeProtectionSettings(
+      protectionDescription,
+      settings
     );
   }
 
-  public async getProtectionSettings<
-    TSettings extends UnknownSettings<string> = UnknownSettings<string>,
-  >(
-    protectionDescription: ProtectionDescription<Context, TSettings>
-  ): Promise<ActionResult<TSettings>> {
-    const rawSettings = this.protectionSettingsStore.requestStateContent(
-      protectionDescription.name
+  public async changeCapabilityProviderSet(
+    protectionDescription: ProtectionDescription,
+    protectedRoomsSet: ProtectedRoomsSet,
+    context: Context,
+    capabilityProviderSet: CapabilityProviderSet
+  ): Promise<Result<void>> {
+    const result = await this.startProtection(
+      protectionDescription,
+      protectedRoomsSet,
+      context,
+      { capabilityProviderSet }
     );
-    const parsedSettings =
-      protectionDescription.protectionSettings.parseSettings(rawSettings);
-    if (isError(parsedSettings)) {
-      return parsedSettings.elaborate(
-        `The protection settings currently stored for the protection named ${protectionDescription.name} are invalid.`
-      );
+    if (isError(result)) {
+      return result;
     }
-    return Ok(parsedSettings.ok);
+    return await this.capabilityProviderSetConfig.storeActivateCapabilityProviderSet(
+      protectionDescription,
+      capabilityProviderSet
+    );
+  }
+  public async getCapabilityProviderSet(
+    protectionDescription: ProtectionDescription
+  ): Promise<Result<CapabilityProviderSet>> {
+    return await this.capabilityProviderSetConfig.getCapabilityProviderSet(
+      protectionDescription
+    );
+  }
+  public async getProtectionSettings<
+    TConfigSchema extends TObject = UnknownConfig,
+  >(
+    protectionDescription: ProtectionDescription
+  ): Promise<Result<EDStatic<TConfigSchema>>> {
+    return (await this.settingsConfig.getProtectionSettings(
+      protectionDescription
+    )) as Result<EDStatic<TConfigSchema>>;
+  }
+  isEnabledProtection(protectionDescription: ProtectionDescription): boolean {
+    return this.enabledProtections.has(protectionDescription.name);
+  }
+  findEnabledProtection<TProtectionDescription extends ProtectionDescription>(
+    name: string
+  ): Protection<TProtectionDescription> | undefined {
+    return this.enabledProtections.get(name) as
+      | Protection<TProtectionDescription>
+      | undefined;
+  }
+  withEnabledProtection<TProtectionDescription extends ProtectionDescription>(
+    name: string,
+    cb: (protection: Protection<TProtectionDescription>) => void
+  ): void {
+    const protection = this.findEnabledProtection(name);
+    if (protection !== undefined) {
+      cb(protection as Protection<TProtectionDescription>);
+    }
   }
 }

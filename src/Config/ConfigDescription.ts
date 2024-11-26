@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { TObject, TProperties, TSchema } from '@sinclair/typebox';
+import { TObject, TProperties, TSchema, Type } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
 import { Ok, Result } from '@gnuxie/typescript-result';
 import { Value as TBValue } from '@sinclair/typebox/value';
@@ -17,11 +17,16 @@ export type UnknownProperties<T extends TSchema> = {
   [K in keyof StaticProperties<T>]: unknown;
 };
 
+export const UnknownConfig = Type.Object({}, { additionalProperties: true });
+export type UnknownConfig = typeof UnknownConfig;
+
 export type ConfigPropertyDescription = {
   path: string;
   name: string;
   description: string | undefined;
   default: unknown;
+  isArray: boolean;
+  isUniqueItems: boolean;
 };
 
 export type ConfigDescription<TConfigSchema extends TObject = TObject> = {
@@ -80,6 +85,8 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
       path: '/' + name,
       description: schema.description,
       default: schema.default as unknown,
+      isUniqueItems: 'uniqueItems' in schema && schema.uniqueItems === true,
+      isArray: 'items' in schema,
     }));
   }
 
@@ -93,6 +100,8 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
       path: '/' + key,
       description: schema.description,
       default: schema.default as unknown,
+      isUniqueItems: 'uniqueItems' in schema && schema.uniqueItems === true,
+      isArray: 'items' in schema,
     };
   }
 
