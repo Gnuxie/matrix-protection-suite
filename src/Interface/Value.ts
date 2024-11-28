@@ -57,7 +57,7 @@ export class Value {
   ): ActionResult<D, DecodeException> {
     const decoder = this.Compile(schema);
     try {
-      return Ok(decoder.Decode(value) as D);
+      return Ok(decoder.Decode(value));
     } catch (e) {
       if (e instanceof TypeBoxError) {
         const errors = [...decoder.Errors(value)];
