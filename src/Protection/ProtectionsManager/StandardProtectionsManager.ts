@@ -8,7 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { Ok, Result, isError } from '@gnuxie/typescript-result';
+import { Ok, Result, ResultError, isError } from '@gnuxie/typescript-result';
 import {
   CapabilityProviderSet,
   initializeCapabilitySet,
@@ -26,6 +26,7 @@ import { Logger } from '../../Logging/Logger';
 import { TObject } from '@sinclair/typebox';
 import { EDStatic } from '../../Interface/Static';
 import { UnknownConfig } from '../../Config/ConfigDescription';
+import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
 
 const log = new Logger('StandardProtectionsManager');
 
@@ -211,6 +212,44 @@ export class StandardProtectionsManager<Context = unknown>
     );
   }
 
+  public async changeCapabilityProvider(
+    context: Context,
+    protectedRoomsSet: ProtectedRoomsSet,
+    protectionDescription: ProtectionDescription,
+    capabilityKey: string,
+    capabilityProvider: CapabilityProviderDescription
+  ): Promise<Result<void>> {
+    const currentCapabilityProviderSet =
+      await this.capabilityProviderSetConfig.getCapabilityProviderSet(
+        protectionDescription
+      );
+    if (isError(currentCapabilityProviderSet)) {
+      return currentCapabilityProviderSet;
+    }
+    const capabilityInterface =
+      protectionDescription.capabilities[capabilityKey];
+    if (capabilityInterface === undefined) {
+      return ResultError.Result(
+        `Cannot find the capability interface ${capabilityKey} for ${protectionDescription.name}`
+      );
+    }
+    if (capabilityProvider.interface !== capabilityInterface) {
+      return ResultError.Result(
+        `The capability provider ${capabilityProvider.name} does not implement the interface ${capabilityInterface.name}`
+      );
+    }
+    const newCapabilityProviderSet = {
+      ...currentCapabilityProviderSet.ok,
+      [capabilityKey]: capabilityProvider,
+    };
+    currentCapabilityProviderSet.ok[capabilityKey] = capabilityProvider;
+    return await this.changeCapabilityProviderSet(
+      protectionDescription,
+      protectedRoomsSet,
+      context,
+      newCapabilityProviderSet
+    );
+  }
   public async changeCapabilityProviderSet(
     protectionDescription: ProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,

@@ -15,6 +15,7 @@ import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
 import { Protection, ProtectionDescription } from '../Protection';
 import { EDStatic } from '../../Interface/Static';
 import { UnknownConfig } from '../../Config/ConfigDescription';
+import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
 
 /**
  * The idea needs to be that protections are defined using a state event
@@ -90,6 +91,18 @@ export interface ProtectionsManager<Context = unknown> {
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     settings: Record<string, unknown>
+  ): Promise<ActionResult<void>>;
+
+  /**
+   * Change the current capability provider for a specific capability interface
+   * in a set for a protection.
+   */
+  changeCapabilityProvider(
+    context: Context,
+    protectedRoomsSet: ProtectedRoomsSet,
+    protectionDescription: ProtectionDescription,
+    capabilityKey: string,
+    capabilityProvider: CapabilityProviderDescription
   ): Promise<ActionResult<void>>;
 
   /**
