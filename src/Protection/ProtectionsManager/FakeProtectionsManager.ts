@@ -13,7 +13,9 @@ export class FakeProtectionsManager extends StandardProtectionsManager {
   constructor() {
     super(
       new FakeProtectionsConfig(),
-      new StandardProtectionCapabilityProviderSetConfig(),
+      new StandardProtectionCapabilityProviderSetConfig(function () {
+        return Ok(new FakePersistentConfigBackend({}));
+      }),
       new MjolnirProtectionSettingsConfig(function () {
         return Ok(new FakePersistentConfigBackend({}));
       })
