@@ -85,7 +85,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
     }
     const newConfig = {
       ...config,
-      [key]: TBValue.Decode(schema, value),
+      [key]: value,
     };
     return Ok(newConfig as EDStatic<TConfigSchema>);
   }
