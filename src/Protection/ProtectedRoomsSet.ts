@@ -12,8 +12,8 @@ import { MembershipChange } from '../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../Membership/MembershipRevision';
 import {
   SetMembership,
-  SetMembershipListener,
-} from '../Membership/SetMembership';
+  SetRoomMembershipListener,
+} from '../Membership/SetRoomMembership';
 import {
   SetRoomState,
   SetRoomStateListener,
@@ -69,7 +69,7 @@ export type HandleMissingProtectionPermissions = (
 ) => void;
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
-  private readonly membershipChangeListener: SetMembershipListener =
+  private readonly membershipChangeListener: SetRoomMembershipListener =
     this.setMembershipChangeListener.bind(this);
   private readonly policyChangeListener: RevisionListener =
     this.policyRevisionChangeListener.bind(this);

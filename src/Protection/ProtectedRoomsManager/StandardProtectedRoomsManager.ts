@@ -7,8 +7,8 @@ import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { RoomMembershipManager } from '../../Membership/RoomMembershipManager';
 import {
   SetMembership,
-  SetMembershipMirror,
-} from '../../Membership/SetMembership';
+  SetRoomMembershipMirror,
+} from '../../Membership/SetRoomMembership';
 import {
   SetRoomState,
   SetRoomStateMirror,
@@ -98,7 +98,11 @@ export class StandardProtectedRoomsManager
       roomMembershipManager,
       function (room, stateIssuer, membershipIssuer) {
         SetRoomStateMirror.addRoom(blankSetRoomState, room, stateIssuer);
-        SetMembershipMirror.addRoom(blankSetMembership, room, membershipIssuer);
+        SetRoomMembershipMirror.addRoom(
+          blankSetMembership,
+          room,
+          membershipIssuer
+        );
       }
     );
     for (const room of protectedRoomsConfig.getProtectedRooms()) {
@@ -163,7 +167,11 @@ export class StandardProtectedRoomsManager
     // I also don't know whether it will matter when the state emitter is called
     // before the membership emitter.
     SetRoomStateMirror.addRoom(this.setRoomState, room, stateIssuer.ok);
-    SetMembershipMirror.addRoom(this.setMembership, room, membershipIssuer.ok);
+    SetRoomMembershipMirror.addRoom(
+      this.setMembership,
+      room,
+      membershipIssuer.ok
+    );
     this.emit('change', room, ProtectedRoomChangeType.Added);
     return Ok(undefined);
   }
@@ -174,7 +182,7 @@ export class StandardProtectedRoomsManager
     }
     if (this.isProtectedRoom(room.toRoomIDOrAlias())) {
       SetRoomStateMirror.removeRoom(this.setRoomState, room);
-      SetMembershipMirror.removeRoom(this.setMembership, room);
+      SetRoomMembershipMirror.removeRoom(this.setMembership, room);
       this.protectedRooms.delete(room.toRoomIDOrAlias());
       this.emit('change', room, ProtectedRoomChangeType.Removed);
     }

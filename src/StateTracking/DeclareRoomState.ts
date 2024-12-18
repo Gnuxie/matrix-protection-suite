@@ -21,7 +21,7 @@ import {
 import { FakeProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
 import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
 import { FakeRoomStateManager } from './FakeRoomStateManager';
-import { StandardSetMembership } from '../Membership/StandardSetMembershp';
+import { StandardSetRoomMembership } from '../Membership/StandardSetRoomMembership';
 import { FakeRoomMembershipManager } from '../Membership/FakeRoomMembershipManager';
 import { FakePolicyRoomManager } from './FakePolicyRoomManager';
 import { StandardSetRoomState } from './StandardSetRoomState';
@@ -79,7 +79,7 @@ export async function describeProtectedRoomsSet({
   const protectedRoomsConfig = new FakeProtectedRoomsConfig(
     roomDescriptions.map((room) => room.stateRevisionIssuer.room)
   );
-  const setMembership = await StandardSetMembership.create(
+  const setMembership = await StandardSetRoomMembership.create(
     roomMembershipManager,
     protectedRoomsConfig.getProtectedRooms()
   );

@@ -18,7 +18,7 @@ import { RoomUnbanner } from '../../../Client/RoomUnbanner';
 import { ActionError, ActionResult, Ok } from '../../../Interface/Action';
 import { Membership } from '../../../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
-import { SetMembership } from '../../../Membership/SetMembership';
+import { SetMembership } from '../../../Membership/SetRoomMembership';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';

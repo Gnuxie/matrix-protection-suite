@@ -6,10 +6,10 @@ import EventEmitter from 'events';
 import { ActionResult, Ok, isError } from '../Interface/Action';
 import { RoomMembershipRevision } from './MembershipRevision';
 import {
-  SetMembership,
-  SetMembershipMirror,
-  SetMembershipMirrorCord,
-} from './SetMembership';
+  SetRoomMembership,
+  SetRoomMembershipMirror,
+  SetRoomMembershipMirrorCord,
+} from './SetRoomMembership';
 import {
   MembershipRevisionListener,
   RoomMembershipRevisionIssuer,
@@ -20,9 +20,9 @@ import {
   MatrixRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
 
-export class StandardSetMembership
+export class StandardSetRoomMembership
   extends EventEmitter
-  implements SetMembership
+  implements SetRoomMembership
 {
   private readonly issuers = new Map<
     StringRoomID,
@@ -42,8 +42,8 @@ export class StandardSetMembership
   public static async create(
     roomMembershipManager: RoomMembershipManager,
     roomsSet: MatrixRoomID[]
-  ): Promise<ActionResult<SetMembership>> {
-    const setMembership = new StandardSetMembership();
+  ): Promise<ActionResult<SetRoomMembership>> {
+    const setMembership = new StandardSetRoomMembership();
     const issuerResults = await Promise.all(
       roomsSet.map((room) =>
         roomMembershipManager.getRoomMembershipRevisionIssuer(room)
@@ -55,30 +55,46 @@ export class StandardSetMembership
           `Unable to fetch a membership revision issuer while creating SetMembership`
         );
       } else {
-        SetMembershipMirror.addRoom(setMembership, result.ok.room, result.ok);
+        SetRoomMembershipMirror.addRoom(
+          setMembership,
+          result.ok.room,
+          result.ok
+        );
       }
     }
     return Ok(setMembership);
   }
 
-  public static blankSet(): StandardSetMembership {
-    return new StandardSetMembership();
+  public static blankSet(): StandardSetRoomMembership {
+    return new StandardSetRoomMembership();
   }
 
-  public [SetMembershipMirrorCord.addRoom](
+  public [SetRoomMembershipMirrorCord.addRoom](
     room: MatrixRoomID,
     issuer: RoomMembershipRevisionIssuer
   ): void {
     this.issuers.set(room.toRoomIDOrAlias(), issuer);
     issuer.on('revision', this.revisionListener);
+    this.emit(
+      'SetChange',
+      room.toRoomIDOrAlias(),
+      'add',
+      issuer.currentRevision
+    );
   }
-  public [SetMembershipMirrorCord.removeRoom](room: MatrixRoomID): void {
+  public [SetRoomMembershipMirrorCord.removeRoom](room: MatrixRoomID): void {
     const issuer = this.issuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       return;
     }
     this.issuers.delete(room.toRoomIDOrAlias());
     issuer.off('revision', this.revisionListener);
+    this.emit(
+      'SetChange',
+      room.toRoomIDOrAlias(),
+      'remove',
+      issuer.currentRevision
+    );
   }
   public unregisterListeners(): void {
     for (const issuer of this.issuers.values()) {

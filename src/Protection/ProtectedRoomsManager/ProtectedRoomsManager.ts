@@ -7,7 +7,7 @@ import {
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../../Interface/Action';
-import { SetMembership } from '../../Membership/SetMembership';
+import { SetMembership } from '../../Membership/SetRoomMembership';
 import { SetRoomState } from '../../StateTracking/SetRoomState';
 
 export enum ProtectedRoomChangeType {
