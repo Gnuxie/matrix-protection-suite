@@ -34,28 +34,35 @@ export type SetMembershipChange = {
   roomsLeft: number;
 };
 
+export type SetMembershipDelta = {
+  addedRoom: StringRoomID | undefined;
+  removedRoom: StringRoomID | undefined;
+  changes: SetMembershipChange[];
+};
+
 export interface SetMembershipRevision {
   /**
    * Revise from changes to a roomMembershipRevisionIssuer
    */
-  reviseFromChanges(changes: MembershipChange[]): SetMembershipRevision;
+  changesFromMembershipChanges(changes: MembershipChange[]): SetMembershipDelta;
   /**
    * Revise from a new room in the room set we are modelling.
    */
-  reviseFromAddedRoom(
+  changesFromAddedRoom(
     roomMembershipRevision: RoomMembershipRevision
-  ): SetMembershipRevision;
+  ): SetMembershipDelta;
   /**
    * Revise from a room being removed from the room set we are modelling.
    */
-  reviseFromRemovedRoom(
+  changesFromRemovedRoom(
     roomMembershipRevision: RoomMembershipRevision
-  ): SetMembershipRevision;
+  ): SetMembershipDelta;
+  reviseFromChanges(changes: SetMembershipDelta): SetMembershipRevision;
   presentMembers(): IterableIterator<StringUserID>;
   membershipForUser(userID: StringUserID): SetMembershipKind;
 }
 
-export class StandardSetMembershipRevision {
+export class StandardSetMembershipRevision implements SetMembershipRevision {
   constructor(
     private readonly memberships: PersistentMap<StringUserID, number>,
     private readonly internedRooms: PersistentSet<StringRoomID>
@@ -67,95 +74,158 @@ export class StandardSetMembershipRevision {
     return this.memberships.get(userID, 0);
   }
 
-  reviseFromChanges(changes: MembershipChange[]): SetMembershipRevision {
-    if (!changes.every((change) => this.internedRooms.has(change.roomID))) {
+  changesFromMembershipChanges(
+    membershipChanges: MembershipChange[]
+  ): SetMembershipDelta {
+    if (
+      !membershipChanges.every((change) =>
+        this.internedRooms.has(change.roomID)
+      )
+    ) {
       throw new TypeError(
         'Cannot revise from changes that do not all belong to the same room set.'
       );
     }
-    return new StandardSetMembershipRevision(
-      changes.reduce((memberships, change) => {
-        switch (change.membershipChangeType) {
-          case MembershipChangeType.Joined:
-          case MembershipChangeType.Rejoined:
-          case MembershipChangeType.Invited:
-          case MembershipChangeType.Knocked:
-          case MembershipChangeType.Reknocked:
-            return memberships.set(
-              change.userID,
-              this.getMembershipCount(change.userID) + 1
-            );
-          case MembershipChangeType.Left:
-          case MembershipChangeType.Kicked:
-          case MembershipChangeType.Banned: {
-            if (this.getMembershipCount(change.userID) === 1) {
-              return memberships.delete(change.userID);
-            } else {
-              return memberships.set(
-                change.userID,
-                this.getMembershipCount(change.userID) - 1
-              );
-            }
-          }
-          default:
-            return memberships;
+    const changes = new Map<StringUserID, SetMembershipChange>();
+    for (const membershipChange of membershipChanges) {
+      const userID = membershipChange.userID;
+      const changeType = membershipChange.membershipChangeType;
+      const existingEntry = changes.get(userID);
+      const change =
+        existingEntry === undefined
+          ? ((template) => (changes.set(userID, template), template))({
+              userID,
+              changeType: SetMembershipChangeType.NoOverallChange,
+              roomsJoined: 0,
+              roomsLeft: 0,
+            })
+          : existingEntry;
+      switch (changeType) {
+        case MembershipChangeType.Joined:
+        case MembershipChangeType.Rejoined:
+        case MembershipChangeType.Invited:
+        case MembershipChangeType.Knocked:
+        case MembershipChangeType.Reknocked:
+          change.roomsJoined += 1;
+          break;
+        case MembershipChangeType.Left:
+        case MembershipChangeType.Kicked:
+        case MembershipChangeType.Banned:
+          change.roomsLeft += 1;
+          break;
+      }
+      const oldCount = this.getMembershipCount(userID);
+      const newCount = oldCount + change.roomsJoined - change.roomsLeft;
+      if (oldCount > 0) {
+        if (newCount === 0) {
+          change.changeType = SetMembershipChangeType.BecameAbsent;
         }
-      }, this.memberships),
-      this.internedRooms
-    );
+      } else {
+        if (newCount > 0) {
+          change.changeType = SetMembershipChangeType.BecamePresent;
+        }
+      }
+    }
+    return {
+      addedRoom: undefined,
+      removedRoom: undefined,
+      changes: Array.from(changes.values()),
+    };
   }
 
-  reviseFromAddedRoom(
+  changesFromAddedRoom(
     roomMembershipRevision: RoomMembershipRevision
-  ): SetMembershipRevision {
+  ): SetMembershipDelta {
     if (this.internedRooms.has(roomMembershipRevision.room.toRoomIDOrAlias())) {
       throw new TypeError(
         'Cannot revise from a room that is already in the room set.'
       );
     }
-    let memberships = this.memberships;
+    const changes: SetMembershipChange[] = [];
     for (const member of roomMembershipRevision.members()) {
+      const existingCount = this.getMembershipCount(member.userID);
       switch (member.membership) {
         case Membership.Join:
         case Membership.Invite:
         case Membership.Knock:
-          memberships = memberships.set(
-            member.userID,
-            (memberships.get(member.userID) ?? 0) + 1
-          );
+          changes.push({
+            userID: member.userID,
+            changeType:
+              existingCount === 0
+                ? SetMembershipChangeType.BecamePresent
+                : SetMembershipChangeType.NoOverallChange,
+            roomsJoined: 1,
+            roomsLeft: 0,
+          });
           break;
       }
     }
-    return new StandardSetMembershipRevision(
-      memberships,
-      this.internedRooms.add(roomMembershipRevision.room.toRoomIDOrAlias())
-    );
+    return {
+      addedRoom: roomMembershipRevision.room.toRoomIDOrAlias(),
+      removedRoom: undefined,
+      changes,
+    };
   }
 
-  reviseFromRemovedRoom(
+  changesFromRemovedRoom(
     roomMembershipRevision: RoomMembershipRevision
-  ): SetMembershipRevision {
-    let memberships = this.memberships;
+  ): SetMembershipDelta {
+    const changes: SetMembershipChange[] = [];
     for (const member of roomMembershipRevision.members()) {
+      const existingCount = this.getMembershipCount(member.userID);
       switch (member.membership) {
         case Membership.Join:
         case Membership.Invite:
         case Membership.Knock: {
-          if (memberships.get(member.userID) === 1) {
-            memberships = memberships.delete(member.userID);
-          } else {
-            memberships = memberships.set(
-              member.userID,
-              (memberships.get(member.userID) ?? 0) - 1
-            );
-          }
+          changes.push({
+            userID: member.userID,
+            changeType:
+              existingCount === 1
+                ? SetMembershipChangeType.BecameAbsent
+                : SetMembershipChangeType.NoOverallChange,
+            roomsJoined: 0,
+            roomsLeft: 1,
+          });
+          break;
         }
       }
     }
-    return new StandardSetMembershipRevision(
-      memberships,
-      this.internedRooms.remove(roomMembershipRevision.room.toRoomIDOrAlias())
-    );
+    return {
+      removedRoom: roomMembershipRevision.room.toRoomIDOrAlias(),
+      addedRoom: undefined,
+      changes,
+    };
+  }
+
+  reviseFromChanges(delta: SetMembershipDelta): SetMembershipRevision {
+    let internedRooms = this.internedRooms;
+    if (delta.addedRoom !== undefined) {
+      if (internedRooms.has(delta.addedRoom)) {
+        throw new TypeError(
+          'Cannot revise from a room that is already in the room set.'
+        );
+      }
+      internedRooms = internedRooms.add(delta.addedRoom);
+    }
+    if (delta.removedRoom !== undefined) {
+      if (!internedRooms.has(delta.removedRoom)) {
+        throw new TypeError(
+          'Cannot revise from a room that is not in the room set.'
+        );
+      }
+      internedRooms = internedRooms.remove(delta.removedRoom);
+    }
+    let memberships = this.memberships;
+    for (const change of delta.changes) {
+      const oldCount = memberships.get(change.userID, 0);
+      const newCount = oldCount + change.roomsJoined - change.roomsLeft;
+      if (newCount === 0) {
+        memberships = memberships.delete(change.userID);
+      } else {
+        memberships = memberships.set(change.userID, newCount);
+      }
+    }
+    return new StandardSetMembershipRevision(memberships, internedRooms);
   }
 
   membershipForUser(userID: StringUserID): SetMembershipKind {
@@ -166,5 +236,9 @@ export class StandardSetMembershipRevision {
 
   presentMembers(): IterableIterator<StringUserID> {
     return this.memberships.keys();
+  }
+
+  public static blankRevision(): SetMembershipRevision {
+    return new StandardSetMembershipRevision(PersistentMap(), PersistentSet());
   }
 }
