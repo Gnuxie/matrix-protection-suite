@@ -294,6 +294,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
             event,
             sender,
             rule: existingRule,
+            previousRule: existingRule,
             ...(existingState ? { existingState } : {}),
           });
           // Event has no content and cannot be parsed as a ListRule.
@@ -320,6 +321,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
             event,
             sender: event.sender,
             ...(existingState ? { existingState } : {}),
+            ...(existingRule ? { previousRule: existingRule } : {}),
           });
           continue;
         }
