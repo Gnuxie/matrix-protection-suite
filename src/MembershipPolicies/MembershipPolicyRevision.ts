@@ -6,48 +6,60 @@ import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { Revision } from '../PolicyList/Revision';
-import { MembershipChange } from '../Membership/MembershipChange';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { StaticDecode } from '@sinclair/typebox';
+import {
+  SetMembershipDelta,
+  SetMembershipRevision,
+} from '../Membership/SetMembershipRevision';
+import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 
-export type MemberPolicies = {
+export type MemberPolicyMatches = {
   userID: StringUserID;
   policies: PolicyRule[];
 };
 
+export type MemberPolicyMatch = {
+  userID: StringUserID;
+  policy: PolicyRule;
+};
+
+export type MemberPolicyChange = {
+  addedMemberMatches: MemberPolicyMatch[];
+  removedMemberMatches: MemberPolicyMatch[];
+};
+
+export type MembershipPolicyRevisionDelta = {
+  changes: MemberPolicyChange[];
+};
+
 export interface MembershipPolicyRevision {
-  readonly revisionID: Revision;
   /**
    * Is this the first revision that has been issued?
    */
   isBlankRevision(): boolean;
-  allMembersWithRules(): MemberPolicies[];
+  allMembersWithRules(): MemberPolicyMatches[];
   allRulesMatchingMember(
     member: StringUserID,
     options: { type?: PolicyRuleType; recommendation?: Recommendation }
   ): PolicyRule[];
-  /**
-   * @param type The PolicyRuleType to restrict the rules to.
-   * @param recommendation A recommendation to also restrict the rules to.
-   */
-  allRulesOfType(
-    type: PolicyRuleType,
-    recommendation?: Recommendation
-  ): MemberPolicies[];
-  reviseFromPolicyChanges(
-    changes: PolicyRuleChange[]
+  reviseFromChanges(
+    delta: MembershipPolicyRevisionDelta
   ): MembershipPolicyRevision;
 }
 
-// I don't know if we need this, since we probably need a SetMembershipIssuer
-// that just checks if someone is a member of any room in the protected rooms
-// set.
-export interface RoomMembershipPolicyRevision extends MembershipPolicyRevision {
-  reviseFromMembershipChanges(
-    changes: MembershipChange[]
-  ): MembershipPolicyRevision;
-  reviseFromMembership(
-    membershipEvents: StaticDecode<typeof MembershipEvent>[]
-  ): MembershipPolicyRevision;
+export interface SetMembershipPolicyRevision extends MembershipPolicyRevision {
+  changesFromMembershipChanges(
+    delta: SetMembershipDelta,
+    policyRevision: PolicyListRevision
+  ): MembershipPolicyRevisionDelta;
+  changesFromPolicyChanges(
+    changes: PolicyRuleChange[],
+    setMembershipRevision: SetMembershipRevision
+  ): MembershipPolicyRevisionDelta;
+  changesFromInitialRevisions(
+    policyRevision: PolicyListRevision,
+    setMembershipRevision: SetMembershipRevision
+  ): MembershipPolicyRevisionDelta;
+  reviseFromChanges(
+    delta: MembershipPolicyRevisionDelta
+  ): SetMembershipPolicyRevision;
 }
