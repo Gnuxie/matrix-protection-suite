@@ -18,7 +18,7 @@ import { RoomUnbanner } from '../../../Client/RoomUnbanner';
 import { ActionError, ActionResult, Ok } from '../../../Interface/Action';
 import { Membership } from '../../../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
-import { SetMembership } from '../../../Membership/SetRoomMembership';
+import { SetRoomMembership } from '../../../Membership/SetRoomMembership';
 import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
@@ -40,7 +40,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   public constructor(
     private readonly roomBanner: RoomBanner,
     private readonly roomUnbanner: RoomUnbanner,
-    private readonly setMembership: SetMembership
+    private readonly setMembership: SetRoomMembership
   ) {
     // nothing to do.
   }
@@ -74,7 +74,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
 
   public static async applyPolicyRevisionToSetMembership(
     revision: PolicyListRevision,
-    setMembership: SetMembership,
+    setMembership: SetRoomMembership,
     consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
   ): Promise<ResultForUsersInSet> {
     const resultBuilder = new ResultForUsersInSetBuilder();
@@ -159,7 +159,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
 export type StandardUserConsequencesContext = {
   roomBanner: RoomBanner;
   roomUnbanner: RoomUnbanner;
-  setMembership: SetMembership;
+  setMembership: SetRoomMembership;
 };
 
 describeCapabilityProvider({
