@@ -48,6 +48,14 @@ import {
   SetMembershipDelta,
   SetMembershipRevision,
 } from '../Membership/SetMembershipRevision';
+import {
+  SetMembershipPolicyRevisionIssuer,
+  StandardMembershipPolicyRevisionIssuer,
+} from '../MembershipPolicies/SetMembershipPolicyRevisionIssuer';
+import {
+  MembershipPolicyRevisionDelta,
+  SetMembershipPolicyRevision,
+} from '../MembershipPolicies/MembershipPolicyRevision';
 
 // FIXME: ProtectedRoomsSet has no unregister listeners method!
 
@@ -58,6 +66,7 @@ export interface ProtectedRoomsSet {
   readonly setRoomMembership: SetRoomMembership;
   readonly setMembership: SetMembershipRevisionIssuer;
   readonly setRoomState: SetRoomState;
+  readonly setPoliciesMatchingMembership: SetMembershipPolicyRevisionIssuer;
   readonly userID: StringUserID;
   readonly allProtectedRooms: MatrixRoomID[];
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
@@ -87,6 +96,9 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.protectedRoomsChangeListener.bind(this);
   private readonly setMembershiprevisionListener =
     this.setMembershipRevision.bind(this);
+  private readonly setMembershipPolicyRevisionListener =
+    this.setMembershipPolicyRevision.bind(this);
+  public readonly setPoliciesMatchingMembership: SetMembershipPolicyRevisionIssuer;
 
   constructor(
     public readonly issuerManager: PolicyListConfig,
@@ -103,6 +115,15 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     );
     this.protectedRoomsManager.on('change', this.roomsChangeListener);
     this.setMembership.on('revision', this.setMembershiprevisionListener);
+    this.setPoliciesMatchingMembership =
+      new StandardMembershipPolicyRevisionIssuer(
+        this.setMembership,
+        issuerManager.policyListRevisionIssuer
+      );
+    this.setPoliciesMatchingMembership.on(
+      'revision',
+      this.setMembershipPolicyRevisionListener
+    );
   }
   public get setRoomState() {
     return this.protectedRoomsManager.setRoomState;
@@ -308,6 +329,20 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     for (const protection of this.protections.allProtections) {
       if (protection.handleSetMembershipChange !== undefined) {
         protection.handleSetMembershipChange(nextRevision, changes);
+      }
+    }
+  }
+
+  private setMembershipPolicyRevision(
+    nextRevision: SetMembershipPolicyRevision,
+    changes: MembershipPolicyRevisionDelta
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleSetMembershipPolicyMatchesChange !== undefined) {
+        protection.handleSetMembershipPolicyMatchesChange(
+          nextRevision,
+          changes
+        );
       }
     }
   }
