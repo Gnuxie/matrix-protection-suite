@@ -16,9 +16,6 @@ export enum ProtectedRoomChangeType {
   Removed = 'removed',
 }
 
-// FIXME: Do we need to have a unregisterListeners method so that we can
-// remove the SetMembeshipRevisionIssuer listeners?
-
 export type ProtectedRoomsChangeListener = (
   room: MatrixRoomID,
   changeType: ProtectedRoomChangeType
@@ -39,4 +36,5 @@ export interface ProtectedRoomsManager {
     event: 'change',
     ...args: Parameters<ProtectedRoomsChangeListener>
   ): void;
+  unregisterListeners(): void;
 }

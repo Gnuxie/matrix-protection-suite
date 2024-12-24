@@ -57,8 +57,6 @@ import {
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
 
-// FIXME: ProtectedRoomsSet has no unregister listeners method!
-
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
   readonly protectedRoomsManager: ProtectedRoomsManager;
@@ -73,6 +71,7 @@ export interface ProtectedRoomsSet {
   handleEventReport(report: EventReport): void;
   handleExternalInvite(roomID: StringRoomID, event: MembershipEvent): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
+  unregisterListeners(): void;
 }
 
 export type ProtectionPermissionsChange = {
@@ -345,5 +344,31 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         );
       }
     }
+  }
+
+  public unregisterListeners(): void {
+    // The most important listenres to reach is the setRoomState, setRoommMembership,
+    // and policy revision listeners. Since these are tied to the global and
+    // shared revision issuers that are given by the "RoomStateManager" deriratives.
+    // The listener situation here kinda sucks, setting up and managing these relationships
+    // should be left to some other component.
+    this.setRoomMembership.off('membership', this.membershipChangeListener);
+    this.setRoomMembership.unregisterListeners();
+    this.setRoomState.off('revision', this.stateChangeListener);
+    this.setRoomState.unregisterListeners();
+    this.issuerManager.policyListRevisionIssuer.off(
+      'revision',
+      this.policyChangeListener
+    );
+    this.issuerManager.policyListRevisionIssuer.unregisterListeners();
+    this.protectedRoomsManager.off('change', this.roomsChangeListener);
+    this.protectedRoomsManager.unregisterListeners();
+    this.setMembership.off('revision', this.setMembershiprevisionListener);
+    this.setMembership.unregisterListeners();
+    this.setPoliciesMatchingMembership.off(
+      'revision',
+      this.setMembershipPolicyRevisionListener
+    );
+    this.setPoliciesMatchingMembership.unregisterListeners();
   }
 }

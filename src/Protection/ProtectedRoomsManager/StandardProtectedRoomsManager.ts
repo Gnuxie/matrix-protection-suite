@@ -196,4 +196,8 @@ export class StandardProtectedRoomsManager
     }
     return Ok(undefined);
   }
+
+  public unregisterListeners(): void {
+    // doesn't seem to be anything we need to do.
+  }
 }
