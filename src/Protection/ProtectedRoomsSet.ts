@@ -11,7 +11,7 @@ import { EventReport } from '../Reporting/EventReport';
 import { MembershipChange } from '../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../Membership/MembershipRevision';
 import {
-  SetMembership,
+  SetRoomMembership,
   SetRoomMembershipListener,
 } from '../Membership/SetRoomMembership';
 import {
@@ -43,12 +43,20 @@ import {
   MatrixRoomID,
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
+import { SetMembershipRevisionIssuer } from '../Membership/SetMembershipRevisionIssuer';
+import {
+  SetMembershipDelta,
+  SetMembershipRevision,
+} from '../Membership/SetMembershipRevision';
+
+// FIXME: ProtectedRoomsSet has no unregister listeners method!
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
   readonly protectedRoomsManager: ProtectedRoomsManager;
   readonly protections: ProtectionsManager;
-  readonly setMembership: SetMembership;
+  readonly setRoomMembership: SetRoomMembership;
+  readonly setMembership: SetMembershipRevisionIssuer;
   readonly setRoomState: SetRoomState;
   readonly userID: StringUserID;
   readonly allProtectedRooms: MatrixRoomID[];
@@ -77,6 +85,8 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.stateRevisionChangeListener.bind(this);
   private readonly roomsChangeListener =
     this.protectedRoomsChangeListener.bind(this);
+  private readonly setMembershiprevisionListener =
+    this.setMembershipRevision.bind(this);
 
   constructor(
     public readonly issuerManager: PolicyListConfig,
@@ -85,16 +95,20 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     public readonly userID: StringUserID,
     private readonly handleMissingProtectionPermissions?: HandleMissingProtectionPermissions
   ) {
-    this.setMembership.on('membership', this.membershipChangeListener);
+    this.setRoomMembership.on('membership', this.membershipChangeListener);
     this.setRoomState.on('revision', this.stateChangeListener);
     issuerManager.policyListRevisionIssuer.on(
       'revision',
       this.policyChangeListener
     );
     this.protectedRoomsManager.on('change', this.roomsChangeListener);
+    this.setMembership.on('revision', this.setMembershiprevisionListener);
   }
   public get setRoomState() {
     return this.protectedRoomsManager.setRoomState;
+  }
+  public get setRoomMembership() {
+    return this.protectedRoomsManager.setRoomMembership;
   }
   public get setMembership() {
     return this.protectedRoomsManager.setMembership;
@@ -285,5 +299,16 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         users_default: -1,
       }
     );
+  }
+
+  private setMembershipRevision(
+    nextRevision: SetMembershipRevision,
+    changes: SetMembershipDelta
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleSetMembershipChange !== undefined) {
+        protection.handleSetMembershipChange(nextRevision, changes);
+      }
+    }
   }
 }

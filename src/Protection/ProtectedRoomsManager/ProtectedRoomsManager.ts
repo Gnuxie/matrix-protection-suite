@@ -7,13 +7,17 @@ import {
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../../Interface/Action';
-import { SetMembership } from '../../Membership/SetRoomMembership';
+import { SetRoomMembership } from '../../Membership/SetRoomMembership';
 import { SetRoomState } from '../../StateTracking/SetRoomState';
+import { SetMembershipRevisionIssuer } from '../../Membership/SetMembershipRevisionIssuer';
 
 export enum ProtectedRoomChangeType {
   Added = 'added',
   Removed = 'removed',
 }
+
+// FIXME: Do we need to have a unregisterListeners method so that we can
+// remove the SetMembeshipRevisionIssuer listeners?
 
 export type ProtectedRoomsChangeListener = (
   room: MatrixRoomID,
@@ -22,8 +26,9 @@ export type ProtectedRoomsChangeListener = (
 
 export interface ProtectedRoomsManager {
   readonly allProtectedRooms: MatrixRoomID[];
-  readonly setMembership: SetMembership;
+  readonly setRoomMembership: SetRoomMembership;
   readonly setRoomState: SetRoomState;
+  readonly setMembership: SetMembershipRevisionIssuer;
   isProtectedRoom(roomID: StringRoomID): boolean;
   getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined;
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
