@@ -19,8 +19,6 @@ import { ActionError, ActionResult, Ok } from '../../../Interface/Action';
 import { Membership } from '../../../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
 import { SetRoomMembership } from '../../../Membership/SetRoomMembership';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
-import { Access, AccessControl } from '../../AccessControl';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
 import {
   ResultForUsersInSetBuilder,
@@ -30,7 +28,11 @@ import {
   ResultForUsersInRoom,
   ResultForUsersInRoomBuilder,
 } from './RoomSetResult';
-import { UserConsequences } from './UserConsequences';
+import {
+  TargetMember,
+  targetReason,
+  UserConsequences,
+} from './UserConsequences';
 import './UserConsequences'; // we need this so the interface is loaded.
 
 export class StandardUserConsequences implements UserConsequences, Capability {
@@ -45,42 +47,39 @@ export class StandardUserConsequences implements UserConsequences, Capability {
     // nothing to do.
   }
 
-  private static async applyRevisionToRoom(
-    revision: PolicyListRevision,
+  private static async applyPolicyMatchesToRoom(
+    matches: TargetMember[],
     roomMembershipRevision: RoomMembershipRevision,
     consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
   ): Promise<ResultForUsersInRoom> {
     const resultBuilder = new ResultForUsersInRoomBuilder();
-    for (const membership of roomMembershipRevision.members()) {
-      if (membership.membership === Membership.Ban) {
+    for (const match of matches) {
+      const membership = roomMembershipRevision.membershipForUser(match.userID);
+      if (
+        membership === undefined ||
+        membership.membership === Membership.Ban
+      ) {
         continue;
       }
-      const access = AccessControl.getAccessForUser(
-        revision,
+      const consequenceResult = await consequenceProviderCB(
+        membership.roomID,
         membership.userID,
-        'IGNORE_SERVER'
+        targetReason(match)
       );
-      if (access.outcome === Access.Banned) {
-        const consequenceResult = await consequenceProviderCB(
-          membership.roomID,
-          membership.userID,
-          access.rule?.reason ?? '<no reason supplied>'
-        );
-        resultBuilder.addResult(membership.userID, consequenceResult);
-      }
+      resultBuilder.addResult(match.userID, consequenceResult);
     }
     return resultBuilder.getResult();
   }
 
-  public static async applyPolicyRevisionToSetMembership(
-    revision: PolicyListRevision,
+  public static async applyPolicyMatchesToSetMembership(
+    matches: TargetMember[],
     setMembership: SetRoomMembership,
     consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
   ): Promise<ResultForUsersInSet> {
     const resultBuilder = new ResultForUsersInSetBuilder();
     for (const membershipRevision of setMembership.allRooms) {
-      const results = await StandardUserConsequences.applyRevisionToRoom(
-        revision,
+      const results = await StandardUserConsequences.applyPolicyMatchesToRoom(
+        matches,
         membershipRevision,
         consequenceProviderCB
       );
@@ -102,11 +101,11 @@ export class StandardUserConsequences implements UserConsequences, Capability {
     return await this.roomBanner.banUser(roomID, user, reason);
   }
   public async consequenceForUsersInRoomSet(
-    revision: PolicyListRevision
+    targets: TargetMember[]
   ): Promise<ActionResult<ResultForUsersInSet>> {
     return Ok(
-      await StandardUserConsequences.applyPolicyRevisionToSetMembership(
-        revision,
+      await StandardUserConsequences.applyPolicyMatchesToSetMembership(
+        targets,
         this.setMembership,
         this.roomBanner.banUser.bind(this.roomBanner)
       )
@@ -114,7 +113,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   }
   public async consequenceForUsersInRoom(
     roomID: StringRoomID,
-    revision: PolicyListRevision
+    targets: TargetMember[]
   ): Promise<ActionResult<ResultForUsersInRoom>> {
     const membershipRevision = this.setMembership.getRevision(roomID);
     if (membershipRevision === undefined) {
@@ -123,8 +122,8 @@ export class StandardUserConsequences implements UserConsequences, Capability {
       );
     }
     return Ok(
-      await StandardUserConsequences.applyRevisionToRoom(
-        revision,
+      await StandardUserConsequences.applyPolicyMatchesToRoom(
+        targets,
         membershipRevision,
         this.roomBanner.banUser.bind(this.roomBanner)
       )

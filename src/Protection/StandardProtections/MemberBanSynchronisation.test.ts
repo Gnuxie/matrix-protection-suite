@@ -190,12 +190,13 @@ test('A policy change banning a user on a directly watched list will call the co
   await waitForExpect(() => {
     expect(policyRoomRevisionIssuer.getNumberOfRevisions()).toBe(1);
   });
-  const revisionEntry = policyRoomRevisionIssuer.getLastRevision();
-  const protectionHandlerResult = await protection.handlePolicyChange.call(
-    protection,
-    revisionEntry[0],
-    revisionEntry[1]
-  );
+  const revision =
+    protectedRoomsSet.setPoliciesMatchingMembership.currentRevision;
+  const protectionHandlerResult =
+    await protection.synchroniseWithRevision(revision);
   expect(isOk(protectionHandlerResult)).toBeTruthy();
-  expect(consequenceSpy).toBeCalled();
+  expect(consequenceSpy).toHaveBeenCalled();
+  expect(revision.allRulesMatchingMember(spammerToBanUserID, {})).toHaveLength(
+    1
+  );
 });
