@@ -240,8 +240,9 @@ export class StandardSetMembershipPolicyRevision
         );
         if (nextPolicies.size === 0) {
           memberPolicies = memberPolicies.delete(match.userID);
+        } else {
+          memberPolicies = memberPolicies.set(match.userID, nextPolicies);
         }
-        memberPolicies = memberPolicies.set(match.userID, nextPolicies);
         const existingMembers = policyMembers.get(
           match.policy,
           List<StringUserID>()
@@ -251,8 +252,9 @@ export class StandardSetMembershipPolicyRevision
         );
         if (nextMembers.size === 0) {
           policyMembers = policyMembers.delete(match.policy);
+        } else {
+          policyMembers = policyMembers.set(match.policy, nextMembers);
         }
-        policyMembers = policyMembers.set(match.policy, nextMembers);
       }
     }
     return new StandardSetMembershipPolicyRevision(
