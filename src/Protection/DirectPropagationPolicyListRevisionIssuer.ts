@@ -90,6 +90,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
         event: policy.sourceEvent,
         sender: policy.sourceEvent.sender,
         rule: policy,
+        previousRule: policy,
       });
     }
     return changes;
@@ -104,7 +105,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
         this.previewIncorperationOfRevision(issuer.currentRevision)
       );
     }
-    this.revision = this.revision.reviseFromChanges(changes);
+    this.handleRevision(this.revision, changes);
   }
 
   public addIssuer(issuer: PolicyListRevisionIssuer): void {
@@ -115,6 +116,6 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     issuer.off('revision', this.revisionListener);
     this.policyListRevisionIssuers.delete(issuer);
     const changes = this.previewRemovalOfRevision(issuer.currentRevision);
-    this.revision = this.revision.reviseFromChanges(changes);
+    this.handleRevision(this.revision, changes);
   }
 }
