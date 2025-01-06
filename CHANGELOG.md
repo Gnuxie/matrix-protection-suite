@@ -11,6 +11,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-01-06
+
+### Added
+
+* `SetMembershipRevision` for calculating whether a Matrix user is the
+  member of any room in a set of rooms.
+
+* `MembershipPolicyRevision` for easily finding policy rules that
+  match users within a `SetMembershipRevision`. This revision stops
+  protections or capabilities from needing to calculate matches
+  themselves.
+
+### Fixed
+
+- `DirectPolicyListRevisionIssuer` now emits the `'revision'` event
+  when policy rooms are watched and unwatched.
+
+### Changed
+
+- `UserConsequences` now accepts an argument for `TargetMember[]` rather
+  than a `PolicyListRevision`, so that it can be used in conjunction with
+  the new `MembershipPolicyRevision`.
+
 ## [2.1.1] - 2024-12-09
 
 ### Fixed
