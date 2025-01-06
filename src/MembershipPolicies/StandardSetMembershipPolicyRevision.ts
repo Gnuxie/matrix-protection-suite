@@ -149,8 +149,17 @@ export class StandardSetMembershipPolicyRevision
         });
       }
     }
+    const relevantChangesForTemproaryRevision = changes
+      .filter((change) => change.changeType !== SimpleChangeType.Removed)
+      .map((change) =>
+        change.changeType === SimpleChangeType.Modified
+          ? { ...change, changeType: SimpleChangeType.Added }
+          : change
+      );
     const temporaryRevision =
-      StandardPolicyListRevision.blankRevision().reviseFromChanges(changes);
+      StandardPolicyListRevision.blankRevision().reviseFromChanges(
+        relevantChangesForTemproaryRevision
+      );
     const addedMatches: MemberPolicyMatch[] = [];
     for (const member of setMembershipRevision.presentMembers()) {
       const matchingRules = [
