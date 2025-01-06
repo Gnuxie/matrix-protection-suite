@@ -44,6 +44,14 @@ import {
 } from '../Config/ConfigDescription';
 import { TObject, Type } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
+import {
+  SetMembershipDelta,
+  SetMembershipRevision,
+} from '../Membership/SetMembershipRevision';
+import {
+  MembershipPolicyRevisionDelta,
+  SetMembershipPolicyRevision,
+} from '../MembershipPolicies/MembershipPolicyRevision';
 
 /**
  * @param description The description for the protection being constructed.
@@ -154,6 +162,26 @@ export interface Protection<TProtectionDescription> {
    * @param event The invitation event itself.
    */
   handleExternalInvite?(roomID: StringRoomID, event: MembershipEvent): void;
+
+  /**
+   * This can be used to determine who are new to the overall protected rooms
+   * set, and who has left every protected room.
+   */
+  handleSetMembershipChange?(
+    revision: SetMembershipRevision,
+    delta: SetMembershipDelta
+  ): void;
+
+  /**
+   * Handle a change to the set of members who have matched policies.
+   * So if a user joins the room with a matching policy, this will result in
+   * the handle being called. Or a policy being created that matches existing users.
+   * Or a policy being rescinded that previously matched users.
+   */
+  handleSetMembershipPolicyMatchesChange?(
+    revision: SetMembershipPolicyRevision,
+    delta: MembershipPolicyRevisionDelta
+  ): void;
 }
 
 export class AbstractProtection<TProtectionDescription>

@@ -7,8 +7,9 @@ import {
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../../Interface/Action';
-import { SetMembership } from '../../Membership/SetMembership';
+import { SetRoomMembership } from '../../Membership/SetRoomMembership';
 import { SetRoomState } from '../../StateTracking/SetRoomState';
+import { SetMembershipRevisionIssuer } from '../../Membership/SetMembershipRevisionIssuer';
 
 export enum ProtectedRoomChangeType {
   Added = 'added',
@@ -22,8 +23,9 @@ export type ProtectedRoomsChangeListener = (
 
 export interface ProtectedRoomsManager {
   readonly allProtectedRooms: MatrixRoomID[];
-  readonly setMembership: SetMembership;
+  readonly setRoomMembership: SetRoomMembership;
   readonly setRoomState: SetRoomState;
+  readonly setMembership: SetMembershipRevisionIssuer;
   isProtectedRoom(roomID: StringRoomID): boolean;
   getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined;
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
@@ -34,4 +36,5 @@ export interface ProtectedRoomsManager {
     event: 'change',
     ...args: Parameters<ProtectedRoomsChangeListener>
   ): void;
+  unregisterListeners(): void;
 }

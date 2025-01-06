@@ -39,4 +39,8 @@ export interface PolicyRuleChange {
    * This will be a copy of the same event as `event` when a redaction has occurred and this will show its unredacted state.
    */
   readonly previousState?: PolicyRuleEvent;
+  /**
+   * If the rule has been modified, then this will be the previous version of the policy rule.
+   */
+  readonly previousRule?: PolicyRule;
 }

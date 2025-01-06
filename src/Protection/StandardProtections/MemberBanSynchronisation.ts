@@ -9,8 +9,6 @@
 // </text>
 
 import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
-import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
 import {
   AbstractProtection,
   Protection,
@@ -32,6 +30,20 @@ import '../Capability/StandardCapability/StandardUserConsequences'; // need this
 import { Task } from '../../Interface/Task';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { UnknownConfig } from '../../Config/ConfigDescription';
+import {
+  MemberPolicyMatches,
+  SetMembershipPolicyRevision,
+} from '../../MembershipPolicies/MembershipPolicyRevision';
+
+function revisionMatchesWithUserRules(
+  revision: SetMembershipPolicyRevision
+): MemberPolicyMatches[] {
+  return revision
+    .allMembersWithRules()
+    .filter((match) =>
+      match.policies.some((policy) => policy.kind === PolicyRuleType.User)
+    );
+}
 
 export type MemberBanSynchronisationProtectionDescription =
   ProtectionDescription<
@@ -52,6 +64,12 @@ export class MemberBanSynchronisationProtection
   ) {
     super(description, capabilities, protectedRoomsSet, {});
     this.userConsequences = capabilities.userConsequences;
+  }
+
+  public handleSetMembershipPolicyMatchesChange(
+    revision: SetMembershipPolicyRevision
+  ): void {
+    void Task(this.synchroniseWithRevision(revision));
   }
 
   public async handleMembershipChange(
@@ -103,10 +121,11 @@ export class MemberBanSynchronisationProtection
   }
 
   public async synchroniseWithRevision(
-    revision: PolicyListRevision
+    revision: SetMembershipPolicyRevision
   ): Promise<ActionResult<void>> {
-    const result =
-      await this.userConsequences.consequenceForUsersInRoomSet(revision);
+    const result = await this.userConsequences.consequenceForUsersInRoomSet(
+      revisionMatchesWithUserRules(revision)
+    );
     if (isError(result)) {
       return result;
     } else {
@@ -114,19 +133,14 @@ export class MemberBanSynchronisationProtection
     }
   }
 
-  public async handlePolicyChange(
-    revision: PolicyListRevision,
-    _changes: PolicyRuleChange[]
-  ): Promise<ActionResult<void>> {
-    return await this.synchroniseWithRevision(revision);
-  }
   public handlePermissionRequirementsMet(room: MatrixRoomID): void {
     void Task(
       (async () => {
         await this.userConsequences.consequenceForUsersInRoom(
           room.toRoomIDOrAlias(),
-          this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
-            .currentRevision
+          revisionMatchesWithUserRules(
+            this.protectedRoomsSet.setPoliciesMatchingMembership.currentRevision
+          )
         );
       })()
     );

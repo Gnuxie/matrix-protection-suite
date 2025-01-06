@@ -12,6 +12,10 @@ import { FakeRoomMembershipRevisionIssuer } from './FakeRoomMembershipRevisionIs
 import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
 import { RoomMembershipManager } from './RoomMembershipManager';
 
+// TODO: This sucks and should be backed by the RoomStateManager only.
+//       I should hope that by now the concrete version in MPSForBotSDK
+//       can just be moved here and replace this.
+
 export class FakeRoomMembershipManager implements RoomMembershipManager {
   private readonly roomMembershipRevisionIssuers = new Map<
     StringRoomID,

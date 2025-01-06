@@ -12,7 +12,6 @@ import { Type } from '@sinclair/typebox';
 import { describeCapabilityInterface } from '../CapabilityInterface';
 import { CapabilityMethodSchema } from './CapabilityMethodSchema';
 import { ActionResult } from '../../../Interface/Action';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Capability } from '../CapabilityProvider';
 import {
   ResultForUsersInRoom,
@@ -23,6 +22,26 @@ import {
   StringRoomID,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
+import { MemberPolicyMatches } from '../../../MembershipPolicies/MembershipPolicyRevision';
+
+export type TargetMember =
+  | MemberPolicyMatches
+  | {
+      userID: StringUserID;
+      reason: string;
+    };
+
+export function targetReason(member: TargetMember): string {
+  if ('reason' in member) {
+    return member.reason;
+  } else {
+    const reasonPolicy = member.policies.at(0);
+    if (reasonPolicy === undefined) {
+      throw new TypeError(`Some protection isn't providing matches properly`);
+    }
+    return reasonPolicy.reason;
+  }
+}
 
 export interface UserConsequences extends Capability {
   consequenceForUserInRoom(
@@ -32,10 +51,10 @@ export interface UserConsequences extends Capability {
   ): Promise<ActionResult<void>>;
   consequenceForUsersInRoom(
     roomID: StringRoomID,
-    revision: PolicyListRevision
+    users: TargetMember[]
   ): Promise<ActionResult<ResultForUsersInRoom>>;
   consequenceForUsersInRoomSet(
-    revision: PolicyListRevision
+    users: TargetMember[]
   ): Promise<ActionResult<ResultForUsersInSet>>;
   unbanUserFromRoomSet(
     userID: StringUserID,

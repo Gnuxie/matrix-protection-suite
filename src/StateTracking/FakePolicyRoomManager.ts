@@ -93,4 +93,8 @@ export class FakePolicyRoomManager implements PolicyRoomManager {
     }
     return issuer;
   }
+
+  public addIssuer(issuer: FakePolicyRoomRevisionIssuer): void {
+    this.policyRoomRevisionIssuers.set(issuer.room.toRoomIDOrAlias(), issuer);
+  }
 }

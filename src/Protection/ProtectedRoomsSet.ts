@@ -11,9 +11,9 @@ import { EventReport } from '../Reporting/EventReport';
 import { MembershipChange } from '../Membership/MembershipChange';
 import { RoomMembershipRevision } from '../Membership/MembershipRevision';
 import {
-  SetMembership,
-  SetMembershipListener,
-} from '../Membership/SetMembership';
+  SetRoomMembership,
+  SetRoomMembershipListener,
+} from '../Membership/SetRoomMembership';
 import {
   SetRoomState,
   SetRoomStateListener,
@@ -43,19 +43,35 @@ import {
   MatrixRoomID,
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
+import { SetMembershipRevisionIssuer } from '../Membership/SetMembershipRevisionIssuer';
+import {
+  SetMembershipDelta,
+  SetMembershipRevision,
+} from '../Membership/SetMembershipRevision';
+import {
+  SetMembershipPolicyRevisionIssuer,
+  StandardMembershipPolicyRevisionIssuer,
+} from '../MembershipPolicies/SetMembershipPolicyRevisionIssuer';
+import {
+  MembershipPolicyRevisionDelta,
+  SetMembershipPolicyRevision,
+} from '../MembershipPolicies/MembershipPolicyRevision';
 
 export interface ProtectedRoomsSet {
   readonly issuerManager: PolicyListConfig;
   readonly protectedRoomsManager: ProtectedRoomsManager;
   readonly protections: ProtectionsManager;
-  readonly setMembership: SetMembership;
+  readonly setRoomMembership: SetRoomMembership;
+  readonly setMembership: SetMembershipRevisionIssuer;
   readonly setRoomState: SetRoomState;
+  readonly setPoliciesMatchingMembership: SetMembershipPolicyRevisionIssuer;
   readonly userID: StringUserID;
   readonly allProtectedRooms: MatrixRoomID[];
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
   handleExternalInvite(roomID: StringRoomID, event: MembershipEvent): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
+  unregisterListeners(): void;
 }
 
 export type ProtectionPermissionsChange = {
@@ -69,7 +85,7 @@ export type HandleMissingProtectionPermissions = (
 ) => void;
 
 export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
-  private readonly membershipChangeListener: SetMembershipListener =
+  private readonly membershipChangeListener: SetRoomMembershipListener =
     this.setMembershipChangeListener.bind(this);
   private readonly policyChangeListener: RevisionListener =
     this.policyRevisionChangeListener.bind(this);
@@ -77,6 +93,11 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.stateRevisionChangeListener.bind(this);
   private readonly roomsChangeListener =
     this.protectedRoomsChangeListener.bind(this);
+  private readonly setMembershiprevisionListener =
+    this.setMembershipRevision.bind(this);
+  private readonly setMembershipPolicyRevisionListener =
+    this.setMembershipPolicyRevision.bind(this);
+  public readonly setPoliciesMatchingMembership: SetMembershipPolicyRevisionIssuer;
 
   constructor(
     public readonly issuerManager: PolicyListConfig,
@@ -85,16 +106,29 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     public readonly userID: StringUserID,
     private readonly handleMissingProtectionPermissions?: HandleMissingProtectionPermissions
   ) {
-    this.setMembership.on('membership', this.membershipChangeListener);
+    this.setRoomMembership.on('membership', this.membershipChangeListener);
     this.setRoomState.on('revision', this.stateChangeListener);
     issuerManager.policyListRevisionIssuer.on(
       'revision',
       this.policyChangeListener
     );
     this.protectedRoomsManager.on('change', this.roomsChangeListener);
+    this.setMembership.on('revision', this.setMembershiprevisionListener);
+    this.setPoliciesMatchingMembership =
+      new StandardMembershipPolicyRevisionIssuer(
+        this.setMembership,
+        issuerManager.policyListRevisionIssuer
+      );
+    this.setPoliciesMatchingMembership.on(
+      'revision',
+      this.setMembershipPolicyRevisionListener
+    );
   }
   public get setRoomState() {
     return this.protectedRoomsManager.setRoomState;
+  }
+  public get setRoomMembership() {
+    return this.protectedRoomsManager.setRoomMembership;
   }
   public get setMembership() {
     return this.protectedRoomsManager.setMembership;
@@ -285,5 +319,56 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         users_default: -1,
       }
     );
+  }
+
+  private setMembershipRevision(
+    nextRevision: SetMembershipRevision,
+    changes: SetMembershipDelta
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleSetMembershipChange !== undefined) {
+        protection.handleSetMembershipChange(nextRevision, changes);
+      }
+    }
+  }
+
+  private setMembershipPolicyRevision(
+    nextRevision: SetMembershipPolicyRevision,
+    changes: MembershipPolicyRevisionDelta
+  ): void {
+    for (const protection of this.protections.allProtections) {
+      if (protection.handleSetMembershipPolicyMatchesChange !== undefined) {
+        protection.handleSetMembershipPolicyMatchesChange(
+          nextRevision,
+          changes
+        );
+      }
+    }
+  }
+
+  public unregisterListeners(): void {
+    // The most important listenres to reach is the setRoomState, setRoommMembership,
+    // and policy revision listeners. Since these are tied to the global and
+    // shared revision issuers that are given by the "RoomStateManager" deriratives.
+    // The listener situation here kinda sucks, setting up and managing these relationships
+    // should be left to some other component.
+    this.setRoomMembership.off('membership', this.membershipChangeListener);
+    this.setRoomMembership.unregisterListeners();
+    this.setRoomState.off('revision', this.stateChangeListener);
+    this.setRoomState.unregisterListeners();
+    this.issuerManager.policyListRevisionIssuer.off(
+      'revision',
+      this.policyChangeListener
+    );
+    this.issuerManager.policyListRevisionIssuer.unregisterListeners();
+    this.protectedRoomsManager.off('change', this.roomsChangeListener);
+    this.protectedRoomsManager.unregisterListeners();
+    this.setMembership.off('revision', this.setMembershiprevisionListener);
+    this.setMembership.unregisterListeners();
+    this.setPoliciesMatchingMembership.off(
+      'revision',
+      this.setMembershipPolicyRevisionListener
+    );
+    this.setPoliciesMatchingMembership.unregisterListeners();
   }
 }

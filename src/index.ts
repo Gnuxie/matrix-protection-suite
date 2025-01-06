@@ -73,10 +73,16 @@ export * from './Membership/MembershipRevision';
 export * from './Membership/MembershipRevisionIssuer';
 export * from './Membership/RoomMembershipManager';
 export * from './Membership/RoomStateMembershipRevisionIssuer';
-export * from './Membership/SetMembership';
+export * from './Membership/SetMembershipRevision';
+export * from './Membership/SetMembershipRevisionIssuer';
+export * from './Membership/SetRoomMembership';
 export * from './Membership/StandardRoomMembershipRevision';
 export * from './Membership/StandardRoomMembershipRevisionIssuer';
-export * from './Membership/StandardSetMembershp';
+export * from './Membership/StandardSetRoomMembership';
+
+export * from './MembershipPolicies/MembershipPolicyRevision';
+export * from './MembershipPolicies/SetMembershipPolicyRevisionIssuer';
+export * from './MembershipPolicies/StandardSetMembershipPolicyRevision';
 
 export * from './PolicyList/PolicyListRevision';
 export * from './PolicyList/PolicyListRevisionIssuer';

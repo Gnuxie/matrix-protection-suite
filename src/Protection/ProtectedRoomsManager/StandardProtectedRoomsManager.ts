@@ -6,9 +6,9 @@ import { EventEmitter } from 'events';
 import { ActionResult, Ok, isError } from '../../Interface/Action';
 import { RoomMembershipManager } from '../../Membership/RoomMembershipManager';
 import {
-  SetMembership,
-  SetMembershipMirror,
-} from '../../Membership/SetMembership';
+  SetRoomMembership,
+  SetRoomMembershipMirror,
+} from '../../Membership/SetRoomMembership';
 import {
   SetRoomState,
   SetRoomStateMirror,
@@ -28,6 +28,10 @@ import {
   MatrixRoomID,
   StringRoomID,
 } from '@the-draupnir-project/matrix-basic-types';
+import {
+  SetMembershipRevisionIssuer,
+  StandardSetMembershipRevisionIssuer,
+} from '../../Membership/SetMembershipRevisionIssuer';
 
 function makeJoinAndAdd(
   roomJoiner: RoomJoiner,
@@ -65,9 +69,10 @@ export class StandardProtectedRoomsManager
   implements ProtectedRoomsManager
 {
   private readonly protectedRooms = new Map<StringRoomID, MatrixRoomID>();
+  public readonly setMembership: SetMembershipRevisionIssuer;
   private constructor(
     private readonly protectedRoomsConfig: ProtectedRoomsConfig,
-    public setMembership: SetMembership,
+    public setRoomMembership: SetRoomMembership,
     public setRoomState: SetRoomState,
     private readonly roomStateManager: RoomStateManager,
     private readonly roomMembershipManager: RoomMembershipManager,
@@ -77,6 +82,9 @@ export class StandardProtectedRoomsManager
     for (const room of protectedRoomsConfig.getProtectedRooms()) {
       this.protectedRooms.set(room.toRoomIDOrAlias(), room);
     }
+    this.setMembership = new StandardSetMembershipRevisionIssuer(
+      setRoomMembership
+    );
   }
 
   /**
@@ -89,7 +97,7 @@ export class StandardProtectedRoomsManager
     roomStateManager: RoomStateManager,
     roomMembershipManager: RoomMembershipManager,
     roomJoiner: RoomJoiner,
-    blankSetMembership: SetMembership,
+    blankSetMembership: SetRoomMembership,
     blankSetRoomState: SetRoomState
   ): Promise<ActionResult<ProtectedRoomsManager>> {
     const joinAndAdd = makeJoinAndAdd(
@@ -98,7 +106,11 @@ export class StandardProtectedRoomsManager
       roomMembershipManager,
       function (room, stateIssuer, membershipIssuer) {
         SetRoomStateMirror.addRoom(blankSetRoomState, room, stateIssuer);
-        SetMembershipMirror.addRoom(blankSetMembership, room, membershipIssuer);
+        SetRoomMembershipMirror.addRoom(
+          blankSetMembership,
+          room,
+          membershipIssuer
+        );
       }
     );
     for (const room of protectedRoomsConfig.getProtectedRooms()) {
@@ -163,7 +175,11 @@ export class StandardProtectedRoomsManager
     // I also don't know whether it will matter when the state emitter is called
     // before the membership emitter.
     SetRoomStateMirror.addRoom(this.setRoomState, room, stateIssuer.ok);
-    SetMembershipMirror.addRoom(this.setMembership, room, membershipIssuer.ok);
+    SetRoomMembershipMirror.addRoom(
+      this.setRoomMembership,
+      room,
+      membershipIssuer.ok
+    );
     this.emit('change', room, ProtectedRoomChangeType.Added);
     return Ok(undefined);
   }
@@ -174,10 +190,14 @@ export class StandardProtectedRoomsManager
     }
     if (this.isProtectedRoom(room.toRoomIDOrAlias())) {
       SetRoomStateMirror.removeRoom(this.setRoomState, room);
-      SetMembershipMirror.removeRoom(this.setMembership, room);
+      SetRoomMembershipMirror.removeRoom(this.setRoomMembership, room);
       this.protectedRooms.delete(room.toRoomIDOrAlias());
       this.emit('change', room, ProtectedRoomChangeType.Removed);
     }
     return Ok(undefined);
+  }
+
+  public unregisterListeners(): void {
+    // doesn't seem to be anything we need to do.
   }
 }
