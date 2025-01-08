@@ -139,7 +139,7 @@ export class MjolnirPolicyRoomsConfig
     try {
       const storeUpdateResult = await this.config.saveConfig({
         references: this.policyListRevisionIssuer.references.filter(
-          (roomID) => roomID.toRoomIDOrAlias() === list.toRoomIDOrAlias()
+          (roomID) => roomID.toRoomIDOrAlias() !== list.toRoomIDOrAlias()
         ),
       });
       if (isError(storeUpdateResult)) {
