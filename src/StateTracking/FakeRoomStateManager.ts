@@ -62,6 +62,10 @@ export class FakeRoomStateManager implements RoomStateManager {
       membershipDescriptions,
       policyDescriptions,
     });
+    this.appendStateEvents(room, stateEvents);
+  }
+
+  appendStateEvents(room: MatrixRoomID, stateEvents: StateEvent[]): void {
     const issuer = this.roomStateRevisionIssuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       throw new TypeError(
