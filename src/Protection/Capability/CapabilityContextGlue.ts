@@ -6,6 +6,7 @@ import { DescriptionMeta } from '../DescriptionMeta';
 import {
   Capability,
   CapabilityProviderDescription,
+  findCapabilityProvider,
 } from './CapabilityProvider';
 
 const CAPABILITY_CONTEXT_GLUE = new Map<string, CapabilityContextGlue>();
@@ -41,6 +42,12 @@ export function registerCapabilityContextGlue<
   HostContext = unknown,
   GuestContext = unknown,
 >(glue: CapabilityContextGlue<HostContext, GuestContext>): void {
+  const capabilityWithName = findCapabilityProvider(glue.name);
+  if (capabilityWithName === undefined) {
+    throw new TypeError(
+      `Cannot find a capability provider for the glue named ${glue.name}`
+    );
+  }
   CAPABILITY_CONTEXT_GLUE.set(glue.name, glue as CapabilityContextGlue);
 }
 
