@@ -11,6 +11,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2025-01-08
+
+### Added
+
+- `SchemaMigration` now provides the schema version number to use
+  rather than relying on deltas to hand type the number and mess up.
+
+### Changed
+
+- Interface of `ServerConsequences['consequenceForServersInRoom']` has
+  changed so that it is possible to determine if any changes/effects
+  have been made after calling. Changed to support
+  https://github.com/the-draupnir-project/Draupnir/issues/450.
+
+- The `ServerACLEvent` Schema wrongly described `content` as optional.
+
+
+### Fixed
+
+- There was a bug where unwatching a list would cause only the list
+  you wanted to unwatch to become
+  watched. https://github.com/the-draupnir-project/Draupnir/issues/647.
+
+- Getting the name of the capability wrong for capability context glue
+  will now result in an error.
+
 ## [2.2.0] - 2025-01-06
 
 ### Added
