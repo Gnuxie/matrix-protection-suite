@@ -13,7 +13,8 @@ export type SchemedData<
 > = { [P in VersionKey]?: Version };
 
 export type SchemaMigration<TSchema extends SchemedData = SchemedData> = (
-  input: TSchema
+  input: TSchema,
+  toVersion: number
 ) => Promise<ActionResult<TSchema>>;
 
 export class SchemedDataManager<TSchema extends SchemedData = SchemedData> {
@@ -43,13 +44,14 @@ export class SchemedDataManager<TSchema extends SchemedData = SchemedData> {
       const migratedData = await applicableSchema.reduce(
         async (
           previous: Promise<ActionResult<TSchema>>,
-          schema: SchemaMigration<TSchema>
+          schema: SchemaMigration<TSchema>,
+          schemaIndex: number
         ) => {
           const previousResult = await previous;
           if (isError(previousResult)) {
             return previousResult;
           }
-          return await schema(previousResult.ok);
+          return await schema(previousResult.ok, schemaIndex + 1);
         },
         Promise.resolve(Ok(rawData))
       );
