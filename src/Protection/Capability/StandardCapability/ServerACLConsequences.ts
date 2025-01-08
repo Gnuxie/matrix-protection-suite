@@ -39,7 +39,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
   private async applyPolicyRevisionToRoom(
     roomID: StringRoomID,
     revision: PolicyListRevision
-  ): Promise<ActionResult<void>> {
+  ): Promise<ActionResult<boolean>> {
     const ACL = AccessControl.compileServerACL(this.serverName, revision);
     const stateRevision =
       this.protectedRoomsSet.setRoomState.getRevision(roomID);
@@ -56,7 +56,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
       existingStateEvent !== undefined &&
       ACL.matches(existingStateEvent.content)
     ) {
-      return Ok(undefined);
+      return Ok(false);
     }
     const result = await this.stateEventSender.sendStateEvent(
       roomID,
@@ -67,7 +67,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     if (isError(result)) {
       return result;
     } else {
-      return Ok(undefined);
+      return Ok(true);
     }
   }
 
@@ -78,7 +78,10 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     for (const room of this.protectedRoomsSet.allProtectedRooms) {
       resultBuilder.addResult(
         room.toRoomIDOrAlias(),
-        await this.applyPolicyRevisionToRoom(room.toRoomIDOrAlias(), revision)
+        (await this.applyPolicyRevisionToRoom(
+          room.toRoomIDOrAlias(),
+          revision
+        )) as ActionResult<void>
       );
     }
     return Ok(resultBuilder.getResult());
@@ -86,7 +89,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
   public async consequenceForServersInRoom(
     roomID: StringRoomID,
     revision: PolicyListRevision
-  ): Promise<ActionResult<void>> {
+  ): Promise<ActionResult<boolean>> {
     return await this.applyPolicyRevisionToRoom(roomID, revision);
   }
   public async consequenceForServersInRoomSet(

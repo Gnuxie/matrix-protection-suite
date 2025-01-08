@@ -14,10 +14,15 @@ import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
 export type ResultForServerInSetMap = Map<StringRoomID, ActionResult<void>>;
 
 export interface ServerConsequences extends Capability {
+  /**
+   * Take a consequence against a server in a room.
+   * Returns true if the consequence was enacted or false if the consequence was
+   * already in effect (like the server already being in the room's deny ACL).
+   */
   consequenceForServersInRoom(
     roomID: StringRoomID,
     revision: PolicyListRevision
-  ): Promise<ActionResult<void>>;
+  ): Promise<ActionResult<boolean>>;
   consequenceForServersInRoomSet(
     revision: PolicyListRevision
   ): Promise<ActionResult<RoomSetResult>>;
