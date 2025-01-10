@@ -102,7 +102,13 @@ async function storeProtections(
   config: PersistentConfigData<
     typeof MjolnirEnabledProtectionsDescription.schema
   >,
-  enabledProtectionsMigration?: SchemedDataManager<MjolnirEnabledProtectionsEvent>
+  {
+    enabledProtectionsMigration,
+  }: {
+    enabledProtectionsMigration?:
+      | SchemedDataManager<MjolnirEnabledProtectionsEvent>
+      | undefined;
+  }
 ): Promise<ActionResult<void>> {
   const combinedEnabledProtections = new Set([
     ...info.knownEnabledProtections.map((protection) => protection.name),
@@ -184,11 +190,9 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
       ],
       unknownEnabledProtections: this.getUnknownEnabledProtections(),
     };
-    const storeResult = await storeProtections(
-      nextInfo,
-      this.config,
-      this.migrationHandler
-    );
+    const storeResult = await storeProtections(nextInfo, this.config, {
+      enabledProtectionsMigration: this.migrationHandler,
+    });
     if (isOk(storeResult)) {
       this.info = nextInfo;
     }
@@ -206,7 +210,9 @@ export class MjolnirProtectionsConfig implements ProtectionsConfig {
         (name) => name !== protectionName
       ),
     };
-    const storeResult = await storeProtections(nextInfo, this.config);
+    const storeResult = await storeProtections(nextInfo, this.config, {
+      enabledProtectionsMigration: this.migrationHandler,
+    });
     if (isOk(storeResult)) {
       this.info = nextInfo;
     }
