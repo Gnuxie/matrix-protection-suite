@@ -21,10 +21,13 @@ export const SynapseReport = Type.Object({
     description: 'ID of event report.',
   }),
   room_id: StringRoomIDSchema,
-  name: Type.String({
-    description:
-      'The ID of the room in which the event being reported is located.',
-  }),
+  name: Type.Union([
+    Type.String({
+      description:
+        'The ID of the room in which the event being reported is located.',
+    }),
+    Type.Null(),
+  ]),
   event_id: StringEventIDSchema,
   sender: StringUserIDSchema,
   user_id: StringUserIDSchema,
