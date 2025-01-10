@@ -11,6 +11,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0] - 2025-01-10
+
+### Fixed
+
+- `StandardProtectionsConfig` now uses the provided
+  `SchemedDataManager` to persist the config while disabling
+  protections.  This was a bug, it was always supposed to use the
+  `SchemedDataManager` to persist the version number alongside the
+  serialized data. Fixes
+  https://github.com/the-draupnir-project/Draupnir/issues/560.
+
+- The `SynapseAdminReport['name']` property is now appropriately
+  unioned with `null`.
+
+### Added
+
+- The `user_id` field is now present on the `SynapseAdminReport`
+  schema.
+
+- Access to unique member count of `SetMembership` via
+  `SetMembership['uniqueMemberCount']`.
+
 ## [2.3.0] - 2025-01-08
 
 ### Added
