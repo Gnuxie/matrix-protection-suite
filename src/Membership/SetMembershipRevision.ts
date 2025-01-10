@@ -59,6 +59,7 @@ export interface SetMembershipRevision {
   ): SetMembershipDelta;
   reviseFromChanges(changes: SetMembershipDelta): SetMembershipRevision;
   presentMembers(): IterableIterator<StringUserID>;
+  uniqueMemberCount(): number;
   membershipForUser(userID: StringUserID): SetMembershipKind;
 }
 
@@ -236,6 +237,10 @@ export class StandardSetMembershipRevision implements SetMembershipRevision {
 
   presentMembers(): IterableIterator<StringUserID> {
     return this.memberships.keys();
+  }
+
+  uniqueMemberCount(): number {
+    return this.memberships.size;
   }
 
   public static blankRevision(): SetMembershipRevision {
