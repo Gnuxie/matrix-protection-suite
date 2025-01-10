@@ -27,6 +27,7 @@ export const SynapseReport = Type.Object({
   }),
   event_id: StringEventIDSchema,
   sender: StringUserIDSchema,
+  user_id: StringUserIDSchema,
   reason: Type.Optional(
     Type.Union([Type.Null(), Type.String()], {
       description:
