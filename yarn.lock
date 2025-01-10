@@ -655,10 +655,10 @@
   resolved "https://registry.yarnpkg.com/@shikijs/core/-/core-1.10.1.tgz#f9d6001cb6f67ac1595b78d7af82e6153365e73f"
   integrity sha512-qdiJS5a/QGCff7VUFIqd0hDdWly9rDp8lhVmXVrS11aazX8LOTRLHAXkkEeONNsS43EcCd7gax9LLoOz4vlFQA==
 
-"@sinclair/typebox@0.33.17":
-  version "0.33.17"
-  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.33.17.tgz#603475bb1fb343deb82a4ce85e6adf177a65739b"
-  integrity sha512-75232GRx3wp3P7NP+yc4nRK3XUAnaQShxTAzapgmQrgs0QvSq0/mOJGoZXRpH15cFCKyys+4laCPbBselqJ5Ag==
+"@sinclair/typebox@0.34.13":
+  version "0.34.13"
+  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.34.13.tgz#9a014b58d10a4a5d0ac8badaa793571224767c4b"
+  integrity sha512-ceVKqyCEgC355Kw0s/0tyfY9MzMQINSykJ/pG2w6YnaZyrcjV48svZpr8lVZrYgWjzOmrIPBhQRAtr/7eJpA5g==
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"

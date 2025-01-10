@@ -28,7 +28,7 @@
   "devDependencies": {
     "@commitlint/config-conventional": "^19.2.2",
     "@eslint/js": "^9.6.0",
-    "@sinclair/typebox": "0.33.17",
+    "@sinclair/typebox": "0.34.13",
     "@the-draupnir-project/matrix-basic-types": "^0.2.0",
     "@types/crypto-js": "^4.2.2",
     "@types/eslint__js": "^8.42.3",
