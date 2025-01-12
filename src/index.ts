@@ -10,6 +10,7 @@ export * from './Client/RoomBanner';
 export * from './Client/RoomCreator';
 export * from './Client/RoomEventRedacter';
 export * from './Client/RoomEventRelationsGetter';
+export * from './Client/RoomInviter';
 export * from './Client/RoomJoiner';
 export * from './Client/RoomKicker';
 export * from './Client/RoomMessageSender';

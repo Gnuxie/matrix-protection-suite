@@ -6,6 +6,7 @@ import { RoomBanner } from './RoomBanner';
 import { RoomCreator } from './RoomCreator';
 import { RoomEventRedacter } from './RoomEventRedacter';
 import { RoomEventRelationsGetter } from './RoomEventRelationsGetter';
+import { RoomInviter } from './RoomInviter';
 import { RoomJoiner } from './RoomJoiner';
 import { RoomKicker } from './RoomKicker';
 import { RoomMessageSender } from './RoomMessageSender';
@@ -27,6 +28,7 @@ export interface ClientPlatform {
   toRoomCreator(): RoomCreator;
   toRoomEventRedacter(): RoomEventRedacter;
   toRoomEventRelationsGetter(): RoomEventRelationsGetter;
+  toRoomInviter(): RoomInviter;
   toRoomJoiner(): RoomJoiner;
   toRoomKicker(): RoomKicker;
   toRoomResolver(): RoomResolver;
