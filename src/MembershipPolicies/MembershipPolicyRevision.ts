@@ -23,13 +23,9 @@ export type MemberPolicyMatch = {
   policy: PolicyRule;
 };
 
-export type MemberPolicyChange = {
+export type MembershipPolicyRevisionDelta = {
   addedMemberMatches: MemberPolicyMatch[];
   removedMemberMatches: MemberPolicyMatch[];
-};
-
-export type MembershipPolicyRevisionDelta = {
-  changes: MemberPolicyChange[];
 };
 
 export interface MembershipPolicyRevision {

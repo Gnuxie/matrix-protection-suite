@@ -168,3 +168,81 @@ test('When adding and removing policy rooms will update the matches.', async fun
     ].length
   ).toBe(0);
 });
+
+test('Banning a matching member incrementally will not cause spurious revisions to be issued', async function () {
+  const targetUser = randomUserID();
+  const { protectedRoomsSet, roomStateManager } =
+    await describeProtectedRoomsSet({
+      rooms: [...Array(5).keys()].map((_) => ({
+        membershipDescriptions: [
+          {
+            sender: targetUser,
+            membership: Membership.Join,
+          },
+        ],
+      })),
+      lists: [
+        {
+          policyDescriptions: [
+            {
+              entity: targetUser,
+              recommendation: Recommendation.Ban,
+              type: PolicyRuleType.User,
+              reason: 'spam',
+            },
+          ],
+          membershipDescriptions: [
+            {
+              sender: targetUser,
+              membership: Membership.Join,
+            },
+          ],
+        },
+      ],
+    });
+  expect(
+    [...protectedRoomsSet.setMembership.currentRevision.presentMembers()].length
+  ).toBe(1);
+  expect(
+    [
+      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+    ].length
+  ).toBe(1);
+  const initialRevisionID =
+    protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.revision;
+  for (const [i, room] of protectedRoomsSet.allProtectedRooms.entries()) {
+    // ban the user from a protected room.
+    roomStateManager.appendState({
+      room,
+      membershipDescriptions: [
+        {
+          target: targetUser,
+          membership: Membership.Ban,
+          sender: randomUserID(),
+        },
+      ],
+    });
+    // check that the revision does not update until the user is banned in the last room
+    if (i < protectedRoomsSet.allProtectedRooms.length - 1) {
+      expect(
+        [
+          ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+        ].length
+      ).toBe(1);
+      expect(
+        protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.revision
+      ).toBe(initialRevisionID);
+    } else {
+      expect(
+        [
+          ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+        ].length
+      ).toBe(0);
+      expect(
+        protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.revision.supersedes(
+          initialRevisionID
+        )
+      ).toBe(true);
+    }
+  }
+});

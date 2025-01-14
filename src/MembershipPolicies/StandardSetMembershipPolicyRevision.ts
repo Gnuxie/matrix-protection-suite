@@ -117,12 +117,8 @@ export class StandardSetMembershipPolicyRevision
       }
     }
     return {
-      changes: [
-        {
-          addedMemberMatches: addedMatches,
-          removedMemberMatches: removedMatches,
-        },
-      ],
+      addedMemberMatches: addedMatches,
+      removedMemberMatches: removedMatches,
     };
   }
   changesFromPolicyChanges(
@@ -184,12 +180,8 @@ export class StandardSetMembershipPolicyRevision
       }
     }
     return {
-      changes: [
-        {
-          addedMemberMatches: addedMatches,
-          removedMemberMatches: removedMatches,
-        },
-      ],
+      addedMemberMatches: addedMatches,
+      removedMemberMatches: removedMatches,
     };
   }
   changesFromInitialRevisions(
@@ -212,60 +204,60 @@ export class StandardSetMembershipPolicyRevision
       }
     }
     return {
-      changes: [
-        {
-          addedMemberMatches: addedMatches,
-          removedMemberMatches: [],
-        },
-      ],
+      addedMemberMatches: addedMatches,
+      removedMemberMatches: [],
     };
   }
   reviseFromChanges(
     delta: MembershipPolicyRevisionDelta
   ): SetMembershipPolicyRevision {
+    if (
+      delta.addedMemberMatches.length === 0 &&
+      delta.removedMemberMatches.length === 0
+    ) {
+      return this;
+    }
     let memberPolicies = this.memberPolicies;
     let policyMembers = this.policyMembers;
-    for (const change of delta.changes) {
-      for (const match of change.addedMemberMatches) {
-        const existing = memberPolicies.get(match.userID, List<PolicyRule>());
-        memberPolicies = memberPolicies.set(
-          match.userID,
-          existing.push(match.policy)
-        );
-        const existingMembers = policyMembers.get(
-          match.policy,
-          List<StringUserID>()
-        );
-        policyMembers = policyMembers.set(
-          match.policy,
-          existingMembers.push(match.userID)
-        );
+    for (const match of delta.addedMemberMatches) {
+      const existing = memberPolicies.get(match.userID, List<PolicyRule>());
+      memberPolicies = memberPolicies.set(
+        match.userID,
+        existing.push(match.policy)
+      );
+      const existingMembers = policyMembers.get(
+        match.policy,
+        List<StringUserID>()
+      );
+      policyMembers = policyMembers.set(
+        match.policy,
+        existingMembers.push(match.userID)
+      );
+    }
+    for (const match of delta.removedMemberMatches) {
+      const existingPolicies = memberPolicies.get(
+        match.userID,
+        List<PolicyRule>()
+      );
+      const nextPolicies = existingPolicies.filter(
+        (rule) => rule !== match.policy
+      );
+      if (nextPolicies.size === 0) {
+        memberPolicies = memberPolicies.delete(match.userID);
+      } else {
+        memberPolicies = memberPolicies.set(match.userID, nextPolicies);
       }
-      for (const match of change.removedMemberMatches) {
-        const existingPolicies = memberPolicies.get(
-          match.userID,
-          List<PolicyRule>()
-        );
-        const nextPolicies = existingPolicies.filter(
-          (rule) => rule !== match.policy
-        );
-        if (nextPolicies.size === 0) {
-          memberPolicies = memberPolicies.delete(match.userID);
-        } else {
-          memberPolicies = memberPolicies.set(match.userID, nextPolicies);
-        }
-        const existingMembers = policyMembers.get(
-          match.policy,
-          List<StringUserID>()
-        );
-        const nextMembers = existingMembers.filter(
-          (userID) => userID !== match.userID
-        );
-        if (nextMembers.size === 0) {
-          policyMembers = policyMembers.delete(match.policy);
-        } else {
-          policyMembers = policyMembers.set(match.policy, nextMembers);
-        }
+      const existingMembers = policyMembers.get(
+        match.policy,
+        List<StringUserID>()
+      );
+      const nextMembers = existingMembers.filter(
+        (userID) => userID !== match.userID
+      );
+      if (nextMembers.size === 0) {
+        policyMembers = policyMembers.delete(match.policy);
+      } else {
+        policyMembers = policyMembers.set(match.policy, nextMembers);
       }
     }
     return new StandardSetMembershipPolicyRevision(
