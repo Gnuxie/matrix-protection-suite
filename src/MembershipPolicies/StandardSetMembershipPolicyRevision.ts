@@ -24,6 +24,7 @@ import {
 import { Map as PerisstentMap, List } from 'immutable';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
+import { Revision } from '../PolicyList/Revision';
 
 // TODO: It would be nice to have a method on PolicyListRevision that would
 // let us pass a membership revision and have it run the matches for us
@@ -56,6 +57,7 @@ import { SimpleChangeType } from '../Interface/SimpleChangeType';
 export class StandardSetMembershipPolicyRevision
   implements SetMembershipPolicyRevision
 {
+  readonly revision = new Revision();
   private constructor(
     private readonly memberPolicies: PerisstentMap<
       StringUserID,

@@ -11,6 +11,7 @@ import {
   SetMembershipRevision,
 } from '../Membership/SetMembershipRevision';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
+import { Revision } from '../PolicyList/Revision';
 
 export type MemberPolicyMatches = {
   userID: StringUserID;
@@ -32,6 +33,7 @@ export type MembershipPolicyRevisionDelta = {
 };
 
 export interface MembershipPolicyRevision {
+  readonly revision: Revision;
   /**
    * Is this the first revision that has been issued?
    */
