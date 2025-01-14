@@ -73,6 +73,9 @@ export class StandardSetRoomMembership
     room: MatrixRoomID,
     issuer: RoomMembershipRevisionIssuer
   ): void {
+    if (this.issuers.has(room.toRoomIDOrAlias())) {
+      return;
+    }
     this.issuers.set(room.toRoomIDOrAlias(), issuer);
     issuer.on('revision', this.revisionListener);
     this.emit(
