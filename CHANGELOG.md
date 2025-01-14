@@ -11,6 +11,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2025-01-14
+
+### Fixed
+
+- An issue with the `SetRoomMembershipRevisionIssuer` that would allow
+  duplicate listeners to be added to rooms that were already in the
+  set. This would cause lots of issues with downstream revision
+  listeners. We've hardened code downstream, e.g.  with the
+  `MembershipPolicyRevisionIssuer`, in case this happens again.
+
 ## [2.5.0] - 2025-01-12
 
 ### Added
