@@ -77,6 +77,12 @@ export class StandardMembershipPolicyRevisionIssuer
       setMembershipDelta,
       this.policyRevisionIssuer.currentRevision
     );
+    if (
+      changes.addedMemberMatches.length === 0 &&
+      changes.removedMemberMatches.length === 0
+    ) {
+      return;
+    }
     this.currentRevision = this.currentRevision.reviseFromChanges(changes);
     this.emit('revision', this.currentRevision, changes, previousRevision);
   }
