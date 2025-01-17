@@ -27,6 +27,8 @@ import {
   describeProtection,
 } from '../Protection';
 import { UnknownConfig } from '../../Config/ConfigDescription';
+import '../Capability/StandardCapability/ServerConsequences';
+import '../Capability/StandardCapability/ServerACLConsequences';
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
