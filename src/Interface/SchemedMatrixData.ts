@@ -60,6 +60,6 @@ export class SchemedDataManager<TSchema extends SchemedData = SchemedData> {
   }
 
   public get latestVersion(): number {
-    return this.migrateData.length;
+    return this.migrationSchema.length;
   }
 }
