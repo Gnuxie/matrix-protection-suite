@@ -15,6 +15,7 @@ export * from './Client/RoomJoiner';
 export * from './Client/RoomKicker';
 export * from './Client/RoomMessageSender';
 export * from './Client/RoomResolver';
+export * from './Client/RoomStateGetter';
 
 export * from './Client/RoomStateEventSender';
 export * from './Client/RoomUnbanner';
