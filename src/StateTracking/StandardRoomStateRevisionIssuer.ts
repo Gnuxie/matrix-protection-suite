@@ -4,7 +4,6 @@
 
 import EventEmitter from 'events';
 import {
-  RoomStateManager,
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateChange,
@@ -17,6 +16,7 @@ import { RoomEvent, StateEvent } from '../MatrixTypes/Events';
 import { Redaction, redactionTargetEvent } from '../MatrixTypes/Redaction';
 import { calculateStateChange } from './StateChangeType';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { RoomStateGetter } from '../Client/RoomStateGetter';
 
 const log = new Logger('StandardRoomStateRevisionIssuer');
 
@@ -29,7 +29,7 @@ export class StandardRoomStateRevisionIssuer
   private batchCompleteCallback: EventBatch['batchCompleteCallback'];
   constructor(
     public readonly room: MatrixRoomID,
-    private readonly getRoomState: RoomStateManager['getRoomState'],
+    private readonly roomStateGetter: RoomStateGetter,
     initialState: StateEvent[]
   ) {
     super();
@@ -97,7 +97,9 @@ export class StandardRoomStateRevisionIssuer
   }
 
   private async createBatchedRevision(): Promise<void> {
-    const currentRoomStateResult = await this.getRoomState(this.room);
+    const currentRoomStateResult = await this.roomStateGetter.getAllState(
+      this.room
+    );
     if (isError(currentRoomStateResult)) {
       log.error(
         `Unable to fetch state from the room ${this.room.toPermalink()}.`,

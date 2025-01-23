@@ -92,8 +92,6 @@ export interface RoomStateManager {
   getRoomStateRevisionIssuer(
     room: MatrixRoomID
   ): Promise<ActionResult<RoomStateRevisionIssuer>>;
-
-  getRoomState(room: MatrixRoomID): Promise<ActionResult<StateEvent[]>>;
 }
 
 /**
