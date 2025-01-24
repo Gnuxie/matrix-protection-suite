@@ -22,6 +22,9 @@ import {
 import { StandardSetMembershipPolicyRevision } from './StandardSetMembershipPolicyRevision';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import { Logger } from '../Logging/Logger';
+
+const log = new Logger('SetMembershipPolicyRevisionIssuer');
 
 export type SetMembershipPolicyRevisionListener = (
   nextRevision: SetMembershipPolicyRevision,
@@ -52,6 +55,9 @@ export class StandardMembershipPolicyRevisionIssuer
     private readonly policyRevisionIssuer: PolicyListRevisionIssuer
   ) {
     super();
+    log.info(
+      'Creating a SetMembershipPolicyRevision, this may take some time.'
+    );
     this.currentRevision = StandardSetMembershipPolicyRevision.blankRevision();
     this.currentRevision = this.currentRevision.reviseFromChanges(
       this.currentRevision.changesFromInitialRevisions(
@@ -59,6 +65,7 @@ export class StandardMembershipPolicyRevisionIssuer
         setMembershipRevisionIssuer.currentRevision
       )
     );
+    log.info('Finished creating a SetMembershipPolicyRevision.');
     this.setMembershipRevisionListener = this.setMembershipRevision.bind(this);
     this.policyRevisionListener = this.policyRevision.bind(this);
     setMembershipRevisionIssuer.on(
