@@ -1,4 +1,4 @@
-// Copyright (C) 2023-2024 Gnuxie <Gnuxie@protonmail.com>
+// Copyright (C) 2023-2025 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
@@ -17,6 +17,7 @@ import { Redaction, redactionTargetEvent } from '../MatrixTypes/Redaction';
 import { calculateStateChange } from './StateChangeType';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { RoomStateGetter } from '../Client/RoomStateGetter';
+import AwaitLock from 'await-lock';
 
 const log = new Logger('StandardRoomStateRevisionIssuer');
 
@@ -27,6 +28,7 @@ export class StandardRoomStateRevisionIssuer
   public currentRevision: RoomStateRevision;
   private currentBatch: ConstantPeriodEventBatch;
   private batchCompleteCallback: EventBatch['batchCompleteCallback'];
+  private readonly stateRefreshLock = new AwaitLock();
   constructor(
     public readonly room: MatrixRoomID,
     private readonly roomStateGetter: RoomStateGetter,
@@ -97,21 +99,31 @@ export class StandardRoomStateRevisionIssuer
   }
 
   private async createBatchedRevision(): Promise<void> {
-    const currentRoomStateResult = await this.roomStateGetter.getAllState(
-      this.room
-    );
-    if (isError(currentRoomStateResult)) {
-      log.error(
-        `Unable to fetch state from the room ${this.room.toPermalink()}.`,
-        currentRoomStateResult.error
+    await this.stateRefreshLock.acquireAsync();
+    try {
+      const currentRoomStateResult = await this.roomStateGetter.getAllState(
+        this.room
       );
-      return;
+      if (isError(currentRoomStateResult)) {
+        log.error(
+          `Unable to fetch state from the room ${this.room.toPermalink()}.`,
+          currentRoomStateResult.error
+        );
+        return;
+      }
+      const changes = this.currentRevision.changesFromState(
+        currentRoomStateResult.ok
+      );
+      this.createRevisionFromChanges(changes);
+    } finally {
+      this.stateRefreshLock.release();
     }
-    const changes = this.currentRevision.changesFromState(
-      currentRoomStateResult.ok
-    );
-    this.createRevisionFromChanges(changes);
   }
+
+  public async refreshRoomState(): Promise<void> {
+    await this.createBatchedRevision();
+  }
+
   unregisterListeners(): void {
     // nothing to do.
   }
