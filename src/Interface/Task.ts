@@ -9,7 +9,8 @@ import { ActionException, ActionExceptionKind } from './ActionException';
 
 const log = new Logger('Task');
 
-type TaskErrorOptions = { description: string } | undefined;
+// FIXME: Maybe we could get the logger here too?
+type TaskErrorOptions = { description?: string; log?: Logger } | undefined;
 
 /**
  * An error reporter should destructure `ActionException`s to get all of the
@@ -24,7 +25,7 @@ let globalTaskReporter: TaskErrorReporter = function (error, options) {
   const message = options?.description
     ? `Task Failed (${options.description}):`
     : `Task Failed:`;
-  log.error(message, error.toReadableString());
+  (options?.log ?? log).error(message, error.toReadableString());
 };
 
 /**
