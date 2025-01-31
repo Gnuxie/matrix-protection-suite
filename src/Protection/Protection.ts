@@ -157,11 +157,11 @@ export interface Protection<TProtectionDescription> {
   handlePermissionRequirementsMet?(room: MatrixRoomID): void;
 
   /**
-   * Handle an invitation to a room that is external to the protected rooms set.
+   * Handle an invitation, room join, kick, leave etc to a room that is external to the protected rooms set.
    * @param roomID The room the invitation is for.
    * @param event The invitation event itself.
    */
-  handleExternalInvite?(roomID: StringRoomID, event: MembershipEvent): void;
+  handleExternalMembership?(roomID: StringRoomID, event: MembershipEvent): void;
 
   /**
    * This can be used to determine who are new to the overall protected rooms
