@@ -69,7 +69,7 @@ export interface ProtectedRoomsSet {
   readonly allProtectedRooms: MatrixRoomID[];
   handleTimelineEvent(roomID: StringRoomID, event: RoomEvent): void;
   handleEventReport(report: EventReport): void;
-  handleExternalInvite(roomID: StringRoomID, event: MembershipEvent): void;
+  handleExternalMembership(roomID: StringRoomID, event: MembershipEvent): void;
   isProtectedRoom(roomID: StringRoomID): boolean;
   unregisterListeners(): void;
 }
@@ -168,15 +168,15 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       void Task(protection.handleEventReport(report));
     }
   }
-  public handleExternalInvite(
+  public handleExternalMembership(
     roomID: StringRoomID,
     event: MembershipEvent
   ): void {
     for (const protection of this.protections.allProtections) {
-      if (protection.handleExternalInvite === undefined) {
+      if (protection.handleExternalMembership === undefined) {
         continue;
       }
-      protection.handleExternalInvite(roomID, event);
+      protection.handleExternalMembership(roomID, event);
     }
   }
 
