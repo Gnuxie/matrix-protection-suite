@@ -67,6 +67,9 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
     room: MatrixRoomID,
     roomStateRevisionIssuer: RoomStateRevisionIssuer
   ): void {
+    if (this.issuers.has(room.toRoomIDOrAlias())) {
+      return;
+    }
     this.issuers.set(room.toRoomIDOrAlias(), roomStateRevisionIssuer);
     roomStateRevisionIssuer.on('revision', this.revisionListener);
   }
