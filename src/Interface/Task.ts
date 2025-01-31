@@ -1,35 +1,30 @@
-// Copyright (C) 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright (C) 2023, 2025 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { ResultError } from '@gnuxie/typescript-result';
 import { Logger } from '../Logging/Logger';
-import { ActionError, ActionResult, isError } from './Action';
+import { ActionError } from './Action';
 import { ActionException, ActionExceptionKind } from './ActionException';
 
 const log = new Logger('Task');
+
+type TaskErrorOptions = { description: string } | undefined;
 
 /**
  * An error reporter should destructure `ActionException`s to get all of the
  * context and the referenced uuid.
  */
-export type TaskErrorReporter = (error: ActionError) => void;
+export type TaskErrorReporter = (
+  error: ActionError,
+  options: TaskErrorOptions
+) => void;
 
-let globalTaskReporter: TaskErrorReporter = function (error) {
-  if (error instanceof ActionException) {
-    log.warn(
-      `A Task failed with an ActionException`,
-      error.uuid,
-      ...error.getElaborations(),
-      error.message,
-      error.exceptionKind
-    );
-    return;
-  }
-  log.warn(
-    `A Task failed with an ActionError`,
-    ...error.getElaborations(),
-    error.message
-  );
+let globalTaskReporter: TaskErrorReporter = function (error, options) {
+  const message = options?.description
+    ? `Task Failed (${options.description}):`
+    : `Task Failed:`;
+  log.error(message, error.toReadableString());
 };
 
 /**
@@ -53,12 +48,18 @@ export function setGlobalTaskReporter(reporter: TaskErrorReporter): void {
  * what happens to these errors is important.
  */
 export async function Task(
-  task: Promise<ActionResult<void> | void>
+  task: Promise<unknown>,
+  options?: TaskErrorOptions
 ): Promise<void> {
   try {
     const result = await task;
-    if (result !== undefined && isError(result)) {
-      globalTaskReporter(result.error);
+    if (
+      typeof result === 'object' &&
+      result !== null &&
+      'error' in result &&
+      result.error instanceof ResultError
+    ) {
+      globalTaskReporter(result.error, options);
       return;
     }
     return;
@@ -68,6 +69,6 @@ export async function Task(
       exception,
       'A Task failed with an unknown exception'
     );
-    globalTaskReporter(actionException);
+    globalTaskReporter(actionException, options);
   }
 }
