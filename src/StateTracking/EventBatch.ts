@@ -21,6 +21,28 @@ function logBatchCompleteCallbackError(e: unknown): void {
   log.error('Caught an exception from the callback for an event batch', e);
 }
 
+export interface Batcher<Key extends string, Value> {
+  add(key: Key, value: Value): void;
+}
+
+export class StandardBatcher<Key extends string, Value>
+  implements Batcher<Key, Value>
+{
+  private currentBatch: Batch<Key, Value>;
+  public constructor(
+    private readonly batchFactoryMethod: () => Batch<Key, Value>
+  ) {
+    this.currentBatch = batchFactoryMethod();
+  }
+
+  public add(key: Key, value: Value): void {
+    if (this.currentBatch.isFinished()) {
+      this.currentBatch = this.batchFactoryMethod();
+    }
+    this.currentBatch.add(key, value);
+  }
+}
+
 export interface Batch<Key extends string, Value> {
   add(key: Key, data: Value): void;
   isFinished(): boolean;
