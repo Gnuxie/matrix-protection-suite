@@ -53,6 +53,10 @@ export const Capability = Type.Object({
 });
 
 const PROVIDER_DESCRIPTIONS = new Map<string, CapabilityProviderDescription>();
+const PROVIDER_DESCRIPTIONS_FOR_INTERFACE = new Map<
+  string,
+  CapabilityProviderDescription[]
+>();
 
 export function registerCapabilityProvider(
   description: CapabilityProviderDescription
@@ -63,6 +67,11 @@ export function registerCapabilityProvider(
     );
   }
   PROVIDER_DESCRIPTIONS.set(description.name, description);
+  PROVIDER_DESCRIPTIONS_FOR_INTERFACE.set(description.interface.name, [
+    ...(PROVIDER_DESCRIPTIONS_FOR_INTERFACE.get(description.interface.name) ??
+      []),
+    description,
+  ]);
 }
 
 export function findCapabilityProvider<Context = unknown>(
@@ -110,4 +119,10 @@ export function findCapabilityProviderSet<
     Object.assign(set, { [key]: capabilityProvider });
   }
   return set as CapabilityProviderSet<TCapabilitySet>;
+}
+
+export function findCompatibleCapabilityProviders(
+  interfaceName: string
+): CapabilityProviderDescription[] {
+  return PROVIDER_DESCRIPTIONS_FOR_INTERFACE.get(interfaceName) ?? [];
 }
