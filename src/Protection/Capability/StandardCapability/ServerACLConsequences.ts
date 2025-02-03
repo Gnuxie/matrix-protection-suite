@@ -125,7 +125,7 @@ export type ServerACLConsequencesContext = {
 describeCapabilityProvider({
   name: 'ServerACLConsequences',
   description:
-    'An implementation of ServerConsequences that uses m.room.server_acl',
+    'An implementation of ServerConsequences that uses m.room.server_acl to change access to rooms for servers.',
   interface: 'ServerConsequences',
   factory(_protectionDescription, context: ServerACLConsequencesContext) {
     return new ServerACLConequences(

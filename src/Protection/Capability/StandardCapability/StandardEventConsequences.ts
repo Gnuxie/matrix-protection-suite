@@ -41,7 +41,8 @@ export class StandardEventConsequences implements EventConsequences {
 
 describeCapabilityProvider({
   name: 'StandardEventConsequences',
-  description: 'redacts events',
+  description:
+    'Issues m.room.redaction at the room level against the target event.',
   interface: 'EventConsequences',
   factory(_description, context: { eventRedacter: RoomEventRedacter }) {
     return new StandardEventConsequences(context.eventRedacter);

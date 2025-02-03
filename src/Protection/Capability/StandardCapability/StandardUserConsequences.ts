@@ -163,7 +163,7 @@ export type StandardUserConsequencesContext = {
 
 describeCapabilityProvider({
   name: 'StandardUserConsequences',
-  description: 'Bans users and unbans users.',
+  description: 'Issues room level bans and unbans for users.',
   interface: 'UserConsequences',
   factory(_description, context: StandardUserConsequencesContext) {
     return new StandardUserConsequences(
