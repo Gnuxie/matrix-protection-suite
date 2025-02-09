@@ -19,9 +19,11 @@ import { ActionResult } from '../Interface/Action';
 import { StateEvent } from '../MatrixTypes/Events';
 import { Redaction } from '../MatrixTypes/Redaction';
 import { StateChangeType } from './StateChangeType';
+import { Revision } from '../PolicyList/Revision';
 
 export interface StateRevision {
   readonly allState: StateEvent[];
+  readonly revisionID: Revision;
   getStateEvent<T extends StateEvent>(type: string, key: string): T | undefined;
   getStateEventsOfType<T extends StateEvent>(type: string): T[];
   getStateEventsOfTypes<T extends StateEvent>(types: string[]): T[];
