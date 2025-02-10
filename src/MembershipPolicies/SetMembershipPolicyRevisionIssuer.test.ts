@@ -12,7 +12,6 @@
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { Membership } from '../Membership/MembershipChange';
 import { Recommendation } from '../PolicyList/PolicyRule';
-import { PropagationType } from '../Protection/PolicyListConfig/PolicyListConfig';
 import {
   describeProtectedRoomsSet,
   describeRoom,
@@ -145,10 +144,8 @@ test('When adding and removing policy rooms will update the matches.', async fun
   roomStateManager.addIssuer(policyRoom.stateRevisionIssuer);
   policyRoomManager.addIssuer(policyRoom.policyRevisionIssuer);
   (
-    await protectedRoomsSet.issuerManager.watchList(
-      PropagationType.Direct,
-      policyRoom.stateRevisionIssuer.room,
-      {}
+    await protectedRoomsSet.watchedPolicyRooms.watchPolicyRoomDirectly(
+      policyRoom.stateRevisionIssuer.room
     )
   ).expect('Should be able to watch the list');
   expect(
@@ -157,8 +154,7 @@ test('When adding and removing policy rooms will update the matches.', async fun
     ].length
   ).toBe(1);
   (
-    await protectedRoomsSet.issuerManager.unwatchList(
-      PropagationType.Direct,
+    await protectedRoomsSet.watchedPolicyRooms.unwatchPolicyRoom(
       policyRoom.stateRevisionIssuer.room
     )
   ).expect('Should be able to unwatch the list');

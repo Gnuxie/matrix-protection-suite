@@ -11,6 +11,7 @@ import { FakePolicyRoomManager } from '../../StateTracking/FakePolicyRoomManager
 import { MjolnirPolicyRoomsConfig } from './MjolnirPolicyRoomsConfig';
 import { DummyRoomJoiner } from '../../Client/DummyClientPlatform';
 import { MjolnirPolicyRoomsEncodedShape } from './MjolnirPolicyRoomsDescription';
+import { StandardWatchedPolicyRooms } from '../WatchedPolicyRooms/StandardWatchedPolicyRooms';
 
 test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that already have policies in them', async function () {
   const targetUser = '@spam:example.com';
@@ -32,7 +33,6 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
   const policyRoomsConfigResult =
     await MjolnirPolicyRoomsConfig.createFromStore(
       policyListConfigAccountData,
-      policyRoomManager,
       DummyRoomJoiner
     );
   if (isError(policyRoomsConfigResult)) {
@@ -40,11 +40,18 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
       `Couldn't create the fake policy rooms config to setup the test`
     );
   }
-  const mainRevisionIssuer =
-    policyRoomsConfigResult.ok.policyListRevisionIssuer;
-  expect(mainRevisionIssuer.currentRevision.allRules().length).toBe(1);
+  const watchedPolicyRooms = (
+    await StandardWatchedPolicyRooms.create(
+      policyRoomsConfigResult.ok,
+      policyRoomManager,
+      DummyRoomJoiner
+    )
+  ).expect(
+    'Should be able to create the watched policy rooms with the mjolnir config'
+  );
+  expect(watchedPolicyRooms.currentRevision.allRules().length).toBe(1);
   expect(
-    mainRevisionIssuer.currentRevision.findRuleMatchingEntity(
+    watchedPolicyRooms.currentRevision.findRuleMatchingEntity(
       targetUser,
       PolicyRuleType.User,
       Recommendation.Ban

@@ -114,7 +114,6 @@ export * from './Protection/Capability/CapabilityProvider';
 export * from './Protection/Capability/CapabilityRenderer';
 export * from './Protection/Capability/CapabilitySet';
 
-export * from './Protection/PolicyListConfig/FakePolicyListConfig';
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
 export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
 export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsDescription';
@@ -145,6 +144,9 @@ export * from './Protection/ProtectionsManager/ProtectionsManager';
 
 export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/StandardProtections/ServerBanSynchronisation';
+
+export * from './Protection/WatchedPolicyRooms/StandardWatchedPolicyRooms';
+export * from './Protection/WatchedPolicyRooms/WatchedPolicyRooms';
 
 export * from './Protection/AccessControl';
 export * from './Protection/DescriptionMeta';
