@@ -11,6 +11,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2025-02-10
+
+### Added
+
+- Introduced a new `WatchedPolicyRooms` abstraction by factoring out
+  `PolicyRoomRevision` issuer managemenent from
+  `PolicyRoomsConfig`. This now replaces `PolicyRoomsConfig` and the
+  `issuerManager` property in the protected rooms set.
+
+- Expose a way to get the `time` a `Revision` was created.
+
+### Fixed
+
+- `revisionID` is now exported on `StateRevision`.
+
 ## [2.8.0] - 2025-02-03
 
 ### Added
