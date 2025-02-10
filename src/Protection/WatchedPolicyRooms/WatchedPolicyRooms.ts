@@ -24,4 +24,5 @@ export interface WatchedPolicyRooms {
   unwatchPolicyRoom(room: MatrixRoomID): Promise<Result<void>>;
   unregisterListeners(): void;
   readonly allRooms: WatchedPolicyRoom[];
+  findPolicyRoomFromShortcode(shortcode: string): WatchedPolicyRoom | undefined;
 }

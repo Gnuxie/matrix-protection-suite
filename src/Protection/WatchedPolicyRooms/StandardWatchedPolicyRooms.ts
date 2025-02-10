@@ -131,4 +131,19 @@ export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
   public unregisterListeners(): void {
     this.revisionIssuer.unregisterListeners();
   }
+
+  public findPolicyRoomFromShortcode(
+    shortcode: string
+  ): WatchedPolicyRoom | undefined {
+    for (const { currentRevision } of this.policyRoomRevisionIssuers.values()) {
+      if (currentRevision.shortcode === shortcode) {
+        return {
+          revision: currentRevision,
+          room: currentRevision.room,
+          propagation: PropagationType.Direct,
+        };
+      }
+    }
+    return undefined;
+  }
 }
