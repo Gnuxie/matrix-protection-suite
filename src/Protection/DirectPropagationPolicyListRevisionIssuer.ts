@@ -20,7 +20,8 @@ export interface DirectPropagationPolicyListRevisionIssuer
   extends PolicyListRevisionIssuer {
   addIssuer(issuer: PolicyListRevisionIssuer): void;
   removeIssuer(issuer: PolicyListRevisionIssuer): void;
-  references: MatrixRoomID[];
+  unregisterListeners(): void;
+  readonly references: MatrixRoomID[];
 }
 
 export class StandardDirectPropagationPolicyListRevisionIssuer

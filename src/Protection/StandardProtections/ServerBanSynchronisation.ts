@@ -64,8 +64,7 @@ export class ServerBanSynchronisationProtection
     }
     return (await this.serverConsequences.consequenceForServersInRoom(
       revision.room.toRoomIDOrAlias(),
-      this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
-        .currentRevision
+      this.protectedRoomsSet.watchedPolicyRooms.currentRevision
     )) as ActionResult<void>;
   }
 
@@ -80,8 +79,7 @@ export class ServerBanSynchronisationProtection
       return Ok(undefined);
     }
     const result = await this.serverConsequences.consequenceForServersInRoomSet(
-      this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
-        .currentRevision
+      this.protectedRoomsSet.watchedPolicyRooms.currentRevision
     );
     if (isError(result)) {
       return result;
@@ -95,8 +93,7 @@ export class ServerBanSynchronisationProtection
       (async () => {
         await this.serverConsequences.consequenceForServersInRoom(
           room.toRoomIDOrAlias(),
-          this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
-            .currentRevision
+          this.protectedRoomsSet.watchedPolicyRooms.currentRevision
         );
       })()
     );

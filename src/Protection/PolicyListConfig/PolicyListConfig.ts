@@ -4,8 +4,6 @@
 
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../../Interface/Action';
-import { LoggableConfig } from '../../Interface/LoggableConfig';
-import { PolicyListRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
 
 export interface PolicyRoomWatchProfile<T = unknown> {
   room: MatrixRoomID;
@@ -13,8 +11,12 @@ export interface PolicyRoomWatchProfile<T = unknown> {
   options?: T;
 }
 
-export interface PolicyListConfig extends LoggableConfig {
-  readonly policyListRevisionIssuer: PolicyListRevisionIssuer;
+/**
+ * Responsible only for persisting the details of policy list subscription.
+ * This is not responsible for the aggregation of policy rooms into a policy
+ * list revision.
+ */
+export interface PolicyListConfig {
   watchList<T>(
     propagation: PropagationType,
     list: MatrixRoomID,
@@ -24,7 +26,7 @@ export interface PolicyListConfig extends LoggableConfig {
     propagation: PropagationType,
     list: MatrixRoomID
   ): Promise<ActionResult<void>>;
-  allWatchedLists: PolicyRoomWatchProfile[];
+  readonly allWatchedLists: PolicyRoomWatchProfile[];
 }
 
 export enum PropagationType {

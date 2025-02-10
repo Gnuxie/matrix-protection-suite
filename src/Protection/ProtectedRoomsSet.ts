@@ -22,7 +22,6 @@ import {
   RoomStateRevision,
   StateChange,
 } from '../StateTracking/StateRevisionIssuer';
-import { PolicyListConfig } from './PolicyListConfig/PolicyListConfig';
 import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
 import {
   PowerLevelsEvent,
@@ -56,9 +55,10 @@ import {
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
+import { WatchedPolicyRooms } from './WatchedPolicyRooms/WatchedPolicyRooms';
 
 export interface ProtectedRoomsSet {
-  readonly issuerManager: PolicyListConfig;
+  readonly watchedPolicyRooms: WatchedPolicyRooms;
   readonly protectedRoomsManager: ProtectedRoomsManager;
   readonly protections: ProtectionsManager;
   readonly setRoomMembership: SetRoomMembership;
@@ -100,7 +100,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
   public readonly setPoliciesMatchingMembership: SetMembershipPolicyRevisionIssuer;
 
   constructor(
-    public readonly issuerManager: PolicyListConfig,
+    public readonly watchedPolicyRooms: WatchedPolicyRooms,
     public readonly protectedRoomsManager: ProtectedRoomsManager,
     public readonly protections: ProtectionsManager,
     public readonly userID: StringUserID,
@@ -108,16 +108,13 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
   ) {
     this.setRoomMembership.on('membership', this.membershipChangeListener);
     this.setRoomState.on('revision', this.stateChangeListener);
-    issuerManager.policyListRevisionIssuer.on(
-      'revision',
-      this.policyChangeListener
-    );
+    watchedPolicyRooms.revisionIssuer.on('revision', this.policyChangeListener);
     this.protectedRoomsManager.on('change', this.roomsChangeListener);
     this.setMembership.on('revision', this.setMembershiprevisionListener);
     this.setPoliciesMatchingMembership =
       new StandardMembershipPolicyRevisionIssuer(
         this.setMembership,
-        issuerManager.policyListRevisionIssuer
+        watchedPolicyRooms.revisionIssuer
       );
     this.setPoliciesMatchingMembership.on(
       'revision',
@@ -356,11 +353,11 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.setRoomMembership.unregisterListeners();
     this.setRoomState.off('revision', this.stateChangeListener);
     this.setRoomState.unregisterListeners();
-    this.issuerManager.policyListRevisionIssuer.off(
+    this.watchedPolicyRooms.revisionIssuer.off(
       'revision',
       this.policyChangeListener
     );
-    this.issuerManager.policyListRevisionIssuer.unregisterListeners();
+    this.watchedPolicyRooms.unregisterListeners();
     this.protectedRoomsManager.off('change', this.roomsChangeListener);
     this.protectedRoomsManager.unregisterListeners();
     this.setMembership.off('revision', this.setMembershiprevisionListener);

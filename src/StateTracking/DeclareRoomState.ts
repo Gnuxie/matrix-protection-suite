@@ -25,7 +25,6 @@ import { StandardSetRoomMembership } from '../Membership/StandardSetRoomMembersh
 import { FakeRoomMembershipManager } from '../Membership/FakeRoomMembershipManager';
 import { FakePolicyRoomManager } from './FakePolicyRoomManager';
 import { StandardSetRoomState } from './StandardSetRoomState';
-import { FakePolicyListConfig } from '../Protection/PolicyListConfig/FakePolicyListConfig';
 import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
 import { FakeRoomMembershipRevisionIssuer } from '../Membership/FakeRoomMembershipRevisionIssuer';
 import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
@@ -38,6 +37,10 @@ import {
   StringRoomID,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
+import { FakePersistentConfigBackend } from '../Interface/FakePersistentMatrixData';
+import { MjolnirPolicyRoomsEncodedShape } from '../Protection/PolicyListConfig/MjolnirPolicyRoomsDescription';
+import { MjolnirPolicyRoomsConfig } from '../Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
+import { StandardWatchedPolicyRooms } from '../Protection/WatchedPolicyRooms/StandardWatchedPolicyRooms';
 
 const log = new Logger('DeclareRoomState');
 
@@ -110,11 +113,27 @@ export async function describeProtectedRoomsSet({
     );
     throw new TypeError(`Unable to create protected rooms manager`);
   }
-  const protectedRoomsSet = new StandardProtectedRoomsSet(
-    new FakePolicyListConfig(
+  const policyListConfigAccountData =
+    new FakePersistentConfigBackend<MjolnirPolicyRoomsEncodedShape>({
+      references: listDescriptions.map((description) =>
+        description.policyRevisionIssuer.currentRevision.room.toPermalink()
+      ),
+    });
+  const policyRoomsConfig = (
+    await MjolnirPolicyRoomsConfig.createFromStore(
+      policyListConfigAccountData,
+      DummyRoomJoiner
+    )
+  ).expect('Unable to create policy rooms config backend');
+  const watchedPolicyRooms = (
+    await StandardWatchedPolicyRooms.create(
+      policyRoomsConfig,
       policyRoomManager,
-      listDescriptions.map((description) => description.policyRevisionIssuer)
-    ),
+      DummyRoomJoiner
+    )
+  ).expect('unable to create watched policy rooms');
+  const protectedRoomsSet = new StandardProtectedRoomsSet(
+    watchedPolicyRooms,
     protectedRoomsManager.ok,
     new FakeProtectionsManager(),
     clientUserID

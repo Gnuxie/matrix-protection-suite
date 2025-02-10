@@ -45,7 +45,7 @@ test('Adding and removing server policies causes the servers to be banned', asyn
       ],
     });
   const policyRevisionIssuer =
-    protectedRoomsSet.issuerManager.policyListRevisionIssuer;
+    protectedRoomsSet.watchedPolicyRooms.revisionIssuer;
   const protectedRoomIssuer = (
     await roomStateManager.getRoomStateRevisionIssuer(protectedRoom)
   ).expect('Should be able to find the revision issuer');

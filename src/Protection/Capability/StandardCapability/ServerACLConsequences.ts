@@ -101,9 +101,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     serverName: string,
     _reason: string
   ): Promise<ActionResult<RoomSetResult>> {
-    const revision =
-      this.protectedRoomsSet.issuerManager.policyListRevisionIssuer
-        .currentRevision;
+    const revision = this.protectedRoomsSet.watchedPolicyRooms.currentRevision;
     // this method is for applying the ACL, not removing policies.
     const access = AccessControl.getAccessForServer(revision, serverName);
     if (access.outcome !== Access.Allowed) {
