@@ -8,7 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { monotonicFactory } from 'ulidx';
+import { decodeTime, monotonicFactory } from 'ulidx';
 
 /**
  * Represents a specific version of the state contained in `PolicyListRevision`.
@@ -35,5 +35,12 @@ export class Revision {
    */
   public supersedes(revision: Revision): boolean {
     return this.ulid > revision.ulid;
+  }
+
+  /**
+   * The time that the revision was created in milliseconds.
+   */
+  public get time(): number {
+    return decodeTime(this.ulid);
   }
 }
