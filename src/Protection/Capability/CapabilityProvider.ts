@@ -30,6 +30,7 @@ export interface CapabilityProviderDescription<Context = unknown> {
   name: string;
   description: string;
   interface: CapabilityInterfaceDescription;
+  isSimulated?: true;
   /**
    * Returns an instance of the provider.
    * @param protectionDescription A description of the protection that we are making the provider for.
@@ -44,6 +45,7 @@ export interface Capability {
   readonly requiredPermissions: PowerLevelPermission[];
   readonly requiredStatePermissions: string[];
   readonly requiredEventPermissions: string[];
+  readonly isSimulated?: true;
 }
 
 export const Capability = Type.Object({
@@ -58,6 +60,11 @@ const PROVIDER_DESCRIPTIONS_FOR_INTERFACE = new Map<
   CapabilityProviderDescription[]
 >();
 
+const SIMULATED_CAPABILITY_PROVIDERS = new Map<
+  string,
+  CapabilityProviderDescription
+>();
+
 export function registerCapabilityProvider(
   description: CapabilityProviderDescription
 ): void {
@@ -65,6 +72,14 @@ export function registerCapabilityProvider(
     throw new TypeError(
       `There is already a consequence provider named ${description.name}`
     );
+  }
+  if (description.isSimulated) {
+    if (SIMULATED_CAPABILITY_PROVIDERS.has(description.interface.name)) {
+      throw new TypeError(
+        `There is already a simualted capability provider for the ${description.interface.name} interface`
+      );
+    }
+    SIMULATED_CAPABILITY_PROVIDERS.set(description.interface.name, description);
   }
   PROVIDER_DESCRIPTIONS.set(description.name, description);
   PROVIDER_DESCRIPTIONS_FOR_INTERFACE.set(description.interface.name, [
@@ -84,11 +99,13 @@ export function describeCapabilityProvider<Context = unknown>({
   name,
   description,
   interface: interfaceName,
+  isSimulated,
   factory,
 }: {
   name: string;
   description: string;
   interface: string;
+  isSimulated?: boolean;
   factory(description: DescriptionMeta, context: Context): Capability;
 }): void {
   const entry = findCapabilityInterface(interfaceName);
@@ -101,6 +118,7 @@ export function describeCapabilityProvider<Context = unknown>({
     name,
     description,
     interface: entry,
+    ...(isSimulated ? { isSimulated } : {}),
     factory,
   });
 }
@@ -125,4 +143,10 @@ export function findCompatibleCapabilityProviders(
   interfaceName: string
 ): CapabilityProviderDescription[] {
   return PROVIDER_DESCRIPTIONS_FOR_INTERFACE.get(interfaceName) ?? [];
+}
+
+export function findSimulatedCapabilityProvider(
+  interfaceName: string
+): CapabilityProviderDescription | undefined {
+  return SIMULATED_CAPABILITY_PROVIDERS.get(interfaceName);
 }

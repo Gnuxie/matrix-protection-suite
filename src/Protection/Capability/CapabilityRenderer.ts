@@ -19,9 +19,14 @@ export interface CapabilityRendererDescription<
     context: Context,
     provider: TCapabilityInterface
   ): Capability;
+  isDefaultForInterface?: true;
 }
 
 const RENDERER_DESCRIPTIONS = new Map<string, CapabilityRendererDescription>();
+const DEFAULT_RENDERER_FOR_INTERFACE = new Map<
+  string,
+  CapabilityRendererDescription
+>();
 
 export function registerCapabilityRenderer(
   description: CapabilityRendererDescription
@@ -30,6 +35,14 @@ export function registerCapabilityRenderer(
     throw new TypeError(
       `There is already a capability renderer named ${description.name}`
     );
+  }
+  if (description.isDefaultForInterface) {
+    if (DEFAULT_RENDERER_FOR_INTERFACE.has(description.interface.name)) {
+      throw new TypeError(
+        `There is already a renderer for the capability interface ${description.interface.name}`
+      );
+    }
+    DEFAULT_RENDERER_FOR_INTERFACE.set(description.interface.name, description);
   }
   RENDERER_DESCRIPTIONS.set(description.name, description);
 }
@@ -51,6 +64,7 @@ export function describeCapabilityRenderer<
   description,
   interface: interfaceName,
   factory,
+  isDefaultForInterface,
 }: {
   name: string;
   description: string;
@@ -59,6 +73,7 @@ export function describeCapabilityRenderer<
     TCapabilityInterface,
     Context
   >['factory'];
+  isDefaultForInterface?: true;
 }): void {
   const entry = findCapabilityInterface(interfaceName);
   if (entry === undefined) {
@@ -67,6 +82,7 @@ export function describeCapabilityRenderer<
     );
   }
   registerCapabilityRenderer({
+    ...(isDefaultForInterface ? { isDefaultForInterface } : {}),
     name,
     description,
     interface: entry,
@@ -74,14 +90,20 @@ export function describeCapabilityRenderer<
   });
 }
 
+function findRendererForInterface(
+  interfaceName: string
+): CapabilityRendererDescription | undefined {
+  return DEFAULT_RENDERER_FOR_INTERFACE.get(interfaceName);
+}
+
 export function wrapCapabilityProviderInRenderer<Context = unknown>(
   protectionDescription: DescriptionMeta,
   context: Context,
   capabilityProviderDescription: CapabilityProviderDescription<Context>
 ): Capability {
-  const rendererDescription = findCapabilityRenderer(
-    capabilityProviderDescription.name
-  );
+  const rendererDescription =
+    findCapabilityRenderer(capabilityProviderDescription.name) ??
+    findRendererForInterface(capabilityProviderDescription.interface.name);
   if (rendererDescription === undefined) {
     throw new TypeError(
       `Cannot find a renderer for the capability provider named ${capabilityProviderDescription.name}`
