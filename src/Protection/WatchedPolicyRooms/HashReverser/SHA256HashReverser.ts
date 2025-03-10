@@ -47,8 +47,8 @@ export type SHA256RoomHashListener = (room: StringRoomID, hash: string) => void;
 export interface SHA256RoomHashStore {
   on(event: 'RoomHash', listener: SHA256RoomHashListener): this;
   off(event: 'RoomHash', listener: SHA256RoomHashListener): this;
-  findReversedHash(hash: string): Promise<Result<StringRoomID | undefined>>;
-  reverseHashedPolicies(
+  findRoomHash(hash: string): Promise<Result<StringRoomID | undefined>>;
+  reverseHashedRoomPolicies(
     policies: HashedLiteralPolicyRule[]
   ): Promise<Result<LiteralPolicyRule[]>>;
 }
@@ -115,7 +115,7 @@ export class SHA256RoomHashReverser
           }
         }
         const newlyReversedPolicies =
-          await this.store.reverseHashedPolicies(addedPoliciesToCheck);
+          await this.store.reverseHashedRoomPolicies(addedPoliciesToCheck);
         if (isError(newlyReversedPolicies)) {
           log.error(
             'Unable to reverse new policies',
@@ -173,7 +173,7 @@ export class SHA256RoomHashReverser
     parentIssuer: PolicyListRevisionIssuer,
     store: SHA256RoomHashStore
   ): Promise<Result<SHA256RoomHashReverser>> {
-    const initialReversedPolicies = await store.reverseHashedPolicies(
+    const initialReversedPolicies = await store.reverseHashedRoomPolicies(
       parentIssuer.currentRevision
         .allRulesOfType(PolicyRuleType.Room)
         .filter(
