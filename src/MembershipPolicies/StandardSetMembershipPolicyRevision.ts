@@ -13,7 +13,11 @@ import {
   SetMembershipRevision,
 } from '../Membership/SetMembershipRevision';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { Recommendation, PolicyRule } from '../PolicyList/PolicyRule';
+import {
+  Recommendation,
+  PolicyRule,
+  PolicyRuleMatchType,
+} from '../PolicyList/PolicyRule';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import {
   MemberPolicyMatch,
@@ -137,8 +141,8 @@ export class StandardSetMembershipPolicyRevision
         return change.previousRule;
       });
     for (const policy of policiesToRemove) {
-      if (policy.isHashed) {
-        continue;
+      if (policy.matchType === PolicyRuleMatchType.HashedLiteral) {
+        continue; // we can't derive matches from hashed literals.
       }
       for (const userID of this.policyMembers.get(
         policy,

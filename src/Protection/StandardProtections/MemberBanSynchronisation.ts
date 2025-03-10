@@ -101,7 +101,7 @@ export class MemberBanSynchronisationProtection
           const result = await this.userConsequences.consequenceForUserInRoom(
             revision.room.toRoomIDOrAlias(),
             change.userID,
-            rule.reason
+            rule.reason ?? '<no reason provided>'
           );
           if (isError(result)) {
             errors.push(result.error);

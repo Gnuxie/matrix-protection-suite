@@ -20,10 +20,9 @@ import {
   PolicyRoomRevision,
 } from './PolicyListRevision';
 import {
-  HashedPolicyRule,
   PolicyRule,
+  PolicyRuleMatchType,
   Recommendation,
-  WeakPolicyRule,
   parsePolicyRule,
 } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
@@ -50,16 +49,13 @@ const log = new Logger('StandardPolicyRoomRevision');
  */
 type PolicyRuleMap = PersistentMap<
   PolicyRuleType,
-  PersistentMap<string, WeakPolicyRule>
+  PersistentMap<string, PolicyRule>
 >;
 
 /**
  * A map interning rules by their event id.
  */
-type PolicyRuleByEventIDMap = PersistentMap<
-  string /* event id */,
-  WeakPolicyRule
->;
+type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
 
 /**
  * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
@@ -116,15 +112,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   }
 
   allRules(): PolicyRule[] {
-    return [...this.policyRuleByEventId.values()].filter(
-      (rule) => !rule.isHashed
-    );
-  }
-
-  allHashedRules(): HashedPolicyRule[] {
-    return [...this.policyRuleByEventId.values()].filter(
-      (rule) => rule.isHashed
-    );
+    return [...this.policyRuleByEventId.values()];
   }
 
   allRulesMatchingEntity(
@@ -144,7 +132,9 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       }
     };
     return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
-      (rule) => rule.isMatch(entity)
+      (rule) =>
+        rule.matchType !== PolicyRuleMatchType.HashedLiteral &&
+        rule.isMatch(entity)
     );
   }
 
@@ -153,52 +143,31 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     type: PolicyRuleType,
     recommendation: Recommendation
   ): PolicyRule | undefined {
-    return this.allRulesOfType(type, recommendation).find((rule) =>
-      rule.isMatch(entity)
+    return this.allRulesOfType(type, recommendation).find(
+      (rule) =>
+        rule.matchType !== PolicyRuleMatchType.HashedLiteral &&
+        rule.isMatch(entity)
     );
-  }
-
-  private allWeakRulesOfType<
-    IsHashed extends boolean = boolean,
-    Rule extends WeakPolicyRule = IsHashed extends true
-      ? HashedPolicyRule
-      : PolicyRule,
-  >(
-    kind: PolicyRuleType,
-    isHashed: IsHashed,
-    recommendation?: Recommendation | undefined
-  ): Rule[] {
-    const rules: Rule[] = [];
-    const stateKeyMap = this.policyRules.get(kind);
-    if (stateKeyMap) {
-      for (const rule of stateKeyMap.values()) {
-        if (rule.isHashed !== isHashed) {
-          continue;
-        }
-        if (rule.kind === kind) {
-          if (recommendation === undefined) {
-            rules.push(rule as Rule);
-          } else if (rule.recommendation === recommendation) {
-            rules.push(rule as Rule);
-          }
-        }
-      }
-    }
-    return rules;
   }
 
   allRulesOfType(
     type: PolicyRuleType,
     recommendation?: Recommendation
   ): PolicyRule[] {
-    return this.allWeakRulesOfType(type, false, recommendation);
-  }
-
-  allHashedRulesOfType(
-    type: PolicyRuleType,
-    recommendation?: Recommendation
-  ): HashedPolicyRule[] {
-    return this.allWeakRulesOfType(type, true, recommendation);
+    const rules: PolicyRule[] = [];
+    const stateKeyMap = this.policyRules.get(type);
+    if (stateKeyMap) {
+      for (const rule of stateKeyMap.values()) {
+        if (rule.kind === type) {
+          if (recommendation === undefined) {
+            rules.push(rule);
+          } else if (rule.recommendation === recommendation) {
+            rules.push(rule);
+          }
+        }
+      }
+    }
+    return rules;
   }
 
   public reviseFromChanges(
@@ -209,7 +178,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     const setPolicyRule = (
       stateType: PolicyRuleType,
       stateKey: string,
-      rule: WeakPolicyRule
+      rule: PolicyRule
     ): void => {
       const typeTable = nextPolicyRules.get(stateType) ?? PersistentMap();
       nextPolicyRules = nextPolicyRules.set(
@@ -221,7 +190,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         rule
       );
     };
-    const removePolicyRule = (rule: WeakPolicyRule): void => {
+    const removePolicyRule = (rule: PolicyRule): void => {
       const typeTable = nextPolicyRules.get(rule.kind);
       if (typeTable === undefined) {
         throw new TypeError(

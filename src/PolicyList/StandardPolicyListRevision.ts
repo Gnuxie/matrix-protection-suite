@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 - 2021 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -11,10 +11,12 @@
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from './PolicyListRevision';
 import {
-  HashedPolicyRule,
+  EntityPolicyRule,
+  GlobPolicyRule,
+  LiteralPolicyRule,
   PolicyRule,
+  PolicyRuleMatchType,
   Recommendation,
-  WeakPolicyRule,
 } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
@@ -27,7 +29,7 @@ import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
  */
 type PolicyRuleByType = PersistentMap<
   PolicyRuleType,
-  PersistentMap<StringEventID, WeakPolicyRule>
+  PersistentMap<StringEventID, PolicyRule>
 >;
 
 type PolicyRuleScopes = PersistentMap<
@@ -73,15 +75,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
   allRules(): PolicyRule[] {
     return [...this.policyRuleByType.values()]
       .map((byEventId) => [...byEventId.values()])
-      .flat()
-      .filter((rule) => !rule.isHashed);
-  }
-
-  allHashedRules(): HashedPolicyRule[] {
-    return [...this.policyRuleByType.values()]
-      .map((byEventId) => [...byEventId.values()])
-      .flat()
-      .filter((rule) => rule.isHashed);
+      .flat();
   }
 
   allRulesMatchingEntity(
@@ -110,7 +104,9 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       return scope.allRulesMatchingEntity(entity);
     }
     return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
-      (rule) => rule.isMatch(entity)
+      (rule) =>
+        rule.matchType !== PolicyRuleMatchType.HashedLiteral &&
+        rule.isMatch(entity)
     );
   }
 
@@ -127,47 +123,24 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     }
   }
 
-  private allWeakRulesOfType<
-    IsHashed extends boolean = boolean,
-    Rule extends WeakPolicyRule = IsHashed extends true
-      ? HashedPolicyRule
-      : PolicyRule,
-  >(
-    kind: PolicyRuleType,
-    isHashed: IsHashed,
-    recommendation?: Recommendation | undefined
-  ): Rule[] {
-    const rules: Rule[] = [];
-    const eventIdMap = this.policyRuleByType.get(kind);
+  allRulesOfType(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): PolicyRule[] {
+    const rules: PolicyRule[] = [];
+    const eventIdMap = this.policyRuleByType.get(type);
     if (eventIdMap) {
       for (const rule of eventIdMap.values()) {
-        if (rule.isHashed !== isHashed) {
-          continue;
-        }
-        if (rule.kind === kind) {
+        if (rule.kind === type) {
           if (recommendation === undefined) {
-            rules.push(rule as Rule);
+            rules.push(rule);
           } else if (rule.recommendation === recommendation) {
-            rules.push(rule as Rule);
+            rules.push(rule);
           }
         }
       }
     }
     return rules;
-  }
-
-  allRulesOfType(
-    type: PolicyRuleType,
-    recommendation?: Recommendation
-  ): PolicyRule[] {
-    return this.allWeakRulesOfType(type, false, recommendation);
-  }
-
-  allHashedRulesOfType(
-    type: PolicyRuleType,
-    recommendation?: Recommendation
-  ): HashedPolicyRule[] {
-    return this.allWeakRulesOfType(type, true, recommendation);
   }
 
   public reviseFromChanges(
@@ -176,7 +149,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     let nextPolicyRulesByType = this.policyRuleByType;
     const setPolicyRule = (
       stateType: PolicyRuleType,
-      rule: WeakPolicyRule
+      rule: PolicyRule
     ): void => {
       const byEventTable =
         nextPolicyRulesByType.get(stateType) ?? PersistentMap();
@@ -185,7 +158,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         byEventTable.set(rule.sourceEvent.event_id, rule)
       );
     };
-    const removePolicyRule = (rule: WeakPolicyRule): void => {
+    const removePolicyRule = (rule: PolicyRule): void => {
       const byEventTable = nextPolicyRulesByType.get(rule.kind);
       if (byEventTable === undefined) {
         throw new TypeError(
@@ -302,10 +275,8 @@ function flattenChangesByScope(
   return flatChanges;
 }
 
-type PolicyRuleByEntity = PersistentMap<
-  string /*rule entity*/,
-  PersistentList<PolicyRule>
->;
+type PolicyRuleByEntity<Rule extends EntityPolicyRule = EntityPolicyRule> =
+  PersistentMap<string /*rule entity*/, PersistentList<Rule>>;
 
 /**
  * A scope is a collection of rules that are scoped to a single entity type and
@@ -345,11 +316,11 @@ class PolicyRuleScope {
     /**
      * Glob rules always have to be scanned against every entity.
      */
-    private readonly globRules: PolicyRuleByEntity,
+    private readonly globRules: PolicyRuleByEntity<GlobPolicyRule>,
     /**
      * This table allows us to skip matching an entity against every literal.
      */
-    private readonly literalRules: PolicyRuleByEntity
+    private readonly literalRules: PolicyRuleByEntity<LiteralPolicyRule>
   ) {
     // nothing to do.
   }
@@ -357,17 +328,19 @@ class PolicyRuleScope {
     revision: Revision,
     changes: PolicyRuleChange[]
   ): PolicyRuleScope {
-    const addRuleToMap = (
-      map: PolicyRuleByEntity,
-      rule: PolicyRule
-    ): PolicyRuleByEntity => {
+    const addRuleToMap = <Rule extends EntityPolicyRule = EntityPolicyRule>(
+      map: PolicyRuleByEntity<Rule>,
+      rule: Rule
+    ): PolicyRuleByEntity<Rule> => {
       const rules = map.get(rule.entity) ?? PersistentList();
       return map.set(rule.entity, rules.push(rule));
     };
-    const removeRuleFromMap = (
-      map: PolicyRuleByEntity,
-      ruleToRemove: PolicyRule
-    ): PolicyRuleByEntity => {
+    const removeRuleFromMap = <
+      Rule extends EntityPolicyRule = EntityPolicyRule,
+    >(
+      map: PolicyRuleByEntity<Rule>,
+      ruleToRemove: Rule
+    ): PolicyRuleByEntity<Rule> => {
       const rules = (map.get(ruleToRemove.entity) ?? PersistentList()).filter(
         (rule) =>
           rule.sourceEvent.event_id !== ruleToRemove.sourceEvent.event_id
@@ -380,22 +353,22 @@ class PolicyRuleScope {
     };
     let nextGlobRules = this.globRules;
     let nextLiteralRules = this.literalRules;
-    const addRule = (rule: PolicyRule): void => {
-      if (rule.isGlob()) {
+    const addRule = (rule: EntityPolicyRule): void => {
+      if (rule.matchType === PolicyRuleMatchType.Glob) {
         nextGlobRules = addRuleToMap(nextGlobRules, rule);
       } else {
         nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
       }
     };
-    const removeRule = (rule: PolicyRule): void => {
-      if (rule.isGlob()) {
+    const removeRule = (rule: EntityPolicyRule): void => {
+      if (rule.matchType === PolicyRuleMatchType.Glob) {
         nextGlobRules = removeRuleFromMap(nextGlobRules, rule);
       } else {
         nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
       }
     };
     for (const change of changes) {
-      if (change.rule.isHashed) {
+      if (change.rule.matchType === PolicyRuleMatchType.HashedLiteral) {
         continue; // no entity to intern
       }
       if (

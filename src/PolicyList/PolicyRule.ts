@@ -85,7 +85,7 @@ export function normaliseRecommendation(
 
 export function parsePolicyRule(
   event: Omit<PolicyRuleEvent, 'content'> & { content: UnredactedPolicyContent }
-): Result<PolicyRule | HashedPolicyRule> {
+): Result<PolicyRule> {
   if (!('entity' in event.content)) {
     const hashes =
       // we need the expressions mare:
@@ -97,96 +97,84 @@ export function parsePolicyRule(
       return ResultError.Result('There is a missing entity in the policy rule');
     }
     return Ok(
-      new StandardHashedPolicyRule(
-        normaliseRecommendation(event.content.recommendation),
-        normalisePolicyRuleType(event.type),
+      Object.freeze({
+        recommendation: normaliseRecommendation(event.content.recommendation),
+        kind: normalisePolicyRuleType(event.type),
         hashes,
-        event
-      )
+        sourceEvent: event,
+        matchType: PolicyRuleMatchType.HashedLiteral,
+        ...(event.content.reason ? { reason: event.content.reason } : {}),
+      }) satisfies HashedLiteralPolicyRule
     );
   }
-  return Ok(
-    new StandardPolicyRule(
-      event.content.entity,
-      normaliseRecommendation(event.content.recommendation),
-      event.content.reason ?? '<no reason supplied>',
-      normalisePolicyRuleType(event.type),
-      event
-    )
-  );
+  if (/[*?]/.test(event.content.entity)) {
+    return Ok(
+      Object.freeze({
+        glob: new MatrixGlob(event.content.entity),
+        entity: event.content.entity,
+        recommendation: normaliseRecommendation(event.content.recommendation),
+        kind: normalisePolicyRuleType(event.type),
+        sourceEvent: event,
+        matchType: PolicyRuleMatchType.Glob,
+        reason: event.content.reason ?? '<no reason supplied>',
+        isMatch(this: GlobPolicyRule, entity: string) {
+          return this.glob.test(entity);
+        },
+      } satisfies GlobPolicyRule)
+    );
+  } else {
+    return Ok(
+      Object.freeze({
+        entity: event.content.entity,
+        recommendation: normaliseRecommendation(event.content.recommendation),
+        kind: normalisePolicyRuleType(event.type),
+        sourceEvent: event,
+        matchType: PolicyRuleMatchType.Literal,
+        reason: event.content.reason ?? '<no reason supplied>',
+        isMatch(this: LiteralPolicyRule, entity: string) {
+          return this.entity === entity;
+        },
+      } satisfies LiteralPolicyRule)
+    );
+  }
 }
 
-/**
- * We've kind of messed up our own understanding of rules.
- * There are three types of policy rules. Literal, Glob, and Hashed literal.
- * Literal and glob rules target specific entities, whereas hashed literals
- * don't have any relation to an entity, they need to be unmaskeed somehow
- * to be used.
- */
-export type WeakPolicyRule = PolicyRule | HashedPolicyRule;
-
-export interface PolicyRule {
-  readonly entity: string;
-  readonly recommendation: Recommendation;
-  readonly reason: string;
-  readonly kind: PolicyRuleType;
-  readonly sourceEvent: PolicyRuleEvent;
-  isMatch(entity: string): boolean;
-  isGlob(): boolean;
-  readonly isReversed?: boolean;
-  readonly isHashed: false;
+export enum PolicyRuleMatchType {
+  Literal = 'literal',
+  Glob = 'glob',
+  HashedLiteral = 'hashed-literal',
 }
 
-export type HashedPolicyRule = {
+type PolicyRuleBase = {
   readonly recommendation: Recommendation;
+  readonly reason?: string;
   readonly kind: PolicyRuleType;
-  readonly hashes: Record<string, string>;
   readonly sourceEvent: PolicyRuleEvent;
-  readonly isHashed: true;
+  readonly matchType: PolicyRuleMatchType;
 };
 
-class StandardPolicyRule implements PolicyRule {
-  private readonly glob: MatrixGlob;
-  public constructor(
-    public readonly entity: string,
-    public readonly recommendation: Recommendation,
-    public readonly reason: string,
-    public readonly kind: PolicyRuleType,
-    public readonly sourceEvent: PolicyRuleEvent
-  ) {
-    this.glob = new MatrixGlob(entity);
-  }
+export type LiteralPolicyRule = PolicyRuleBase & {
+  readonly entity: string;
+  readonly matchType: PolicyRuleMatchType.Literal;
+  readonly reason: string;
+  isMatch(entity: string): boolean;
+};
 
-  /**
-   * Determine whether this rule should apply to a given entity.
-   */
-  public isMatch(entity: string): boolean {
-    return this.glob.test(entity);
-  }
+export type GlobPolicyRule = PolicyRuleBase & {
+  readonly entity: string;
+  readonly glob: MatrixGlob;
+  readonly matchType: PolicyRuleMatchType.Glob;
 
-  /**
-   * @returns Whether the entity in the rule represents a Matrix glob (and not a literal).
-   */
-  public isGlob(): boolean {
-    return /[*?]/.test(this.entity);
-  }
+  isMatch(entity: string): boolean;
+};
 
-  public get isHashed(): false {
-    return false;
-  }
-}
+export type HashedLiteralPolicyRule = PolicyRuleBase & {
+  readonly hashes: Record<string, string>;
+  readonly matchType: PolicyRuleMatchType.HashedLiteral;
+};
 
-class StandardHashedPolicyRule implements HashedPolicyRule {
-  public constructor(
-    public readonly recommendation: Recommendation,
-    public readonly kind: PolicyRuleType,
-    public readonly hashes: Record<string, string>,
-    public readonly sourceEvent: PolicyRuleEvent
-  ) {
-    // nothing to do.
-  }
-
-  public get isHashed(): true {
-    return true;
-  }
-}
+export type PolicyRule =
+  | LiteralPolicyRule
+  | GlobPolicyRule
+  | HashedLiteralPolicyRule;
+export type EntityPolicyRule = LiteralPolicyRule | GlobPolicyRule;

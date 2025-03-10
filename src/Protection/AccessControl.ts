@@ -16,7 +16,11 @@ import { Logger } from '../Logging/Logger';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { ServerACLBuilder } from '../MatrixTypes/ServerACLBuilder';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
+import {
+  PolicyRule,
+  PolicyRuleMatchType,
+  Recommendation,
+} from '../PolicyList/PolicyRule';
 
 // FIXME: Not sure the logger in this file is really enough to inform users with.
 const log = new Logger('AccessControl');
@@ -145,7 +149,9 @@ export class AccessControl {
       builder.allowServer('*');
     } else {
       for (const rule of allowedServers) {
-        builder.allowServer(rule.entity);
+        if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
+          builder.allowServer(rule.entity);
+        }
       }
       if (
         AccessControl.getAccessForServer(revision, serverName).outcome ===
@@ -164,6 +170,9 @@ export class AccessControl {
       Recommendation.Ban
     );
     for (const rule of bannedServers) {
+      if (rule.matchType === PolicyRuleMatchType.HashedLiteral) {
+        continue;
+      }
       if (rule.isMatch(serverName)) {
         log.warn(
           'AccessControlUnit',
