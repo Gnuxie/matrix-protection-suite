@@ -8,6 +8,11 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+// TODO: I wonder if we can expand PolicyRuleScope to include hashes.
+// ie intern hashType+hashValue to a single key to use as the entity.
+// and then this would make it easier to find matching hashes
+// still a pita though.
+
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from './PolicyListRevision';
 import {
@@ -222,6 +227,16 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         byEvent.has(eventId as StringEventID)
       ) !== undefined
     );
+  }
+  hasPolicy(eventID: StringEventID): boolean {
+    return this.hasEvent(eventID);
+  }
+
+  getPolicy(eventID: StringEventID): PolicyRule | undefined {
+    const map = [...this.policyRuleByType.values()].find((byEvent) =>
+      byEvent.has(eventID)
+    );
+    return map?.get(eventID);
   }
 }
 

@@ -18,7 +18,10 @@ import {
   StandardDirectPropagationPolicyListRevisionIssuer,
 } from '../DirectPropagationPolicyListRevisionIssuer';
 import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
-import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
+import {
+  PolicyListRevisionIssuer,
+  PolicyRoomRevisionIssuer,
+} from '../../PolicyList/PolicyListRevisionIssuer';
 import { RoomJoiner } from '../../Client/RoomJoiner';
 
 export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
@@ -145,5 +148,12 @@ export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
       }
     }
     return undefined;
+  }
+
+  watchHashReversingPolicyList(issuer: PolicyListRevisionIssuer): void {
+    this.revisionIssuer.addIssuer(issuer);
+  }
+  unwatchHashReversingPolicyList(issuer: PolicyListRevisionIssuer): void {
+    this.revisionIssuer.removeIssuer(issuer);
   }
 }

@@ -19,6 +19,7 @@ import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
 import { Value } from '../Interface/Value';
 import {
   MatrixRoomID,
+  StringEventID,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
 
@@ -83,6 +84,9 @@ export interface PolicyListRevisionView {
    * Is this the first revision that has been issued?
    */
   isBlankRevision(): boolean;
+
+  hasPolicy(eventID: StringEventID): boolean;
+  getPolicy(eventID: StringEventID): PolicyRule | undefined;
 }
 
 /**

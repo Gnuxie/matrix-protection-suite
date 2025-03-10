@@ -38,6 +38,7 @@ import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
 import {
   MatrixRoomID,
+  StringEventID,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
 import { isError } from '@gnuxie/typescript-result';
@@ -237,6 +238,14 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     return this.policyRuleByEventId.has(eventId)
       ? true
       : this.powerLevelsEvent?.event_id === eventId;
+  }
+
+  hasPolicy(eventID: StringEventID): boolean {
+    return this.hasEvent(eventID);
+  }
+
+  getPolicy(eventID: StringEventID): PolicyRule | undefined {
+    return this.policyRuleByEventId.get(eventID);
   }
 
   // FIXME: Ideally this method wouldn't exist, but it has to for now because

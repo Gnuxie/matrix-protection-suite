@@ -94,6 +94,23 @@ export function normaliseRecommendation(
 
 // we just make more of those revisions don't worry about it.
 
+export function makeReversedHashedPolicy(
+  entity: string,
+  hashedPolicy: HashedLiteralPolicyRule
+): LiteralPolicyRule {
+  return Object.freeze({
+    entity,
+    kind: hashedPolicy.kind,
+    recommendation: hashedPolicy.recommendation,
+    sourceEvent: hashedPolicy.sourceEvent,
+    reason: hashedPolicy.reason ?? '<no reason supplied>',
+    matchType: PolicyRuleMatchType.Literal,
+    isMatch(this: LiteralPolicyRule, entity: string) {
+      return this.entity === entity;
+    },
+  } satisfies LiteralPolicyRule);
+}
+
 export function parsePolicyRule(
   event: Omit<PolicyRuleEvent, 'content'> & { content: UnredactedPolicyContent }
 ): Result<PolicyRule> {
@@ -162,6 +179,7 @@ type PolicyRuleBase = {
   readonly kind: PolicyRuleType;
   readonly sourceEvent: PolicyRuleEvent;
   readonly matchType: PolicyRuleMatchType;
+  readonly isReversedFromHashedPolicy?: boolean;
 };
 
 export type LiteralPolicyRule = PolicyRuleBase & {
