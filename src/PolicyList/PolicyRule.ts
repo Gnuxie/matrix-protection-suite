@@ -31,7 +31,11 @@ export enum Recommendation {
    * Used for the construction of allow lists.
    */
   Allow = 'org.matrix.mjolnir.allow',
-
+  /**
+   * This recommendation is to takedown the entity and is usually reserved
+   * for content that needs to be removed asap.
+   */
+  Takedown = 'org.matrix.msc4204.takedown',
   Unknown = 'unknown',
 }
 
@@ -50,6 +54,11 @@ const RECOMMENDATION_ALLOW_VARIANTS: string[] = [
   Recommendation.Allow,
 ];
 
+const RECOMMENDATION_TAKEDOWN_VARIANTS: string[] = [
+  Recommendation.Takedown,
+  'm.takedown',
+];
+
 export function normaliseRecommendation(
   recommendation: string
 ): Recommendation {
@@ -57,6 +66,8 @@ export function normaliseRecommendation(
     return Recommendation.Ban;
   } else if (RECOMMENDATION_ALLOW_VARIANTS.includes(recommendation)) {
     return Recommendation.Allow;
+  } else if (RECOMMENDATION_TAKEDOWN_VARIANTS.includes(recommendation)) {
+    return Recommendation.Takedown;
   } else {
     return Recommendation.Unknown;
   }
