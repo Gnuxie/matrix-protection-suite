@@ -105,8 +105,7 @@ export function isPolicyTypeObsolete(
   }
 }
 
-export type UnredactedPolicyContent = EDStatic<typeof UnredactedPolicyContent>;
-export const UnredactedPolicyContent = Type.Object({
+export const PlainTextPolicyContent = Type.Object({
   entity: Type.String({
     description:
       'The entity affected by this rule. Glob characters `*` and `?` can be used\nto match zero or more characters or exactly one character respectively.',
@@ -115,10 +114,33 @@ export const UnredactedPolicyContent = Type.Object({
     description:
       'The suggested action to take. Currently only `m.ban` is specified.',
   }),
-  reason: Type.String({
-    description: 'The human-readable description for the `recommendation`.',
-  }),
+  reason: Type.Optional(
+    Type.String({
+      description: 'The human-readable description for the `recommendation`.',
+    })
+  ),
 });
+
+export type HashedPolicyContent = EDStatic<typeof HashedPolicyContent>;
+export const HashedPolicyContent = Type.Union([
+  Type.Intersect([
+    Type.Omit(PlainTextPolicyContent, ['entity']),
+    Type.Object({
+      'org.matrix.msc4205.hashes': Type.Record(Type.String(), Type.String()),
+    }),
+  ]),
+  Type.Intersect([
+    Type.Omit(PlainTextPolicyContent, ['entity']),
+    Type.Object({
+      hashes: Type.Record(Type.String(), Type.String()),
+    }),
+  ]),
+]);
+
+export type UnredactedPolicyContent = EDStatic<typeof UnredactedPolicyContent>;
+export const UnredactedPolicyContent = Type.Union([
+  Type.Union([PlainTextPolicyContent, HashedPolicyContent]),
+]);
 
 export type RedactablePolicyContent = EDStatic<typeof RedactablePolicyContent>;
 export const RedactablePolicyContent = Type.Union([

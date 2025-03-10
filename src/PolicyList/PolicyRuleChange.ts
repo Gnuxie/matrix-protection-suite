@@ -10,7 +10,7 @@
 
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
-import { PolicyRule } from './PolicyRule';
+import { WeakPolicyRule } from './PolicyRule';
 
 /**
  * A way to guage the diff between two revisions.
@@ -33,7 +33,7 @@ export interface PolicyRuleChange {
    * The current rule represented by the event.
    * If the rule has been removed, then this will show what the rule was.
    */
-  readonly rule: PolicyRule;
+  readonly rule: WeakPolicyRule;
   /**
    * The previous state that has been changed. Only (and always) provided when the change type is `ChangeType.Removed` or `Modified`.
    * This will be a copy of the same event as `event` when a redaction has occurred and this will show its unredacted state.
@@ -42,5 +42,5 @@ export interface PolicyRuleChange {
   /**
    * If the rule has been modified, then this will be the previous version of the policy rule.
    */
-  readonly previousRule?: PolicyRule;
+  readonly previousRule?: WeakPolicyRule;
 }

@@ -10,7 +10,12 @@
 
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyListRevision } from './PolicyListRevision';
-import { PolicyRule, Recommendation } from './PolicyRule';
+import {
+  HashedPolicyRule,
+  PolicyRule,
+  Recommendation,
+  WeakPolicyRule,
+} from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
@@ -22,7 +27,7 @@ import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
  */
 type PolicyRuleByType = PersistentMap<
   PolicyRuleType,
-  PersistentMap<StringEventID, PolicyRule>
+  PersistentMap<StringEventID, WeakPolicyRule>
 >;
 
 type PolicyRuleScopes = PersistentMap<
@@ -68,8 +73,17 @@ export class StandardPolicyListRevision implements PolicyListRevision {
   allRules(): PolicyRule[] {
     return [...this.policyRuleByType.values()]
       .map((byEventId) => [...byEventId.values()])
-      .flat();
+      .flat()
+      .filter((rule) => !rule.isHashed);
   }
+
+  allHashedRules(): HashedPolicyRule[] {
+    return [...this.policyRuleByType.values()]
+      .map((byEventId) => [...byEventId.values()])
+      .flat()
+      .filter((rule) => rule.isHashed);
+  }
+
   allRulesMatchingEntity(
     entity: string,
     ruleKind?: PolicyRuleType | undefined,
@@ -113,24 +127,47 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     }
   }
 
-  allRulesOfType(
+  private allWeakRulesOfType<
+    IsHashed extends boolean = boolean,
+    Rule extends WeakPolicyRule = IsHashed extends true
+      ? HashedPolicyRule
+      : PolicyRule,
+  >(
     kind: PolicyRuleType,
+    isHashed: IsHashed,
     recommendation?: Recommendation | undefined
-  ): PolicyRule[] {
-    const rules: PolicyRule[] = [];
+  ): Rule[] {
+    const rules: Rule[] = [];
     const eventIdMap = this.policyRuleByType.get(kind);
     if (eventIdMap) {
       for (const rule of eventIdMap.values()) {
+        if (rule.isHashed !== isHashed) {
+          continue;
+        }
         if (rule.kind === kind) {
           if (recommendation === undefined) {
-            rules.push(rule);
+            rules.push(rule as Rule);
           } else if (rule.recommendation === recommendation) {
-            rules.push(rule);
+            rules.push(rule as Rule);
           }
         }
       }
     }
     return rules;
+  }
+
+  allRulesOfType(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): PolicyRule[] {
+    return this.allWeakRulesOfType(type, false, recommendation);
+  }
+
+  allHashedRulesOfType(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): HashedPolicyRule[] {
+    return this.allWeakRulesOfType(type, true, recommendation);
   }
 
   public reviseFromChanges(
@@ -139,7 +176,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     let nextPolicyRulesByType = this.policyRuleByType;
     const setPolicyRule = (
       stateType: PolicyRuleType,
-      rule: PolicyRule
+      rule: WeakPolicyRule
     ): void => {
       const byEventTable =
         nextPolicyRulesByType.get(stateType) ?? PersistentMap();
@@ -148,7 +185,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         byEventTable.set(rule.sourceEvent.event_id, rule)
       );
     };
-    const removePolicyRule = (rule: PolicyRule): void => {
+    const removePolicyRule = (rule: WeakPolicyRule): void => {
       const byEventTable = nextPolicyRulesByType.get(rule.kind);
       if (byEventTable === undefined) {
         throw new TypeError(
@@ -358,6 +395,9 @@ class PolicyRuleScope {
       }
     };
     for (const change of changes) {
+      if (change.rule.isHashed) {
+        continue; // no entity to intern
+      }
       if (
         change.rule.kind !== this.entityType ||
         change.rule.recommendation !== this.recommendation

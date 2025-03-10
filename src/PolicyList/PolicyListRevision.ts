@@ -11,7 +11,7 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { PolicyRule, Recommendation } from './PolicyRule';
+import { HashedPolicyRule, PolicyRule, Recommendation } from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { StateEvent } from '../MatrixTypes/Events';
@@ -83,6 +83,11 @@ export interface PolicyListRevisionView {
    * Is this the first revision that has been issued?
    */
   isBlankRevision(): boolean;
+  allHashedRules(): HashedPolicyRule[];
+  allHashedRulesOfType(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): HashedPolicyRule[];
 }
 
 /**

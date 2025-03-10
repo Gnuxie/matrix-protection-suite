@@ -19,7 +19,13 @@ import {
   MjolnirShortcodeEvent,
   PolicyRoomRevision,
 } from './PolicyListRevision';
-import { PolicyRule, Recommendation, parsePolicyRule } from './PolicyRule';
+import {
+  HashedPolicyRule,
+  PolicyRule,
+  Recommendation,
+  WeakPolicyRule,
+  parsePolicyRule,
+} from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import {
   StateChangeType,
@@ -35,6 +41,7 @@ import {
   MatrixRoomID,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
+import { isError } from '@gnuxie/typescript-result';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
@@ -43,13 +50,16 @@ const log = new Logger('StandardPolicyRoomRevision');
  */
 type PolicyRuleMap = PersistentMap<
   PolicyRuleType,
-  PersistentMap<string, PolicyRule>
+  PersistentMap<string, WeakPolicyRule>
 >;
 
 /**
  * A map interning rules by their event id.
  */
-type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
+type PolicyRuleByEventIDMap = PersistentMap<
+  string /* event id */,
+  WeakPolicyRule
+>;
 
 /**
  * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
@@ -106,8 +116,17 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   }
 
   allRules(): PolicyRule[] {
-    return [...this.policyRuleByEventId.values()];
+    return [...this.policyRuleByEventId.values()].filter(
+      (rule) => !rule.isHashed
+    );
   }
+
+  allHashedRules(): HashedPolicyRule[] {
+    return [...this.policyRuleByEventId.values()].filter(
+      (rule) => rule.isHashed
+    );
+  }
+
   allRulesMatchingEntity(
     entity: string,
     ruleKind?: PolicyRuleType | undefined,
@@ -139,24 +158,47 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     );
   }
 
-  allRulesOfType(
+  private allWeakRulesOfType<
+    IsHashed extends boolean = boolean,
+    Rule extends WeakPolicyRule = IsHashed extends true
+      ? HashedPolicyRule
+      : PolicyRule,
+  >(
     kind: PolicyRuleType,
+    isHashed: IsHashed,
     recommendation?: Recommendation | undefined
-  ): PolicyRule[] {
-    const rules: PolicyRule[] = [];
+  ): Rule[] {
+    const rules: Rule[] = [];
     const stateKeyMap = this.policyRules.get(kind);
     if (stateKeyMap) {
       for (const rule of stateKeyMap.values()) {
+        if (rule.isHashed !== isHashed) {
+          continue;
+        }
         if (rule.kind === kind) {
           if (recommendation === undefined) {
-            rules.push(rule);
+            rules.push(rule as Rule);
           } else if (rule.recommendation === recommendation) {
-            rules.push(rule);
+            rules.push(rule as Rule);
           }
         }
       }
     }
     return rules;
+  }
+
+  allRulesOfType(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): PolicyRule[] {
+    return this.allWeakRulesOfType(type, false, recommendation);
+  }
+
+  allHashedRulesOfType(
+    type: PolicyRuleType,
+    recommendation?: Recommendation
+  ): HashedPolicyRule[] {
+    return this.allWeakRulesOfType(type, true, recommendation);
   }
 
   public reviseFromChanges(
@@ -167,7 +209,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     const setPolicyRule = (
       stateType: PolicyRuleType,
       stateKey: string,
-      rule: PolicyRule
+      rule: WeakPolicyRule
     ): void => {
       const typeTable = nextPolicyRules.get(stateType) ?? PersistentMap();
       nextPolicyRules = nextPolicyRules.set(
@@ -179,7 +221,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         rule
       );
     };
-    const removePolicyRule = (rule: PolicyRule): void => {
+    const removePolicyRule = (rule: WeakPolicyRule): void => {
       const typeTable = nextPolicyRules.get(rule.kind);
       if (typeTable === undefined) {
         throw new TypeError(
@@ -307,13 +349,17 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           // properties of `event`.
           // We should really consider making all of the properties in MatrixTypes
           // readonly.
-          const rule = parsePolicyRule(
+          const ruleParseResult = parsePolicyRule(
             event as Omit<PolicyRuleEvent, 'content'> & {
               content: UnredactedPolicyContent;
             }
           );
+          if (isError(ruleParseResult)) {
+            log.error('Unable to parse a policy rule', ruleParseResult.error);
+            continue;
+          }
           changes.push({
-            rule,
+            rule: ruleParseResult.ok,
             changeType:
               changeType === StateChangeType.SupersededContent
                 ? SimpleChangeType.Modified

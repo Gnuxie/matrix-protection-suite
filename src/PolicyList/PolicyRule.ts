@@ -15,6 +15,7 @@ import {
   UnredactedPolicyContent,
   normalisePolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
+import { Ok, Result, ResultError } from '@gnuxie/typescript-result';
 
 export enum Recommendation {
   /// The rule recommends a "ban".
@@ -61,17 +62,68 @@ export function normaliseRecommendation(
   }
 }
 
+// grr so we face an issue where appservice usres would share reversed policies
+// in the current model which is a pita.
+// We should probably consider how agree/disagree and filtering is going to work
+// to see if we can leverage off of the same shit to introduce policies selectively.
+// Since with agree mode, we will need to exclude all policies and introduce them
+// one by one. Which is kinda the same deal as reversal if you want to
+// preserve source.
+
+// I think it's ok that in the current model the revision used by the watchProfile
+// is the final say and then the policy room revisions contain all their policies.
+// we just need to be aware of that in the matching command etc.
+// so i think having virtual policy list revisions that include policies from policy
+// room revisions is fine. And its up to other code to present them inline.
+
+// SO TLDR, reversal will have to happen in virtual policy lists.
+
+// Ok but how is this going to work with the SetMembershipPolicy??
+// since it'll need to see all policies aaaaaaaaaa
+
+// we just make more of those revisions don't worry about it.
+
 export function parsePolicyRule(
   event: Omit<PolicyRuleEvent, 'content'> & { content: UnredactedPolicyContent }
-): PolicyRule {
-  return new StandardPolicyRule(
-    event.content.entity,
-    normaliseRecommendation(event.content.recommendation),
-    event.content.reason,
-    normalisePolicyRuleType(event.type),
-    event
+): Result<PolicyRule | HashedPolicyRule> {
+  if (!('entity' in event.content)) {
+    const hashes =
+      // we need the expressions mare:
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      ('hashes' in event.content && event.content.hashes) ||
+      ('org.matrix.msc4205.hashes' in event.content &&
+        event.content['org.matrix.msc4205.hashes']);
+    if (!hashes) {
+      return ResultError.Result('There is a missing entity in the policy rule');
+    }
+    return Ok(
+      new StandardHashedPolicyRule(
+        normaliseRecommendation(event.content.recommendation),
+        normalisePolicyRuleType(event.type),
+        hashes,
+        event
+      )
+    );
+  }
+  return Ok(
+    new StandardPolicyRule(
+      event.content.entity,
+      normaliseRecommendation(event.content.recommendation),
+      event.content.reason ?? '<no reason supplied>',
+      normalisePolicyRuleType(event.type),
+      event
+    )
   );
 }
+
+/**
+ * We've kind of messed up our own understanding of rules.
+ * There are three types of policy rules. Literal, Glob, and Hashed literal.
+ * Literal and glob rules target specific entities, whereas hashed literals
+ * don't have any relation to an entity, they need to be unmaskeed somehow
+ * to be used.
+ */
+export type WeakPolicyRule = PolicyRule | HashedPolicyRule;
 
 export interface PolicyRule {
   readonly entity: string;
@@ -81,7 +133,17 @@ export interface PolicyRule {
   readonly sourceEvent: PolicyRuleEvent;
   isMatch(entity: string): boolean;
   isGlob(): boolean;
+  readonly isReversed?: boolean;
+  readonly isHashed: false;
 }
+
+export type HashedPolicyRule = {
+  readonly recommendation: Recommendation;
+  readonly kind: PolicyRuleType;
+  readonly hashes: Record<string, string>;
+  readonly sourceEvent: PolicyRuleEvent;
+  readonly isHashed: true;
+};
 
 class StandardPolicyRule implements PolicyRule {
   private readonly glob: MatrixGlob;
@@ -107,5 +169,24 @@ class StandardPolicyRule implements PolicyRule {
    */
   public isGlob(): boolean {
     return /[*?]/.test(this.entity);
+  }
+
+  public get isHashed(): false {
+    return false;
+  }
+}
+
+class StandardHashedPolicyRule implements HashedPolicyRule {
+  public constructor(
+    public readonly recommendation: Recommendation,
+    public readonly kind: PolicyRuleType,
+    public readonly hashes: Record<string, string>,
+    public readonly sourceEvent: PolicyRuleEvent
+  ) {
+    // nothing to do.
+  }
+
+  public get isHashed(): true {
+    return true;
   }
 }

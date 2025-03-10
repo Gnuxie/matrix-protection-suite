@@ -137,6 +137,9 @@ export class StandardSetMembershipPolicyRevision
         return change.previousRule;
       });
     for (const policy of policiesToRemove) {
+      if (policy.isHashed) {
+        continue;
+      }
       for (const userID of this.policyMembers.get(
         policy,
         List<StringUserID>()
