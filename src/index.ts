@@ -149,6 +149,7 @@ export * from './Protection/StandardProtections/MemberBanSynchronisation';
 export * from './Protection/StandardProtections/ServerBanSynchronisation';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';
+export * from './Protection/WatchedPolicyRooms/HashReverser/StandardSHA256RoomHashStore';
 
 export * from './Protection/WatchedPolicyRooms/StandardWatchedPolicyRooms';
 export * from './Protection/WatchedPolicyRooms/WatchedPolicyRooms';

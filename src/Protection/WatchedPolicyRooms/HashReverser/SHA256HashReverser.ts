@@ -42,7 +42,12 @@ const log = new Logger('SHA256RoomHashReverser');
  * the WatchedPolicyRooms.
  */
 
-export type SHA256RoomHashListener = (room: StringRoomID, hash: string) => void;
+export type SHA256RoomHashListener = (
+  roomID: StringRoomID,
+  hash: string
+) => void;
+
+export type RoomHashRecord = { room_id: StringRoomID; sha256: string };
 
 export interface SHA256RoomHashStore {
   on(event: 'RoomHash', listener: SHA256RoomHashListener): this;
@@ -51,6 +56,9 @@ export interface SHA256RoomHashStore {
   reverseHashedRoomPolicies(
     policies: HashedLiteralPolicyRule[]
   ): Promise<Result<LiteralPolicyRule[]>>;
+  storeUndiscoveredRooms(
+    roomIDs: StringRoomID[]
+  ): Promise<Result<RoomHashRecord[]>>;
 }
 
 export class SHA256RoomHashReverser
