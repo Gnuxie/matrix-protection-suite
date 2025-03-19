@@ -3,7 +3,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import EventEmitter from 'events';
-import { RoomHashRecord, SHA256RoomHashStore } from './SHA256HashReverser';
+import {
+  HashedRoomDetails,
+  RoomHashRecord,
+  SHA256RoomHashStore,
+} from './SHA256HashReverser';
 import { isError, Result } from '@gnuxie/typescript-result';
 import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
 import {
@@ -20,6 +24,7 @@ export class StandardSHA256RoomHashStore
   ) {
     super();
   }
+
   public async findRoomHash(
     hash: string
   ): Promise<Result<StringRoomID | undefined>> {
@@ -42,5 +47,11 @@ export class StandardSHA256RoomHashStore
       this.emit('RoomHash', row.room_id, row.sha256);
     }
     return storeResult;
+  }
+
+  public async storeRoomIdentification(
+    details: HashedRoomDetails
+  ): Promise<Result<void>> {
+    return await this.baseStore.storeRoomIdentification(details);
   }
 }

@@ -61,6 +61,12 @@ export type SHA256RoomHashListener = (
 
 export type RoomHashRecord = { room_id: StringRoomID; sha256: string };
 
+export type HashedRoomDetails = {
+  roomID: StringRoomID;
+  creator: StringUserID;
+  server: string;
+};
+
 export interface SHA256RoomHashStore {
   on(event: 'RoomHash', listener: SHA256RoomHashListener): this;
   off(event: 'RoomHash', listener: SHA256RoomHashListener): this;
@@ -71,6 +77,7 @@ export interface SHA256RoomHashStore {
   storeUndiscoveredRooms(
     roomIDs: StringRoomID[]
   ): Promise<Result<RoomHashRecord[]>>;
+  storeRoomIdentification(details: HashedRoomDetails): Promise<Result<void>>;
 }
 
 export class SHA256RoomHashReverser
