@@ -13,18 +13,21 @@ import Base64 from 'crypto-js/enc-base64';
 import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
 import { RoomStateEventSender } from '../Client/RoomStateEventSender';
 import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyRoomEditor } from './PolicyRoomEditor';
+import { PolicyRoomEditor, TakedownPolicyOption } from './PolicyRoomEditor';
 import {
   PolicyRuleType,
   variantsForPolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { ActionResult, Ok, isError } from '../Interface/Action';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import {
+  MatrixRoomID,
+  StringEventID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export class StandardPolicyRoomEditor implements PolicyRoomEditor {
   constructor(
-    private readonly room: MatrixRoomID,
+    public readonly room: MatrixRoomID,
     private readonly policyRevisionIssuer: PolicyListRevisionIssuer,
     private readonly roomStateRevisionIssuer: RoomStateRevisionIssuer,
     private readonly roomStateEventSender: RoomStateEventSender
@@ -180,6 +183,35 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
       reason ?? '<no reason supplied>',
       {}
     );
+  }
+  public async takedownEntity(
+    ruleType: PolicyRuleType,
+    entity: string,
+    options: TakedownPolicyOption
+  ): Promise<ActionResult<StringEventID>> {
+    const recommendation = Recommendation.Takedown;
+    const stateKey = Base64.stringify(SHA256(entity + recommendation));
+    const sendResult = await this.roomStateEventSender.sendStateEvent(
+      this.room.toRoomIDOrAlias(),
+      ruleType,
+      stateKey,
+      {
+        recommendation,
+        ...(options.shouldHash
+          ? {
+              hashes: {
+                sha256: SHA256(entity),
+              },
+            }
+          : { entity }),
+      }
+    );
+    if (isError(sendResult)) {
+      return sendResult.elaborate(
+        `Failed to create a policy for the entity ${entity} with the recommendation ${recommendation} in ${this.room.toPermalink()}`
+      );
+    }
+    return sendResult;
   }
   public async unbanEntity(
     ruleType: PolicyRuleType,

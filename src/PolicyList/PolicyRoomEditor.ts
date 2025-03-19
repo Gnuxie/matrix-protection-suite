@@ -8,14 +8,24 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import {
+  MatrixRoomID,
+  StringEventID,
+} from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../Interface/Action';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyRule, Recommendation } from './PolicyRule';
+
+export type TakedownPolicyOption = {
+  /** Whether the policy should be hashed, default to true */
+  shouldHash?: boolean | undefined;
+};
 
 /**
  * An interface for editing the policies in a PolicyRoom.
  */
 export interface PolicyRoomEditor {
+  readonly room: MatrixRoomID;
   /**
    * Create a policy in the Matrix room.
    * @param entityType The `PolicyRuleType` for the policy.
@@ -74,6 +84,11 @@ export interface PolicyRoomEditor {
     entity: string,
     reason?: string
   ): Promise<ActionResult<string>>;
+  takedownEntity(
+    ruleType: PolicyRuleType,
+    entity: string,
+    options: TakedownPolicyOption
+  ): Promise<ActionResult<StringEventID>>;
   /**
    * Unban an entity that has a policy with the ban recommendation enacted against it.
    * @param ruleType The `PolicyRuleType` relevant to the entity.
