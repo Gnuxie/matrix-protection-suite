@@ -36,6 +36,15 @@ export interface PolicyRoomEditor {
     additionalProperties: Record<string, unknown>
   ): Promise<ActionResult<string /** The event ID of the new policy. */>>;
   /**
+   * A lower level utility to remove a single policy rule.
+   * The other methods usually remove all rules by entity,
+   * whereas this one will just remove the relevant rules by state_key (current and legacy).
+   */
+  removePolicyByStateKey(
+    ruleType: PolicyRuleType,
+    stateKey: string
+  ): Promise<ActionResult<void>>;
+  /**
    * Remove a policy enacted upon an entity from the Matrix room.
    * Necessary because each `PolicyRuleType` and `Recommendation` can have
    * several variants from historical code.

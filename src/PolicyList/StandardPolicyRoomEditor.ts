@@ -31,6 +31,48 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
   ) {
     // nothing to do.
   }
+  public async removePolicyByStateKey(
+    ruleType: PolicyRuleType,
+    stateKey: string
+  ): Promise<ActionResult<void>> {
+    const eventTypesToCheck = variantsForPolicyRuleType(ruleType);
+    const sendNullState = async (
+      stateType: string,
+      stateKey: string
+    ): Promise<ActionResult<void>> => {
+      const sendResult = await this.roomStateEventSender.sendStateEvent(
+        this.room.toRoomIDOrAlias(),
+        stateType,
+        stateKey,
+        {}
+      );
+      if (isError(sendResult)) {
+        return sendResult.elaborate(
+          `Could not remove the policy rule with the type ${ruleType} and state key ${stateKey}`
+        );
+      }
+      return Ok(undefined);
+    };
+    const typesToRemoveResults = eventTypesToCheck
+      .map(
+        (stateType) =>
+          this.roomStateRevisionIssuer.currentRevision.getStateEvent(
+            stateType,
+            stateKey
+          )?.type
+      )
+      .filter((stateType): stateType is string => stateType !== undefined);
+    if (typesToRemoveResults.length === 0) {
+      return Ok(undefined);
+    }
+    for (const stateType of typesToRemoveResults) {
+      const nullResult = await sendNullState(stateType, stateKey);
+      if (isError(nullResult)) {
+        return nullResult;
+      }
+    }
+    return Ok(undefined);
+  }
   public async createPolicy(
     entityType: PolicyRuleType,
     recommendation: Recommendation,
