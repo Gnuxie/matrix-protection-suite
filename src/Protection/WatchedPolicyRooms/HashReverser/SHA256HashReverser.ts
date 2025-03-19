@@ -4,7 +4,10 @@
  * have a plain text literal instead of a hash.
  */
 
-import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
+import {
+  StringRoomID,
+  StringUserID,
+} from '@the-draupnir-project/matrix-basic-types';
 import {
   HashedLiteralPolicyRule,
   LiteralPolicyRule,
@@ -41,6 +44,15 @@ const log = new Logger('SHA256RoomHashReverser');
  * in a way where they can have a circular dependency on the issuer produced by
  * the WatchedPolicyRooms.
  */
+
+export type RoomBasicDetails = {
+  creator?: StringUserID | undefined;
+  room_id: StringRoomID;
+  name?: string | undefined;
+  topic?: string | undefined;
+  avatar?: string | undefined;
+  joined_members?: number | undefined;
+};
 
 export type SHA256RoomHashListener = (
   roomID: StringRoomID,
