@@ -85,10 +85,10 @@ export class StandardSetMembershipPolicyRevision
         continue;
       }
       const matchingRules = [
-        ...policyRevision.allRulesMatchingEntity(
-          change.userID,
-          PolicyRuleType.User
-        ),
+        ...policyRevision.allRulesMatchingEntity(change.userID, {
+          type: PolicyRuleType.User,
+          searchHashedRules: false,
+        }),
         // hmm would it be better if the membership revision grouped users by server so that
         // we would only need to do server scans once?
         // i mean we'd have to do the complete scan when the user is joining a room we already have interned
@@ -96,7 +96,10 @@ export class StandardSetMembershipPolicyRevision
         // That being said, there aren't that many server rules...
         ...policyRevision.allRulesMatchingEntity(
           userServerName(change.userID),
-          PolicyRuleType.Server
+          {
+            type: PolicyRuleType.Server,
+            searchHashedRules: false,
+          }
         ),
       ];
       if (change.changeType === SetMembershipChangeType.BecamePresent) {
@@ -168,14 +171,14 @@ export class StandardSetMembershipPolicyRevision
     const addedMatches: MemberPolicyMatch[] = [];
     for (const member of setMembershipRevision.presentMembers()) {
       const matchingRules = [
-        ...temporaryRevision.allRulesMatchingEntity(
-          member,
-          PolicyRuleType.User
-        ),
-        ...temporaryRevision.allRulesMatchingEntity(
-          member,
-          PolicyRuleType.Server
-        ),
+        ...temporaryRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.User,
+          searchHashedRules: false,
+        }),
+        ...temporaryRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.Server,
+          searchHashedRules: false,
+        }),
       ];
       if (matchingRules.length !== 0) {
         for (const rule of matchingRules) {
@@ -198,8 +201,14 @@ export class StandardSetMembershipPolicyRevision
     const addedMatches: MemberPolicyMatch[] = [];
     for (const member of setMembershipRevision.presentMembers()) {
       const matchingRules = [
-        ...policyRevision.allRulesMatchingEntity(member, PolicyRuleType.User),
-        ...policyRevision.allRulesMatchingEntity(member, PolicyRuleType.Server),
+        ...policyRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.User,
+          searchHashedRules: false,
+        }),
+        ...policyRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.Server,
+          searchHashedRules: false,
+        }),
       ];
       if (matchingRules.length !== 0) {
         for (const rule of matchingRules) {

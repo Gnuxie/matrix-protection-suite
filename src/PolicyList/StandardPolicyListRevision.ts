@@ -14,10 +14,11 @@
 // still a pita though.
 
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from './PolicyListRevision';
+import { EntityMatchOptions, PolicyListRevision } from './PolicyListRevision';
 import {
   EntityPolicyRule,
   GlobPolicyRule,
+  HashedLiteralPolicyRule,
   LiteralPolicyRule,
   PolicyRule,
   PolicyRuleMatchType,
@@ -28,6 +29,8 @@ import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
 import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
+import { SHA256 } from 'crypto-js';
+import Base64 from 'crypto-js/enc-base64';
 
 /**
  * A map of policy rules, by their type and then event id.
@@ -85,13 +88,16 @@ export class StandardPolicyListRevision implements PolicyListRevision {
 
   allRulesMatchingEntity(
     entity: string,
-    ruleKind?: PolicyRuleType | undefined,
-    recommendation?: Recommendation
+    {
+      recommendation,
+      type: ruleKind,
+      searchHashedRules,
+    }: Partial<EntityMatchOptions>
   ): PolicyRule[] {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
         return ruleKind;
-      } else if (entityPart.startsWith('#') || entityPart.startsWith('#')) {
+      } else if (entityPart.startsWith('!') || entityPart.startsWith('#')) {
         return PolicyRuleType.Room;
       } else if (entity.startsWith('@')) {
         return PolicyRuleType.User;
@@ -106,7 +112,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       if (scope === undefined) {
         return [];
       }
-      return scope.allRulesMatchingEntity(entity);
+      return scope.allRulesMatchingEntity(entity, Boolean(searchHashedRules));
     }
     return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
       (rule) =>
@@ -115,16 +121,50 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     );
   }
 
+  findRulesMatchingHash(
+    hash: string,
+    algorithm: string,
+    {
+      type,
+      recommendation,
+    }: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
+      Pick<EntityMatchOptions, 'type'>
+  ): HashedLiteralPolicyRule[] {
+    if (algorithm !== 'sha256') {
+      throw new TypeError('Unimplemented hash algorithm');
+    }
+    const allScopesForType = this.policyRuleScopes.get(type);
+    if (allScopesForType === undefined) {
+      return [];
+    }
+    const rules: HashedLiteralPolicyRule[] = [];
+    const scopesToCheck = (() => {
+      if (recommendation !== undefined) {
+        const recommendationScope = allScopesForType.get(recommendation);
+        if (recommendationScope === undefined) {
+          return [];
+        } else {
+          return [recommendationScope];
+        }
+      } else {
+        return [...allScopesForType.values()];
+      }
+    })();
+    for (const scope of scopesToCheck) {
+      rules.push(...scope.findHashRules(hash));
+    }
+    return rules;
+  }
+
   findRuleMatchingEntity(
     entity: string,
-    type: PolicyRuleType,
-    recommendation: Recommendation
+    { recommendation, type, searchHashedRules }: EntityMatchOptions
   ): PolicyRule | undefined {
     const scope = this.policyRuleScopes.get(type)?.get(recommendation);
     if (scope === undefined) {
       return undefined;
     } else {
-      return scope.findRuleMatchingEntity(entity);
+      return scope.findRuleMatchingEntity(entity, searchHashedRules);
     }
   }
 
@@ -314,6 +354,7 @@ class PolicyRuleScope {
       ruleType,
       recommendation,
       PersistentMap(),
+      PersistentMap(),
       PersistentMap()
     );
   }
@@ -335,7 +376,14 @@ class PolicyRuleScope {
     /**
      * This table allows us to skip matching an entity against every literal.
      */
-    private readonly literalRules: PolicyRuleByEntity<LiteralPolicyRule>
+    private readonly literalRules: PolicyRuleByEntity<LiteralPolicyRule>,
+    /**
+     * Hashed literal rules. This tables allows us to quickly find hashed rules.
+     */
+    private readonly sha256HashedLiteralRules: PersistentMap<
+      string,
+      PersistentList<HashedLiteralPolicyRule>
+    >
   ) {
     // nothing to do.
   }
@@ -368,24 +416,46 @@ class PolicyRuleScope {
     };
     let nextGlobRules = this.globRules;
     let nextLiteralRules = this.literalRules;
-    const addRule = (rule: EntityPolicyRule): void => {
+    let nextSha256LiteralRules = this.sha256HashedLiteralRules;
+    const addRule = (rule: PolicyRule): void => {
       if (rule.matchType === PolicyRuleMatchType.Glob) {
         nextGlobRules = addRuleToMap(nextGlobRules, rule);
-      } else {
+      } else if (rule.matchType === PolicyRuleMatchType.Literal) {
         nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
+      } else {
+        const sha256 = rule.hashes['sha256'];
+        if (sha256) {
+          nextSha256LiteralRules = ((rules) =>
+            nextSha256LiteralRules.set(sha256, rules.push(rule)))(
+            nextSha256LiteralRules.get(sha256) ??
+              PersistentList<HashedLiteralPolicyRule>()
+          );
+        }
       }
     };
-    const removeRule = (rule: EntityPolicyRule): void => {
+    const removeRule = (rule: PolicyRule): void => {
       if (rule.matchType === PolicyRuleMatchType.Glob) {
         nextGlobRules = removeRuleFromMap(nextGlobRules, rule);
-      } else {
+      } else if (rule.matchType === PolicyRuleMatchType.Literal) {
         nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
+      } else {
+        const sha256 = rule.hashes['sha256'];
+        if (sha256) {
+          const rules = (
+            nextSha256LiteralRules.get(sha256) ?? PersistentList()
+          ).filter(
+            (existingRule) =>
+              existingRule.sourceEvent.event_id !== rule.sourceEvent.event_id
+          );
+          if (rules.size === 0) {
+            nextSha256LiteralRules = nextSha256LiteralRules.delete(sha256);
+          } else {
+            nextSha256LiteralRules = nextSha256LiteralRules.set(sha256, rules);
+          }
+        }
       }
     };
     for (const change of changes) {
-      if (change.rule.matchType === PolicyRuleMatchType.HashedLiteral) {
-        continue; // no entity to intern
-      }
       if (
         change.rule.kind !== this.entityType ||
         change.rule.recommendation !== this.recommendation
@@ -406,7 +476,8 @@ class PolicyRuleScope {
       this.entityType,
       this.recommendation,
       nextGlobRules,
-      nextLiteralRules
+      nextLiteralRules,
+      nextSha256LiteralRules
     );
   }
   public literalRulesMatchingEntity(entity: string): PolicyRule[] {
@@ -426,16 +497,40 @@ class PolicyRuleScope {
       .map((rules) => [...rules])
       .flat();
   }
-  allRulesMatchingEntity(entity: string): PolicyRule[] {
+  public hashedRulesMatchingEntity(entity: string): PolicyRule[] {
+    return [
+      ...this.sha256HashedLiteralRules.get(
+        Base64.stringify(SHA256(entity)),
+        []
+      ),
+    ];
+  }
+
+  allRulesMatchingEntity(
+    entity: string,
+    searchHashedRules: boolean
+  ): PolicyRule[] {
     return [
       ...this.literalRulesMatchingEntity(entity),
       ...this.globRulesMatchingEntity(entity),
+      ...(searchHashedRules ? this.hashedRulesMatchingEntity(entity) : []),
     ];
   }
-  findRuleMatchingEntity(entity: string): PolicyRule | undefined {
+  findRuleMatchingEntity(
+    entity: string,
+    searchHashedRules: boolean
+  ): PolicyRule | undefined {
     const literalRule = this.literalRules.get(entity);
     if (literalRule !== undefined) {
       return literalRule.get(0);
+    }
+    if (searchHashedRules) {
+      const hashedRules = this.sha256HashedLiteralRules.get(
+        Base64.stringify(SHA256(entity))
+      );
+      if (hashedRules !== undefined) {
+        return hashedRules.get(0);
+      }
     }
     const globRules = this.globRulesMatchingEntity(entity);
     if (globRules.length === 0) {
@@ -443,5 +538,9 @@ class PolicyRuleScope {
     } else {
       return globRules.at(0);
     }
+  }
+
+  findHashRules(hash: string): HashedLiteralPolicyRule[] {
+    return [...this.sha256HashedLiteralRules.get(hash, [])];
   }
 }

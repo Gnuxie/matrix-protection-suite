@@ -11,7 +11,11 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { PolicyRule, Recommendation } from './PolicyRule';
+import {
+  HashedLiteralPolicyRule,
+  PolicyRule,
+  Recommendation,
+} from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { StateEvent } from '../MatrixTypes/Events';
@@ -42,6 +46,12 @@ registerDefaultDecoder(MJOLNIR_SHORTCODE_EVENT_TYPE, (event) =>
   Value.Decode(MjolnirShortcodeEvent, event)
 );
 
+export type EntityMatchOptions = {
+  type: PolicyRuleType;
+  recommendation: Recommendation;
+  searchHashedRules: boolean;
+};
+
 /**
  * An interface for reading rules from a `PolicyListRevision`.
  */
@@ -58,8 +68,7 @@ export interface PolicyListRevisionView {
    */
   allRulesMatchingEntity(
     entity: string,
-    type?: PolicyRuleType,
-    recommendation?: Recommendation
+    options: Partial<EntityMatchOptions>
   ): PolicyRule[];
   /**
    * @param type The PolicyRuleType to restrict the rules to.
@@ -77,8 +86,7 @@ export interface PolicyListRevisionView {
    */
   findRuleMatchingEntity(
     entity: string,
-    type: PolicyRuleType,
-    recommendation: Recommendation
+    options: EntityMatchOptions
   ): PolicyRule | undefined;
   /**
    * Is this the first revision that has been issued?
@@ -87,6 +95,13 @@ export interface PolicyListRevisionView {
 
   hasPolicy(eventID: StringEventID): boolean;
   getPolicy(eventID: StringEventID): PolicyRule | undefined;
+
+  findRulesMatchingHash(
+    hash: string,
+    algorithm: string,
+    options: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
+      Pick<EntityMatchOptions, 'type'>
+  ): HashedLiteralPolicyRule[];
 }
 
 /**

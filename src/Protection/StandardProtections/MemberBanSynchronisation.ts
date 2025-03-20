@@ -90,23 +90,27 @@ export class MemberBanSynchronisationProtection
         case MembershipChangeType.Unbanned:
           continue;
       }
-      const applicableRules =
-        directIssuer.currentRevision.allRulesMatchingEntity(
-          change.userID,
-          PolicyRuleType.User
+      const applicableRules = directIssuer.currentRevision
+        .allRulesMatchingEntity(change.userID, {
+          type: PolicyRuleType.User,
+          searchHashedRules: true,
+        })
+        .filter(
+          (rule) =>
+            rule.recommendation === Recommendation.Ban ||
+            rule.recommendation === Recommendation.Takedown
         );
-
-      for (const rule of applicableRules) {
-        if (rule.recommendation === Recommendation.Ban) {
-          const result = await this.userConsequences.consequenceForUserInRoom(
-            revision.room.toRoomIDOrAlias(),
-            change.userID,
-            rule.reason ?? '<no reason provided>'
-          );
-          if (isError(result)) {
-            errors.push(result.error);
-          }
-          break;
+      const firstRule = applicableRules[0];
+      if (firstRule) {
+        const result = await this.userConsequences.consequenceForUserInRoom(
+          revision.room.toRoomIDOrAlias(),
+          change.userID,
+          firstRule.recommendation === Recommendation.Takedown
+            ? 'takedown'
+            : firstRule.reason ?? '<no reason provided>'
+        );
+        if (isError(result)) {
+          errors.push(result.error);
         }
       }
     }

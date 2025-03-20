@@ -43,6 +43,8 @@ export class StandardSHA256RoomHashStore
     if (isError(storeResult)) {
       return storeResult;
     }
+    // FIXME: change this to emit a bulk of hashes not just a couple
+    // FIXME: The consumer of this should also probably just check all policies.
     for (const row of storeResult.ok) {
       this.emit('RoomHash', row.room_id, row.sha256);
     }

@@ -157,10 +157,10 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
       }
     };
     const rules =
-      this.policyRevisionIssuer.currentRevision.allRulesMatchingEntity(
-        entity,
-        ruleType
-      );
+      this.policyRevisionIssuer.currentRevision.allRulesMatchingEntity(entity, {
+        type: ruleType,
+        searchHashedRules: true,
+      });
     const removalErrors = (await Promise.all(rules.map(removeRule))).filter(
       isError
     );

@@ -51,10 +51,10 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
   );
   expect(watchedPolicyRooms.currentRevision.allRules().length).toBe(1);
   expect(
-    watchedPolicyRooms.currentRevision.findRuleMatchingEntity(
-      targetUser,
-      PolicyRuleType.User,
-      Recommendation.Ban
-    )
+    watchedPolicyRooms.currentRevision.findRuleMatchingEntity(targetUser, {
+      type: PolicyRuleType.User,
+      recommendation: Recommendation.Ban,
+      searchHashedRules: false,
+    })
   ).toBeDefined();
 });

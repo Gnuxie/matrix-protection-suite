@@ -16,10 +16,12 @@ import {
   normalisePolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
 import {
+  EntityMatchOptions,
   MjolnirShortcodeEvent,
   PolicyRoomRevision,
 } from './PolicyListRevision';
 import {
+  HashedLiteralPolicyRule,
   PolicyRule,
   PolicyRuleMatchType,
   Recommendation,
@@ -42,6 +44,8 @@ import {
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
 import { isError } from '@gnuxie/typescript-result';
+import { SHA256 } from 'crypto-js';
+import Base64 from 'crypto-js/enc-base64';
 
 const log = new Logger('StandardPolicyRoomRevision');
 
@@ -118,13 +122,16 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
 
   allRulesMatchingEntity(
     entity: string,
-    ruleKind?: PolicyRuleType | undefined,
-    recommendation?: Recommendation
+    {
+      recommendation,
+      type: ruleKind,
+      searchHashedRules,
+    }: Partial<EntityMatchOptions>
   ): PolicyRule[] {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
         return ruleKind;
-      } else if (entityPart.startsWith('#') || entityPart.startsWith('#')) {
+      } else if (entityPart.startsWith('!') || entityPart.startsWith('#')) {
         return PolicyRuleType.Room;
       } else if (entity.startsWith('@')) {
         return PolicyRuleType.User;
@@ -132,23 +139,55 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         return PolicyRuleType.Server;
       }
     };
+    const hash = searchHashedRules ? Base64.stringify(SHA256(entity)) : '';
     return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
-      (rule) =>
-        rule.matchType !== PolicyRuleMatchType.HashedLiteral &&
-        rule.isMatch(entity)
+      (rule) => {
+        if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
+          return rule.isMatch(entity);
+        } else {
+          if (searchHashedRules) {
+            return rule.hashes['sha256'] === hash;
+          } else {
+            return false;
+          }
+        }
+      }
     );
+  }
+
+  findRulesMatchingHash(
+    hash: string,
+    algorithm: string,
+    {
+      type,
+      recommendation,
+    }: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
+      Pick<EntityMatchOptions, 'type'>
+  ): HashedLiteralPolicyRule[] {
+    return this.allRulesOfType(type, recommendation).filter((rule) => {
+      if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
+        return false;
+      }
+      return rule.hashes[algorithm] === hash;
+    }) as HashedLiteralPolicyRule[];
   }
 
   findRuleMatchingEntity(
     entity: string,
-    type: PolicyRuleType,
-    recommendation: Recommendation
+    { recommendation, type, searchHashedRules }: EntityMatchOptions
   ): PolicyRule | undefined {
-    return this.allRulesOfType(type, recommendation).find(
-      (rule) =>
-        rule.matchType !== PolicyRuleMatchType.HashedLiteral &&
-        rule.isMatch(entity)
-    );
+    const hash = searchHashedRules ? Base64.stringify(SHA256(entity)) : '';
+    return this.allRulesOfType(type, recommendation).find((rule) => {
+      if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
+        return rule.isMatch(entity);
+      } else {
+        if (searchHashedRules) {
+          return rule.hashes['sha256'] === hash;
+        } else {
+          return false;
+        }
+      }
+    });
   }
 
   allRulesOfType(
