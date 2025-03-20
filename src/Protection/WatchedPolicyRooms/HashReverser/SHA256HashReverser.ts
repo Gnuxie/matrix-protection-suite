@@ -27,8 +27,9 @@ import { StandardPolicyListRevision } from '../../../PolicyList/StandardPolicyLi
 import { SimpleChangeType } from '../../../Interface/SimpleChangeType';
 import { Logger } from '../../../Logging/Logger';
 import { Task } from '../../../Interface/Task';
+import { reversePoliciesOfType } from './Reversal';
 
-const log = new Logger('SHA256RoomHashReverser');
+const log = new Logger('SHA256HashReverser');
 
 /** What are the situations we need to consider for a reverser that targets rooms?
  * 1. When new room policies are created, we need to check that hash against known room hashes
@@ -54,12 +55,15 @@ export type RoomBasicDetails = {
   joined_members?: number | undefined;
 };
 
-export type SHA256RoomHashListener = (
-  roomID: StringRoomID,
-  hash: string
+export type SHA256RerversedHashListener = (
+  roomHashes: RoomHashRecord[],
+  userHashes: UserHashRecord[],
+  serverHashes: ServerHashRecord[]
 ) => void;
 
 export type RoomHashRecord = { room_id: StringRoomID; sha256: string };
+export type UserHashRecord = { user_id: StringUserID; sha256: string };
+export type ServerHashRecord = { server_name: string; sha256: string };
 
 export type HashedRoomDetails = {
   roomID: StringRoomID;
@@ -67,66 +71,92 @@ export type HashedRoomDetails = {
   server: string;
 };
 
-export interface SHA256RoomHashStore {
-  on(event: 'RoomHash', listener: SHA256RoomHashListener): this;
-  off(event: 'RoomHash', listener: SHA256RoomHashListener): this;
+/**
+ * In the future, when the time comes that we need to reverse all known users,
+ * we will probably need a component that just forwards "discovered" users
+ * to a store. This would then be a dependency included in the SetMembershipRevision.
+ * It will probably want to accept the entire SetMembershipRevision itself
+ * for checking at startup. This is so that it can break up the amount of work
+ * on the db by breaking up the query size. And then the revision will just forward updates
+ * as it discovers users as normal.
+ */
+export type SHA256Base64FromEntity = (entity: string) => string;
+
+export interface SHA256HashStore {
+  on(event: 'ReversedHashes', listener: SHA256RerversedHashListener): this;
+  off(event: 'ReversedHashes', listener: SHA256RerversedHashListener): this;
+  findUserHash(hash: string): Promise<Result<StringUserID | undefined>>;
   findRoomHash(hash: string): Promise<Result<StringRoomID | undefined>>;
-  reverseHashedRoomPolicies(
+  findServerHash(hash: string): Promise<Result<string | undefined>>;
+  reverseHashedPolicies(
     policies: HashedLiteralPolicyRule[]
   ): Promise<Result<LiteralPolicyRule[]>>;
   storeUndiscoveredRooms(
     roomIDs: StringRoomID[]
   ): Promise<Result<RoomHashRecord[]>>;
+  // servers are covered by users and rooms for now.
+  storeUndiscoveredUsers(
+    userIDs: StringUserID[]
+  ): Promise<Result<UserHashRecord[]>>;
   storeRoomIdentification(details: HashedRoomDetails): Promise<Result<void>>;
 }
 
-export class SHA256RoomHashReverser
+export class SHA256HashReverser
   extends EventEmitter
   implements PolicyListRevisionIssuer
 {
   private constructor(
     public currentRevision: PolicyListRevision,
     private readonly parentIssuer: PolicyListRevisionIssuer,
-    private readonly store: SHA256RoomHashStore
+    private readonly store: SHA256HashStore
   ) {
     super();
-    this.store.on('RoomHash', this.handleDiscoveredRoomHash);
+    this.store.on('ReversedHashes', this.handleDiscoveredHashes);
     this.parentIssuer.on('revision', this.handlePolicyListRevision);
   }
 
-  private readonly handleDiscoveredRoomHash: SHA256RoomHashListener = function (
-    this: SHA256RoomHashReverser,
-    roomID: StringRoomID,
-    hash: string
-  ) {
-    const matchingPolicies = this.parentIssuer.currentRevision
-      .allRulesOfType(PolicyRuleType.Room)
-      .filter(
+  private readonly handleDiscoveredHashes = (
+    function (this: SHA256HashReverser, roomHashes, userHashes, serverHashes) {
+      const reversedPolicies = [
+        ...reversePoliciesOfType(
+          roomHashes,
+          (record: RoomHashRecord) => record.room_id,
+          PolicyRuleType.Room,
+          this.parentIssuer.currentRevision,
+          this.currentRevision
+        ),
+        ...reversePoliciesOfType(
+          userHashes,
+          (record: UserHashRecord) => record.user_id,
+          PolicyRuleType.User,
+          this.parentIssuer.currentRevision,
+          this.currentRevision
+        ),
+        ...reversePoliciesOfType(
+          serverHashes,
+          (record: ServerHashRecord) => record.server_name,
+          PolicyRuleType.Server,
+          this.parentIssuer.currentRevision,
+          this.currentRevision
+        ),
+      ];
+      const changes = reversedPolicies.map(
         (policy) =>
-          policy.matchType === PolicyRuleMatchType.HashedLiteral &&
-          policy.hashes['sha256'] === hash
-      ) as HashedLiteralPolicyRule[];
-    const reversedPolicies = matchingPolicies
-      .map((policy) => makeReversedHashedPolicy(roomID, policy))
-      .filter((policy) =>
-        this.currentRevision.hasPolicy(policy.sourceEvent.event_id)
+          ({
+            rule: policy,
+            sender: policy.sourceEvent.sender,
+            changeType: SimpleChangeType.Added,
+            event: policy.sourceEvent,
+          }) satisfies PolicyRuleChange
       );
-    const changes = reversedPolicies.map(
-      (policy) =>
-        ({
-          rule: policy,
-          sender: policy.sourceEvent.sender,
-          changeType: SimpleChangeType.Added,
-          event: policy.sourceEvent,
-        }) satisfies PolicyRuleChange
-    );
-    const previousRevision = this.currentRevision;
-    this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
-  }.bind(this);
+      const previousRevision = this.currentRevision;
+      this.currentRevision = this.currentRevision.reviseFromChanges(changes);
+      this.emit('revision', this.currentRevision, changes, previousRevision);
+    } satisfies SHA256RerversedHashListener
+  ).bind(this);
 
   private readonly handlePolicyListRevision: RevisionListener = function (
-    this: SHA256RoomHashReverser,
+    this: SHA256HashReverser,
     revision: PolicyListRevision,
     mixedChanges: PolicyRuleChange[]
   ) {
@@ -142,7 +172,7 @@ export class SHA256RoomHashReverser
           }
         }
         const newlyReversedPolicies =
-          await this.store.reverseHashedRoomPolicies(addedPoliciesToCheck);
+          await this.store.reverseHashedPolicies(addedPoliciesToCheck);
         if (isError(newlyReversedPolicies)) {
           log.error(
             'Unable to reverse new policies',
@@ -198,11 +228,11 @@ export class SHA256RoomHashReverser
 
   public async create(
     parentIssuer: PolicyListRevisionIssuer,
-    store: SHA256RoomHashStore
-  ): Promise<Result<SHA256RoomHashReverser>> {
-    const initialReversedPolicies = await store.reverseHashedRoomPolicies(
+    store: SHA256HashStore
+  ): Promise<Result<SHA256HashReverser>> {
+    const initialReversedPolicies = await store.reverseHashedPolicies(
       parentIssuer.currentRevision
-        .allRulesOfType(PolicyRuleType.Room)
+        .allRules()
         .filter(
           (policy) => policy.matchType === PolicyRuleMatchType.HashedLiteral
         )
@@ -224,11 +254,11 @@ export class SHA256RoomHashReverser
             }) satisfies PolicyRuleChange
         )
       );
-    return Ok(new SHA256RoomHashReverser(revision, parentIssuer, store));
+    return Ok(new SHA256HashReverser(revision, parentIssuer, store));
   }
 
   unregisterListeners(): void {
-    this.store.off('RoomHash', this.handleDiscoveredRoomHash);
+    this.store.off('ReversedHashes', this.handleDiscoveredHashes);
     this.parentIssuer.off('revision', this.handlePolicyListRevision);
   }
 }
