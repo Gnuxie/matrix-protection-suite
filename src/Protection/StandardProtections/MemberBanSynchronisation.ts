@@ -93,7 +93,7 @@ export class MemberBanSynchronisationProtection
       const applicableRules = directIssuer.currentRevision
         .allRulesMatchingEntity(change.userID, {
           type: PolicyRuleType.User,
-          searchHashedRules: true,
+          searchHashedRules: false,
         })
         .filter(
           (rule) =>
