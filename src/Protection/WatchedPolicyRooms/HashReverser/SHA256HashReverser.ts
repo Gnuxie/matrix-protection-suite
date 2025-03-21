@@ -6,6 +6,7 @@
 
 import {
   StringRoomID,
+  StringServerName,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
 import {
@@ -30,6 +31,25 @@ import { Task } from '../../../Interface/Task';
 import { reversePoliciesOfType } from './Reversal';
 
 const log = new Logger('SHA256HashReverser');
+
+// FIXME: We need to think reversing...
+// The issue is that on appservice draupnir, i'm not sure that it makes
+// sense for the reverser to be duplicated and independent when the store isn't
+// it will just mean there are duplicate policies for every policy room
+// in common -- not good.
+// So i'm thinking instead that the hash reverser work more closely with
+// the PolicyRoomManager. To reverse policies directly in watched lists...
+// that will cause some issues though. It will mean that -- ok it won't work
+// because of the way that PolicyRoomRevisions intern policies...
+// would it matter though? a reversed policy just replaces an existing one...
+// We could special case that code....
+
+// The second issue is --
+
+// We should add this to the PolicyRoomManager.. it should hook directly
+// into the revision process if it can and reverse policies in the background.
+// we'd need to check that fetching revisions goes through a central piece
+// and not a capability....
 
 /** What are the situations we need to consider for a reverser that targets rooms?
  * 1. When new room policies are created, we need to check that hash against known room hashes
@@ -62,7 +82,11 @@ export type SHA256RerversedHashListener = (
 ) => void;
 
 export type RoomHashRecord = { room_id: StringRoomID; sha256: string };
-export type UserHashRecord = { user_id: StringUserID; sha256: string };
+export type UserHashRecord = {
+  user_id: StringUserID;
+  sha256: string;
+  server_name: StringServerName;
+};
 export type ServerHashRecord = { server_name: string; sha256: string };
 
 export type HashedRoomDetails = {
@@ -85,6 +109,10 @@ export type SHA256Base64FromEntity = (entity: string) => string;
 export interface SHA256HashStore {
   on(event: 'ReversedHashes', listener: SHA256RerversedHashListener): this;
   off(event: 'ReversedHashes', listener: SHA256RerversedHashListener): this;
+  emit(
+    event: 'ReversedHashes',
+    ...args: Parameters<SHA256RerversedHashListener>
+  ): void;
   findUserHash(hash: string): Promise<Result<StringUserID | undefined>>;
   findRoomHash(hash: string): Promise<Result<StringRoomID | undefined>>;
   findServerHash(hash: string): Promise<Result<string | undefined>>;
