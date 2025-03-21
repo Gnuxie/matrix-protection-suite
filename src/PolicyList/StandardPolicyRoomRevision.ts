@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 - 2021 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -22,21 +22,21 @@ import {
 } from './PolicyListRevision';
 import {
   HashedLiteralPolicyRule,
+  LiteralPolicyRule,
   PolicyRule,
   PolicyRuleMatchType,
   Recommendation,
   parsePolicyRule,
 } from './PolicyRule';
-import { PolicyRuleChange } from './PolicyRuleChange';
+import { PolicyRuleChange, PolicyRuleChangeType } from './PolicyRuleChange';
 import {
   StateChangeType,
   calculateStateChange,
 } from '../StateTracking/StateChangeType';
 import { Revision } from './Revision';
-import { Map as PersistentMap } from 'immutable';
+import { Map as PersistentMap, List as PersistentList } from 'immutable';
 import { Logger } from '../Logging/Logger';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
 import {
   MatrixRoomID,
@@ -62,6 +62,13 @@ type PolicyRuleMap = PersistentMap<
  */
 type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
 
+// FIXME: Delete this indexing technique if we decide to use a PolicyListRevision
+// of all known PolicyRoomRevisions for hash reversal..
+type PolicyRuleByHashMap = PersistentMap<
+  string /* hash */,
+  PersistentList<HashedLiteralPolicyRule>
+>;
+
 /**
  * A standard implementation of a `PolicyListRevision` using immutable's persistent maps.
  */
@@ -85,6 +92,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
      * Allow us to detect whether we have updated the state for this event.
      */
     private readonly policyRuleByEventId: PolicyRuleByEventIDMap,
+    private readonly policyRuleBySHA256: PolicyRuleByHashMap,
     private readonly powerLevelsEvent: PowerLevelsEvent | undefined
   ) {}
 
@@ -96,6 +104,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       room,
       new Revision(),
       undefined,
+      PersistentMap(),
       PersistentMap(),
       PersistentMap(),
       undefined
@@ -164,6 +173,18 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     }: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
       Pick<EntityMatchOptions, 'type'>
   ): HashedLiteralPolicyRule[] {
+    if (algorithm === 'sha256') {
+      return [
+        ...this.policyRuleBySHA256
+          .get(hash, PersistentList<HashedLiteralPolicyRule>())
+          .filter(
+            (rule) =>
+              type === rule.kind &&
+              (recommendation === undefined ||
+                recommendation === rule.recommendation)
+          ),
+      ];
+    }
     return this.allRulesOfType(type, recommendation).filter((rule) => {
       if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
         return false;
@@ -215,6 +236,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
   ): StandardPolicyRoomRevision {
     let nextPolicyRules = this.policyRules;
     let nextPolicyRulesByEventID = this.policyRuleByEventId;
+    let nextPolicyRulesBySHA256 = this.policyRuleBySHA256;
     const setPolicyRule = (
       stateType: PolicyRuleType,
       stateKey: string,
@@ -229,6 +251,16 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         rule.sourceEvent.event_id,
         rule
       );
+      if (
+        rule.matchType === PolicyRuleMatchType.HashedLiteral &&
+        rule.hashes['sha256']
+      ) {
+        const entry = nextPolicyRulesBySHA256.get(
+          rule.hashes['sha256'],
+          PersistentList<HashedLiteralPolicyRule>()
+        );
+        nextPolicyRulesBySHA256.set(rule.hashes['sha256'], entry.push(rule));
+      }
     };
     const removePolicyRule = (rule: PolicyRule): void => {
       const typeTable = nextPolicyRules.get(rule.kind);
@@ -244,18 +276,41 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       nextPolicyRulesByEventID = nextPolicyRulesByEventID.delete(
         rule.sourceEvent.event_id
       );
+      if (
+        rule.matchType === PolicyRuleMatchType.HashedLiteral &&
+        rule.hashes['sha256']
+      ) {
+        const entry = nextPolicyRulesBySHA256.get(rule.hashes['sha256']);
+        if (entry !== undefined) {
+          const nextEntry = entry.filter(
+            (searchRule) =>
+              searchRule.sourceEvent.event_id !== rule.sourceEvent.event_id
+          );
+          if (nextEntry.size === 0) {
+            nextPolicyRulesBySHA256 = nextPolicyRulesBySHA256.delete(
+              rule.hashes['sha256']
+            );
+          } else {
+            nextPolicyRulesBySHA256 = nextPolicyRulesBySHA256.set(
+              rule.hashes['sha256'],
+              nextEntry
+            );
+          }
+        }
+      }
     };
     for (const change of changes) {
       switch (change.changeType) {
-        case SimpleChangeType.Added:
-        case SimpleChangeType.Modified:
+        case PolicyRuleChangeType.Added:
+        case PolicyRuleChangeType.Modified:
+        case PolicyRuleChangeType.RevealedLiteral:
           setPolicyRule(
             change.rule.kind,
             change.rule.sourceEvent.state_key,
             change.rule
           );
           break;
-        case SimpleChangeType.Removed:
+        case PolicyRuleChangeType.Removed:
           removePolicyRule(change.rule);
           break;
         default:
@@ -270,6 +325,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       this.shortcode,
       nextPolicyRules,
       nextPolicyRulesByEventID,
+      nextPolicyRulesBySHA256,
       this.powerLevelsEvent
     );
   }
@@ -349,7 +405,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
               ? redactedBecause.sender
               : event.sender;
           changes.push({
-            changeType: SimpleChangeType.Removed,
+            changeType: PolicyRuleChangeType.Removed,
             event,
             sender,
             rule: existingRule,
@@ -379,8 +435,8 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
             rule: ruleParseResult.ok,
             changeType:
               changeType === StateChangeType.SupersededContent
-                ? SimpleChangeType.Modified
-                : SimpleChangeType.Added,
+                ? PolicyRuleChangeType.Modified
+                : PolicyRuleChangeType.Added,
             event,
             sender: event.sender,
             ...(existingState ? { existingState } : {}),
@@ -395,6 +451,33 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
         default:
           throw new TypeError(`Unrecognised state change type ${changeType}`);
       }
+    }
+    return changes;
+  }
+
+  public changesFromRevealedPolicies(
+    policies: LiteralPolicyRule[]
+  ): PolicyRuleChange[] {
+    const changes: PolicyRuleChange[] = [];
+    for (const policy of policies) {
+      if (policy.sourceEvent.room_id !== this.room.toRoomIDOrAlias()) {
+        continue; // not for this list
+      }
+      const entry = this.policyRuleByEventId.get(policy.sourceEvent.event_id);
+      if (entry === undefined) {
+        throw new TypeError(
+          "Somehow we are being given a reversed policy from this list that we haven't even interned yet"
+        );
+      }
+      if (entry.isReversedFromHashedPolicy) {
+        continue; // already interned
+      }
+      changes.push({
+        changeType: PolicyRuleChangeType.RevealedLiteral,
+        event: policy.sourceEvent,
+        sender: policy.sourceEvent.sender,
+        rule: policy,
+      });
     }
     return changes;
   }
@@ -422,6 +505,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       this.shortcode,
       this.policyRules,
       this.policyRuleByEventId,
+      this.policyRuleBySHA256,
       powerLevels
     );
   }
@@ -432,6 +516,7 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       event.content.shortcode,
       this.policyRules,
       this.policyRuleByEventId,
+      this.policyRuleBySHA256,
       this.powerLevelsEvent
     );
   }

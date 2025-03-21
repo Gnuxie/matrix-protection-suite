@@ -12,8 +12,10 @@ import { EventEmitter } from 'events';
 import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { SimpleChangeType } from '../Interface/SimpleChangeType';
+import {
+  PolicyRuleChange,
+  PolicyRuleChangeType,
+} from '../PolicyList/PolicyRuleChange';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 
 export interface DirectPropagationPolicyListRevisionIssuer
@@ -72,7 +74,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     const changes: PolicyRuleChange[] = [];
     for (const policy of revision.allRules()) {
       changes.push({
-        changeType: SimpleChangeType.Added,
+        changeType: PolicyRuleChangeType.Added,
         event: policy.sourceEvent,
         sender: policy.sourceEvent.sender,
         rule: policy,
@@ -87,7 +89,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     const changes: PolicyRuleChange[] = [];
     for (const policy of revision.allRules()) {
       changes.push({
-        changeType: SimpleChangeType.Removed,
+        changeType: PolicyRuleChangeType.Removed,
         event: policy.sourceEvent,
         sender: policy.sourceEvent.sender,
         rule: policy,

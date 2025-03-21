@@ -13,6 +13,7 @@ import { StateEvent } from '../MatrixTypes/Events';
 import { Redaction } from '../MatrixTypes/Redaction';
 import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
 import { PolicyRuleChange } from './PolicyRuleChange';
+import { LiteralPolicyRule } from './PolicyRule';
 
 export type RevisionListener = (
   nextRevision: PolicyListRevision,
@@ -68,4 +69,8 @@ export interface PolicyRoomRevisionIssuer extends PolicyListRevisionIssuer {
    * @param event The redaction in question.
    */
   updateForRedactionEvent(event: Redaction): void;
+  /**
+   * Inform the revision issuer about hashed policies whose entity have been revealed.
+   */
+  updateForRevealedPolicies(policies: LiteralPolicyRule[]): void;
 }

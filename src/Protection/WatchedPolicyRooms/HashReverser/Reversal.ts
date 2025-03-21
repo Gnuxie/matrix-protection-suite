@@ -16,8 +16,7 @@ export function reversePoliciesOfType<Record extends HashRecord>(
   hashRecords: Record[],
   entityExtractor: EntityFromRecord<Record>,
   type: PolicyRuleType,
-  sourceRevision: PolicyListRevision,
-  reversedRevision: PolicyListRevision
+  sourceRevision: PolicyListRevision
 ): LiteralPolicyRule[] {
   const reversedPolicies: LiteralPolicyRule[] = [];
   for (const record of hashRecords) {
@@ -29,13 +28,9 @@ export function reversePoliciesOfType<Record extends HashRecord>(
       }
     );
     reversedPolicies.push(
-      ...matchingPolicies
-        .filter((policy) =>
-          reversedRevision.hasPolicy(policy.sourceEvent.event_id)
-        )
-        .map((policy) =>
-          makeReversedHashedPolicy(entityExtractor(record), policy)
-        )
+      ...matchingPolicies.map((policy) =>
+        makeReversedHashedPolicy(entityExtractor(record), policy)
+      )
     );
   }
   return reversedPolicies;

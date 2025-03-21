@@ -13,6 +13,7 @@ import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import {
   HashedLiteralPolicyRule,
+  LiteralPolicyRule,
   PolicyRule,
   Recommendation,
 } from './PolicyRule';
@@ -141,6 +142,13 @@ export interface PolicyRoomRevision extends PolicyListRevision {
    * @returns A list of changes to `PolicyRule`s.
    */
   changesFromState(state: PolicyRuleEvent[]): PolicyRuleChange[];
+  /**
+   * Calculate the changes to `PolicyRule`'s contained within the revision based
+   * on hashed policy rules that have been reversed.
+   */
+  changesFromRevealedPolicies(
+    policies: LiteralPolicyRule[]
+  ): PolicyRuleChange[];
   /**
    * Check whether the list has a rule associated with this event.
    * @param eventId The id of a policy rule event.

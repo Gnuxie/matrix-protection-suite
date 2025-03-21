@@ -24,10 +24,9 @@ import {
   PolicyRuleMatchType,
   Recommendation,
 } from './PolicyRule';
-import { PolicyRuleChange } from './PolicyRuleChange';
+import { PolicyRuleChange, PolicyRuleChangeType } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
-import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
 import { SHA256 } from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
@@ -217,13 +216,14 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     };
     for (const change of changes) {
       if (
-        change.changeType === SimpleChangeType.Added ||
-        change.changeType === SimpleChangeType.Modified
+        change.changeType === PolicyRuleChangeType.Added ||
+        change.changeType === PolicyRuleChangeType.Modified ||
+        change.changeType === PolicyRuleChangeType.RevealedLiteral
       ) {
         setPolicyRule(change.rule.kind, change.rule);
         // The code base could change, and then we'd be screwed:
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      } else if (change.changeType === SimpleChangeType.Removed) {
+      } else if (change.changeType === PolicyRuleChangeType.Removed) {
         removePolicyRule(change.rule);
       } else {
         throw new TypeError(`Unknown change type ${change.changeType}`);
@@ -463,11 +463,12 @@ class PolicyRuleScope {
         continue;
       }
       switch (change.changeType) {
-        case SimpleChangeType.Added:
-        case SimpleChangeType.Modified:
+        case PolicyRuleChangeType.Added:
+        case PolicyRuleChangeType.Modified:
+        case PolicyRuleChangeType.RevealedLiteral:
           addRule(change.rule);
           break;
-        case SimpleChangeType.Removed:
+        case PolicyRuleChangeType.Removed:
           removeRule(change.rule);
       }
     }

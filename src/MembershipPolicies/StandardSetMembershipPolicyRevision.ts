@@ -18,7 +18,10 @@ import {
   PolicyRule,
   PolicyRuleMatchType,
 } from '../PolicyList/PolicyRule';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import {
+  PolicyRuleChange,
+  PolicyRuleChangeType,
+} from '../PolicyList/PolicyRuleChange';
 import {
   MemberPolicyMatch,
   MemberPolicyMatches,
@@ -27,7 +30,6 @@ import {
 } from './MembershipPolicyRevision';
 import { Map as PerisstentMap, List } from 'immutable';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
-import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { Revision } from '../PolicyList/Revision';
 
 // TODO: It would be nice to have a method on PolicyListRevision that would
@@ -134,7 +136,11 @@ export class StandardSetMembershipPolicyRevision
   ): MembershipPolicyRevisionDelta {
     const removedMatches: MemberPolicyMatch[] = [];
     const policiesToRemove = changes
-      .filter((change) => change.changeType !== SimpleChangeType.Added)
+      .filter(
+        (change) =>
+          change.changeType === PolicyRuleChangeType.Removed ||
+          change.changeType === PolicyRuleChangeType.Modified
+      )
       .map((change) => {
         if (change.previousRule === undefined) {
           throw new TypeError(
@@ -158,11 +164,11 @@ export class StandardSetMembershipPolicyRevision
       }
     }
     const relevantChangesForTemproaryRevision = changes
-      .filter((change) => change.changeType !== SimpleChangeType.Removed)
+      .filter((change) => change.changeType !== PolicyRuleChangeType.Removed)
       .map((change) =>
-        change.changeType === SimpleChangeType.Modified
-          ? { ...change, changeType: SimpleChangeType.Added }
-          : change
+        change.changeType !== PolicyRuleChangeType.Added
+          ? change
+          : { ...change, changeType: PolicyRuleChangeType.Added }
       );
     const temporaryRevision =
       StandardPolicyListRevision.blankRevision().reviseFromChanges(

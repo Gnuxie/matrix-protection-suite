@@ -17,6 +17,7 @@ import { Logger } from '../Logging/Logger';
 import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
 import { Redaction } from '../MatrixTypes/Redaction';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { LiteralPolicyRule } from './PolicyRule';
 
 const log = new Logger('StandardPolicyRoomRevisionIssuer');
 
@@ -57,6 +58,16 @@ export class StandardPolicyRoomRevisionIssuer
       return;
     }
     this.batcher.addToBatch(event.event_id);
+  }
+
+  updateForRevealedPolicies(policies: LiteralPolicyRule[]): void {
+    const changes = this.currentRevision.changesFromRevealedPolicies(policies);
+    if (changes.length === 0) {
+      return;
+    }
+    const previousRevision = this.currentRevision;
+    this.currentRevision = previousRevision.reviseFromChanges(changes);
+    this.emit('revision', this.currentRevision, changes, previousRevision);
   }
 
   public unregisterListeners(): void {

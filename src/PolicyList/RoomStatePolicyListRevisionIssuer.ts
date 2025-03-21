@@ -20,6 +20,7 @@ import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
 import { StateEvent } from '../MatrixTypes/Events';
 import { Redaction } from '../MatrixTypes/Redaction';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { LiteralPolicyRule } from './PolicyRule';
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that
@@ -107,6 +108,16 @@ export class RoomStatePolicyRoomRevisionIssuer
         previousRevision
       );
     }
+  }
+
+  updateForRevealedPolicies(policies: LiteralPolicyRule[]): void {
+    const changes = this.currentRevision.changesFromRevealedPolicies(policies);
+    if (changes.length === 0) {
+      return;
+    }
+    const previousRevision = this.currentRevision;
+    this.currentRevision = previousRevision.reviseFromChanges(changes);
+    this.emit('revision', this.currentRevision, changes, previousRevision);
   }
 
   public unregisterListeners(): void {
