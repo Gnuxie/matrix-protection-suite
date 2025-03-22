@@ -253,7 +253,7 @@ test('Banning a matching member incrementally will not cause spurious revisions 
   }
 });
 
-test.only('Test Banning a member with a hashed rule will work, including modification of the rule, and removal', async function () {
+test('Test Banning a member with a hashed rule will work, including modification of the rule, and removal', async function () {
   const targetUser = randomUserID();
   const policyRoom = randomRoomID([]);
   const { protectedRoomsSet, roomStateManager, policyRoomManager } =
@@ -329,7 +329,8 @@ test.only('Test Banning a member with a hashed rule will work, including modific
       reason: 'we change the reason or something idk',
     },
   };
-  // FUcking hell it's tragic that these things don't work together...
+  // FIXME: We need to have the room state manager factory in MPS with faked IO
+  // it's a tragedy...
   roomStateRevisionIssuer.updateForEvent(modifiedRuleEvent);
   policyRoomRevisionIssuer.updateForStateEvent(modifiedRuleEvent);
   expect(

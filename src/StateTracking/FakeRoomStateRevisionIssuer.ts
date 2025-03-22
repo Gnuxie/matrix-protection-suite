@@ -22,8 +22,13 @@ export class FakeRoomStateRevisionIssuer
     super();
   }
 
-  updateForEvent(): void {
-    // nothing to do.
+  updateForEvent(event: StateEvent): void {
+    const state = this.currentRevision.allState.filter(
+      (existingEvent) =>
+        existingEvent.state_key !== event.state_key &&
+        event.type !== existingEvent.type
+    );
+    this.reviseFromState([...state, event]);
   }
 
   updateForRedaction(): void {
