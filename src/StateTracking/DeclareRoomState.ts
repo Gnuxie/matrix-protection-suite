@@ -286,6 +286,7 @@ export type DescribePolicyRule = {
   room_id?: StringRoomID;
   type?: PolicyRuleType;
   entity?: string;
+  hashes?: Record<string, string>;
   reason?: string;
   recommendation?: Recommendation;
   copyFrom?: PolicyRuleEvent;
@@ -301,22 +302,29 @@ export function describePolicyRule({
   recommendation = Recommendation.Ban,
   copyFrom,
   remove,
+  hashes,
 }: DescribePolicyRule): PolicyRuleEvent {
   const content = (() => {
     if (remove !== undefined) {
       return undefined;
     } else if (copyFrom !== undefined) {
       return undefined;
-    } else if (entity === undefined) {
-      throw new TypeError(
-        `Content fields should be defined when copyFrom and remove aren't being used`
-      );
-    } else {
+    } else if (entity !== undefined) {
       return {
         entity,
         reason,
         recommendation,
       };
+    } else if (hashes !== undefined) {
+      return {
+        hashes,
+        reason,
+        recommendation,
+      };
+    } else {
+      throw new TypeError(
+        `Content fields should be defined when copyFrom and remove aren't being used`
+      );
     }
   })();
   const description = buildPolicyEvent({

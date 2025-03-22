@@ -60,6 +60,9 @@ import { Revision } from '../PolicyList/Revision';
 // room bans in a little list and simply compare and pop them off when we get
 // the bans.
 
+// FIXME: We are filtering out hashed rules, but we need them in order to accept
+// reversed rules...
+// FIXME: We really need unit test to test adding, reversing, and then removing hashed rules...
 export class StandardSetMembershipPolicyRevision
   implements SetMembershipPolicyRevision
 {
@@ -165,11 +168,15 @@ export class StandardSetMembershipPolicyRevision
     }
     const relevantChangesForTemproaryRevision = changes
       .filter((change) => change.changeType !== PolicyRuleChangeType.Removed)
-      .map((change) =>
-        change.changeType !== PolicyRuleChangeType.Added
-          ? change
-          : { ...change, changeType: PolicyRuleChangeType.Added }
-      );
+      .map((change) => {
+        switch (change.changeType) {
+          case PolicyRuleChangeType.Modified:
+          case PolicyRuleChangeType.RevealedLiteral:
+            return { ...change, changeType: PolicyRuleChangeType.Added };
+          default:
+            return change;
+        }
+      });
     const temporaryRevision =
       StandardPolicyListRevision.blankRevision().reviseFromChanges(
         relevantChangesForTemproaryRevision

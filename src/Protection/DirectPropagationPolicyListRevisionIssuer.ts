@@ -26,6 +26,8 @@ export interface DirectPropagationPolicyListRevisionIssuer
   readonly references: MatrixRoomID[];
 }
 
+export type PolicyFilter = (change: PolicyRuleChange) => boolean;
+
 export class StandardDirectPropagationPolicyListRevisionIssuer
   extends EventEmitter
   implements DirectPropagationPolicyListRevisionIssuer
@@ -34,18 +36,31 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
   private revisionListener = this.handleRevision.bind(this);
   private readonly policyListRevisionIssuers =
     new Set<PolicyListRevisionIssuer>();
-  public constructor(issuers: PolicyListRevisionIssuer[]) {
+  public constructor(
+    issuers: PolicyListRevisionIssuer[],
+    private readonly filter?: PolicyFilter | undefined
+  ) {
     super();
     this.addIssuers(issuers);
   }
 
+  private filterChanges(changes: PolicyRuleChange[]): PolicyRuleChange[] {
+    const filter = this.filter; // narrowing isn't working for some reason.
+    return filter ? changes.filter((change) => filter(change)) : changes;
+  }
+
   public handleRevision(
     _newRevision: PolicyListRevision,
-    changes: PolicyRuleChange[]
+    unfilteredChanges: PolicyRuleChange[]
   ) {
-    const oldRevision = this.revision;
-    this.revision = this.revision.reviseFromChanges(changes);
-    this.emit('revision', this.revision, changes, oldRevision);
+    const changes = this.filterChanges(unfilteredChanges);
+    if (changes.length > 0) {
+      const oldRevision = this.revision;
+      this.revision = this.revision.reviseFromChanges(
+        this.filterChanges(changes)
+      );
+      this.emit('revision', this.revision, changes, oldRevision);
+    }
   }
 
   public get currentRevision() {

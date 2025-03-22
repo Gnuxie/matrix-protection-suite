@@ -200,7 +200,7 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
         ...(options.shouldHash
           ? {
               hashes: {
-                sha256: SHA256(entity),
+                sha256: Base64.stringify(SHA256(entity)),
               },
             }
           : { entity }),

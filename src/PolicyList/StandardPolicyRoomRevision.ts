@@ -303,12 +303,26 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       switch (change.changeType) {
         case PolicyRuleChangeType.Added:
         case PolicyRuleChangeType.Modified:
-        case PolicyRuleChangeType.RevealedLiteral:
           setPolicyRule(
             change.rule.kind,
             change.rule.sourceEvent.state_key,
             change.rule
           );
+          break;
+        case PolicyRuleChangeType.RevealedLiteral:
+          if (this.hasEvent(change.event.event_id)) {
+            setPolicyRule(
+              change.rule.kind,
+              change.rule.sourceEvent.state_key,
+              change.rule
+            );
+          } else {
+            // This should only happen if a policy is quickly removed before it can be revealed asynchronously...
+            log.error(
+              "A RevealedLiteral rule was provided in changes, but we can't find the HashedLiteral rule",
+              change.rule
+            );
+          }
           break;
         case PolicyRuleChangeType.Removed:
           removePolicyRule(change.rule);
@@ -465,9 +479,11 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       }
       const entry = this.policyRuleByEventId.get(policy.sourceEvent.event_id);
       if (entry === undefined) {
-        throw new TypeError(
-          "Somehow we are being given a reversed policy from this list that we haven't even interned yet"
+        log.error(
+          "We've been provided a revealed literal for a policy that is no longer interned",
+          policy
         );
+        continue;
       }
       if (entry.isReversedFromHashedPolicy) {
         continue; // already interned

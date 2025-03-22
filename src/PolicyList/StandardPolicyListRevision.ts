@@ -30,6 +30,9 @@ import { Map as PersistentMap, List as PersistentList } from 'immutable';
 import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
 import { SHA256 } from 'crypto-js';
 import Base64 from 'crypto-js/enc-base64';
+import { Logger } from '../Logging/Logger';
+
+const log = new Logger('StandardPolicyListRevision');
 
 /**
  * A map of policy rules, by their type and then event id.
@@ -217,10 +220,23 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     for (const change of changes) {
       if (
         change.changeType === PolicyRuleChangeType.Added ||
-        change.changeType === PolicyRuleChangeType.Modified ||
-        change.changeType === PolicyRuleChangeType.RevealedLiteral
+        change.changeType === PolicyRuleChangeType.Modified
       ) {
         setPolicyRule(change.rule.kind, change.rule);
+      } else if (change.changeType === PolicyRuleChangeType.RevealedLiteral) {
+        if (
+          this.policyRuleByType
+            .get(change.rule.kind)
+            ?.get(change.rule.sourceEvent.event_id)
+        ) {
+          setPolicyRule(change.rule.kind, change.rule);
+        } else {
+          // We need to discount revealed literals for rules we don't know about... because otherwise we could be interning removed rules.
+          log.error(
+            'got a RevealedLiteral for an unknown policy rule',
+            change.rule
+          );
+        }
         // The code base could change, and then we'd be screwed:
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       } else if (change.changeType === PolicyRuleChangeType.Removed) {
@@ -237,6 +253,10 @@ export class StandardPolicyListRevision implements PolicyListRevision {
           [policyRuleType, recommendation],
           undefined
         ) as PolicyRuleScope | undefined;
+        const byEventMap = nextPolicyRulesByType.get(
+          policyRuleType,
+          PersistentMap<StringEventID, PolicyRule>()
+        );
         if (scopeEntry === undefined) {
           return map.setIn(
             [policyRuleType, recommendation],
@@ -244,12 +264,12 @@ export class StandardPolicyListRevision implements PolicyListRevision {
               nextRevisionID,
               policyRuleType,
               recommendation
-            ).reviseFromChanges(nextRevisionID, changes)
+            ).reviseFromChanges(nextRevisionID, changes, byEventMap)
           );
         } else {
           return map.setIn(
             [policyRuleType, recommendation],
-            scopeEntry.reviseFromChanges(nextRevisionID, changes)
+            scopeEntry.reviseFromChanges(nextRevisionID, changes, byEventMap)
           );
         }
       },
@@ -389,7 +409,8 @@ class PolicyRuleScope {
   }
   reviseFromChanges(
     revision: Revision,
-    changes: PolicyRuleChange[]
+    changes: PolicyRuleChange[],
+    rulesByEventID: PersistentMap<StringEventID, PolicyRule>
   ): PolicyRuleScope {
     const addRuleToMap = <Rule extends EntityPolicyRule = EntityPolicyRule>(
       map: PolicyRuleByEntity<Rule>,
@@ -465,8 +486,13 @@ class PolicyRuleScope {
       switch (change.changeType) {
         case PolicyRuleChangeType.Added:
         case PolicyRuleChangeType.Modified:
-        case PolicyRuleChangeType.RevealedLiteral:
           addRule(change.rule);
+          break;
+        case PolicyRuleChangeType.RevealedLiteral:
+          // We have to only add the rule if we know it is currently valid.. otherwise we could accidentally add a removed rule.
+          if (rulesByEventID.has(change.event.event_id)) {
+            addRule(change.rule);
+          }
           break;
         case PolicyRuleChangeType.Removed:
           removeRule(change.rule);
