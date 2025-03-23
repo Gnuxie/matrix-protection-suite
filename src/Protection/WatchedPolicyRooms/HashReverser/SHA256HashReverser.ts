@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: AFL-3.0
+
 /**
  * The purpose of the hash reverser is to implement the PolicyListRevisionIssuer interface by taking another PolicyListRevision,
  * and matching the HashedLiteral policies against known entities, and issuing new policies that
