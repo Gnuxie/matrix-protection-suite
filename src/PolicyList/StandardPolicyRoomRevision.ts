@@ -62,8 +62,6 @@ type PolicyRuleMap = PersistentMap<
  */
 type PolicyRuleByEventIDMap = PersistentMap<string /* event id */, PolicyRule>;
 
-// FIXME: Delete this indexing technique if we decide to use a PolicyListRevision
-// of all known PolicyRoomRevisions for hash reversal..
 type PolicyRuleByHashMap = PersistentMap<
   string /* hash */,
   PersistentList<HashedLiteralPolicyRule>

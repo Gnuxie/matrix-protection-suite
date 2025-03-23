@@ -33,46 +33,6 @@ import { StandardDirectPropagationPolicyListRevisionIssuer } from '../../DirectP
 
 const log = new Logger('SHA256HashReverser');
 
-// FIXME: We need to think reversing...
-// The issue is that on appservice draupnir, i'm not sure that it makes
-// sense for the reverser to be duplicated and independent when the store isn't
-// it will just mean there are duplicate policies for every policy room
-// in common -- not good.
-// So i'm thinking instead that the hash reverser work more closely with
-// the PolicyRoomManager. To reverse policies directly in watched lists...
-// that will cause some issues though. It will mean that -- ok it won't work
-// because of the way that PolicyRoomRevisions intern policies...
-// would it matter though? a reversed policy just replaces an existing one...
-// We could special case that code....
-
-// The second issue is --
-
-// We should add this to the PolicyRoomManager.. it should hook directly
-// into the revision process if it can and reverse policies in the background.
-// we'd need to check that fetching revisions goes through a central piece
-// and not a capability....
-
-// OK that's not how it works.
-// We need the hash reverser to accept policy room revision issuers
-// And it needs to be able to watch their revisoins
-// and it needs to also give the revision issuers reversed policies in return...
-// probably by a method... that we normally expect the manager to call.
-
-/** What are the situations we need to consider for a reverser that targets rooms?
- * 1. When new room policies are created, we need to check that hash against known room hashes
- * 2. When a new room is discovered, we need to check the room hash against known all room policy hashes
- * 3. We need to inform the reverser when policies are modified or removed.
- */
-
-/**
- * This is all very much something that can be handled just be speciifc modules
- * implementing the PolicyListRevisionIssuer interface.
- *
- * We need to consider a programmatic way of adding issuers to the WatchedPolicyRooms
- * in a way where they can have a circular dependency on the issuer produced by
- * the WatchedPolicyRooms.
- */
-
 export type RoomBasicDetails = {
   creator?: StringUserID | undefined;
   room_id: StringRoomID;
@@ -145,6 +105,12 @@ export interface SHA256HashStore {
  *
  * The policy room revision then updates its cache to show a literal rule with the
  * plain text entity rather than the hashed literal rule.
+ *
+ * The reverser is used by the RoomStateManagerFactory. This means that all
+ * Draupnir in draupnir appservice mode share the same reverser. The reason
+ * why we see this as acceptable is because if we end up with huge centralized
+ * d4all instances where this becomes a problem, then we have failed at
+ * decentralization.
  */
 interface SHA256HashReverser {
   addPolicyRoomRevisionIssuer(issuer: PolicyRoomRevisionIssuer): void;
