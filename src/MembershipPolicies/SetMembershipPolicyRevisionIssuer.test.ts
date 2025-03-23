@@ -9,14 +9,24 @@
 // 3. Adding and removing watched lists will update the matches
 // 4. Edge cases for membership and policy changes.
 
+import { SHA256 } from 'crypto-js';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { Membership } from '../Membership/MembershipChange';
-import { Recommendation } from '../PolicyList/PolicyRule';
+import {
+  HashedLiteralPolicyRule,
+  makeReversedHashedPolicy,
+  Recommendation,
+} from '../PolicyList/PolicyRule';
 import {
   describeProtectedRoomsSet,
   describeRoom,
 } from '../StateTracking/DeclareRoomState';
-import { randomUserID } from '../TestUtilities/EventGeneration';
+import {
+  randomEventID,
+  randomRoomID,
+  randomUserID,
+} from '../TestUtilities/EventGeneration';
+import Base64 from 'crypto-js/enc-base64';
 
 test('That when the SetMembershipPolicyRevisionIssuer is created, the existing room memberships and policies are accounted for.', async function () {
   const targetUser = randomUserID();
@@ -241,4 +251,122 @@ test('Banning a matching member incrementally will not cause spurious revisions 
       ).toBe(true);
     }
   }
+});
+
+test('Test Banning a member with a hashed rule will work, including modification of the rule, and removal', async function () {
+  const targetUser = randomUserID();
+  const policyRoom = randomRoomID([]);
+  const { protectedRoomsSet, roomStateManager, policyRoomManager } =
+    await describeProtectedRoomsSet({
+      rooms: [...Array(5).keys()].map((_) => ({
+        membershipDescriptions: [
+          {
+            sender: targetUser,
+            membership: Membership.Join,
+          },
+        ],
+      })),
+      lists: [
+        {
+          room: policyRoom,
+          policyDescriptions: [
+            {
+              hashes: {
+                sha256: Base64.stringify(SHA256(targetUser)),
+              },
+              recommendation: Recommendation.Ban,
+              type: PolicyRuleType.User,
+              reason: 'spam',
+              room_id: policyRoom.toRoomIDOrAlias(),
+            },
+          ],
+          membershipDescriptions: [
+            {
+              sender: targetUser,
+              membership: Membership.Join,
+            },
+          ],
+        },
+      ],
+    });
+  expect(
+    [...protectedRoomsSet.setMembership.currentRevision.presentMembers()].length
+  ).toBe(1);
+  expect(
+    [
+      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+    ].length
+  ).toBe(0);
+  // Send a rule to reveal the literal to the policyRoomRevision
+  const initialHashedRule =
+    protectedRoomsSet.watchedPolicyRooms.currentRevision.allRules()[0];
+  if (initialHashedRule === undefined) {
+    throw new TypeError('We should be able to find our initial rule');
+  }
+  const policyRoomRevisionIssuer = (
+    await policyRoomManager.getPolicyRoomRevisionIssuer(policyRoom)
+  ).expect('Should be able to get the policy room revision');
+  policyRoomRevisionIssuer.updateForRevealedPolicies([
+    makeReversedHashedPolicy(
+      targetUser,
+      initialHashedRule as HashedLiteralPolicyRule
+    ),
+  ]);
+  expect(
+    [
+      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+    ].length
+  ).toBe(1);
+  // Modify the existing rule at the room level, and expect the hashed literal to be removed
+  const roomStateRevisionIssuer = (
+    await roomStateManager.getRoomStateRevisionIssuer(policyRoom)
+  ).expect('Should be able to get the room state revision issuer');
+  const modifiedRuleEvent = {
+    ...initialHashedRule.sourceEvent,
+    event_id: randomEventID(),
+    content: {
+      ...initialHashedRule.sourceEvent.content,
+      reason: 'we change the reason or something idk',
+    },
+  };
+  // FIXME: We need to have the room state manager factory in MPS with faked IO
+  // it's a tragedy...
+  roomStateRevisionIssuer.updateForEvent(modifiedRuleEvent);
+  policyRoomRevisionIssuer.updateForStateEvent(modifiedRuleEvent);
+  expect(
+    [
+      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+    ].length
+  ).toBe(0);
+  const modifiedRule = policyRoomRevisionIssuer.currentRevision.getPolicy(
+    modifiedRuleEvent.event_id
+  );
+  if (modifiedRule === undefined) {
+    throw new TypeError('We should be able to find this rule');
+  }
+  // Re-reveal the literal
+  policyRoomRevisionIssuer.updateForRevealedPolicies([
+    makeReversedHashedPolicy(
+      targetUser,
+      modifiedRule as HashedLiteralPolicyRule
+    ),
+  ]);
+  expect(
+    [
+      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+    ].length
+  ).toBe(1);
+  // Remove the existing rule at the room level, and expect the hashed literal to be removed
+  const removedRuleEvent = {
+    ...modifiedRuleEvent,
+    event_id: randomEventID(),
+    content: {},
+  };
+  roomStateRevisionIssuer.updateForEvent(removedRuleEvent);
+  policyRoomRevisionIssuer.updateForStateEvent(removedRuleEvent);
+  expect(
+    [
+      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
+    ].length
+  ).toBe(0);
 });

@@ -13,8 +13,15 @@ import {
   SetMembershipRevision,
 } from '../Membership/SetMembershipRevision';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { Recommendation, PolicyRule } from '../PolicyList/PolicyRule';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+import {
+  Recommendation,
+  PolicyRule,
+  PolicyRuleMatchType,
+} from '../PolicyList/PolicyRule';
+import {
+  PolicyRuleChange,
+  PolicyRuleChangeType,
+} from '../PolicyList/PolicyRuleChange';
 import {
   MemberPolicyMatch,
   MemberPolicyMatches,
@@ -23,7 +30,6 @@ import {
 } from './MembershipPolicyRevision';
 import { Map as PerisstentMap, List } from 'immutable';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
-import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { Revision } from '../PolicyList/Revision';
 
 // TODO: It would be nice to have a method on PolicyListRevision that would
@@ -81,10 +87,10 @@ export class StandardSetMembershipPolicyRevision
         continue;
       }
       const matchingRules = [
-        ...policyRevision.allRulesMatchingEntity(
-          change.userID,
-          PolicyRuleType.User
-        ),
+        ...policyRevision.allRulesMatchingEntity(change.userID, {
+          type: PolicyRuleType.User,
+          searchHashedRules: false,
+        }),
         // hmm would it be better if the membership revision grouped users by server so that
         // we would only need to do server scans once?
         // i mean we'd have to do the complete scan when the user is joining a room we already have interned
@@ -92,7 +98,10 @@ export class StandardSetMembershipPolicyRevision
         // That being said, there aren't that many server rules...
         ...policyRevision.allRulesMatchingEntity(
           userServerName(change.userID),
-          PolicyRuleType.Server
+          {
+            type: PolicyRuleType.Server,
+            searchHashedRules: false,
+          }
         ),
       ];
       if (change.changeType === SetMembershipChangeType.BecamePresent) {
@@ -127,7 +136,11 @@ export class StandardSetMembershipPolicyRevision
   ): MembershipPolicyRevisionDelta {
     const removedMatches: MemberPolicyMatch[] = [];
     const policiesToRemove = changes
-      .filter((change) => change.changeType !== SimpleChangeType.Added)
+      .filter(
+        (change) =>
+          change.changeType === PolicyRuleChangeType.Removed ||
+          change.changeType === PolicyRuleChangeType.Modified
+      )
       .map((change) => {
         if (change.previousRule === undefined) {
           throw new TypeError(
@@ -137,6 +150,9 @@ export class StandardSetMembershipPolicyRevision
         return change.previousRule;
       });
     for (const policy of policiesToRemove) {
+      if (policy.matchType === PolicyRuleMatchType.HashedLiteral) {
+        continue; // we can't derive matches from hashed literals.
+      }
       for (const userID of this.policyMembers.get(
         policy,
         List<StringUserID>()
@@ -148,12 +164,16 @@ export class StandardSetMembershipPolicyRevision
       }
     }
     const relevantChangesForTemproaryRevision = changes
-      .filter((change) => change.changeType !== SimpleChangeType.Removed)
-      .map((change) =>
-        change.changeType === SimpleChangeType.Modified
-          ? { ...change, changeType: SimpleChangeType.Added }
-          : change
-      );
+      .filter((change) => change.changeType !== PolicyRuleChangeType.Removed)
+      .map((change) => {
+        switch (change.changeType) {
+          case PolicyRuleChangeType.Modified:
+          case PolicyRuleChangeType.RevealedLiteral:
+            return { ...change, changeType: PolicyRuleChangeType.Added };
+          default:
+            return change;
+        }
+      });
     const temporaryRevision =
       StandardPolicyListRevision.blankRevision().reviseFromChanges(
         relevantChangesForTemproaryRevision
@@ -161,14 +181,14 @@ export class StandardSetMembershipPolicyRevision
     const addedMatches: MemberPolicyMatch[] = [];
     for (const member of setMembershipRevision.presentMembers()) {
       const matchingRules = [
-        ...temporaryRevision.allRulesMatchingEntity(
-          member,
-          PolicyRuleType.User
-        ),
-        ...temporaryRevision.allRulesMatchingEntity(
-          member,
-          PolicyRuleType.Server
-        ),
+        ...temporaryRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.User,
+          searchHashedRules: false,
+        }),
+        ...temporaryRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.Server,
+          searchHashedRules: false,
+        }),
       ];
       if (matchingRules.length !== 0) {
         for (const rule of matchingRules) {
@@ -191,8 +211,14 @@ export class StandardSetMembershipPolicyRevision
     const addedMatches: MemberPolicyMatch[] = [];
     for (const member of setMembershipRevision.presentMembers()) {
       const matchingRules = [
-        ...policyRevision.allRulesMatchingEntity(member, PolicyRuleType.User),
-        ...policyRevision.allRulesMatchingEntity(member, PolicyRuleType.Server),
+        ...policyRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.User,
+          searchHashedRules: false,
+        }),
+        ...policyRevision.allRulesMatchingEntity(member, {
+          type: PolicyRuleType.Server,
+          searchHashedRules: false,
+        }),
       ];
       if (matchingRules.length !== 0) {
         for (const rule of matchingRules) {

@@ -16,7 +16,11 @@ import { Logger } from '../Logging/Logger';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { ServerACLBuilder } from '../MatrixTypes/ServerACLBuilder';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
+import {
+  PolicyRule,
+  PolicyRuleMatchType,
+  Recommendation,
+} from '../PolicyList/PolicyRule';
 
 // FIXME: Not sure the logger in this file is really enough to inform users with.
 const log = new Logger('AccessControl');
@@ -101,11 +105,11 @@ export class AccessControl {
   ): EntityAccess {
     // Check if the entity is explicitly allowed.
     // We have to infer that a rule exists for '*' if the allowCache is empty, otherwise you brick the ACL.
-    const allowRule = revision.findRuleMatchingEntity(
-      entity,
-      entityType,
-      Recommendation.Allow
-    );
+    const allowRule = revision.findRuleMatchingEntity(entity, {
+      type: entityType,
+      recommendation: Recommendation.Allow,
+      searchHashedRules: false,
+    });
     if (
       allowRule === undefined &&
       // this is gonna be a pita resource wise.
@@ -114,13 +118,21 @@ export class AccessControl {
       return { outcome: Access.NotAllowed };
     }
     // Now check if the entity is banned.
-    const banRule = revision.findRuleMatchingEntity(
-      entity,
-      entityType,
-      Recommendation.Ban
-    );
+    const banRule = revision.findRuleMatchingEntity(entity, {
+      type: entityType,
+      recommendation: Recommendation.Ban,
+      searchHashedRules: true,
+    });
     if (banRule !== undefined) {
       return { outcome: Access.Banned, rule: banRule };
+    }
+    const takedownRule = revision.findRuleMatchingEntity(entity, {
+      type: entityType,
+      recommendation: Recommendation.Takedown,
+      searchHashedRules: true,
+    });
+    if (takedownRule !== undefined) {
+      return { outcome: Access.Banned, rule: takedownRule };
     }
     // If they got to this point, they're allowed!!
     return { outcome: Access.Allowed };
@@ -145,7 +157,9 @@ export class AccessControl {
       builder.allowServer('*');
     } else {
       for (const rule of allowedServers) {
-        builder.allowServer(rule.entity);
+        if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
+          builder.allowServer(rule.entity);
+        }
       }
       if (
         AccessControl.getAccessForServer(revision, serverName).outcome ===
@@ -164,6 +178,9 @@ export class AccessControl {
       Recommendation.Ban
     );
     for (const rule of bannedServers) {
+      if (rule.matchType === PolicyRuleMatchType.HashedLiteral) {
+        continue;
+      }
       if (rule.isMatch(serverName)) {
         log.warn(
           'AccessControlUnit',

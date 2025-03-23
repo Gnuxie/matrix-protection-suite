@@ -39,7 +39,7 @@ export function targetReason(member: TargetMember): string {
     if (reasonPolicy === undefined) {
       throw new TypeError(`Some protection isn't providing matches properly`);
     }
-    return reasonPolicy.reason;
+    return reasonPolicy.reason ?? '<no reason provided>';
   }
 }
 

@@ -11,7 +11,12 @@
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { PolicyRule, Recommendation } from './PolicyRule';
+import {
+  HashedLiteralPolicyRule,
+  LiteralPolicyRule,
+  PolicyRule,
+  Recommendation,
+} from './PolicyRule';
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { StateEvent } from '../MatrixTypes/Events';
@@ -19,6 +24,7 @@ import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
 import { Value } from '../Interface/Value';
 import {
   MatrixRoomID,
+  StringEventID,
   StringUserID,
 } from '@the-draupnir-project/matrix-basic-types';
 
@@ -41,6 +47,12 @@ registerDefaultDecoder(MJOLNIR_SHORTCODE_EVENT_TYPE, (event) =>
   Value.Decode(MjolnirShortcodeEvent, event)
 );
 
+export type EntityMatchOptions = {
+  type: PolicyRuleType;
+  recommendation: Recommendation;
+  searchHashedRules: boolean;
+};
+
 /**
  * An interface for reading rules from a `PolicyListRevision`.
  */
@@ -57,8 +69,7 @@ export interface PolicyListRevisionView {
    */
   allRulesMatchingEntity(
     entity: string,
-    type?: PolicyRuleType,
-    recommendation?: Recommendation
+    options: Partial<EntityMatchOptions>
   ): PolicyRule[];
   /**
    * @param type The PolicyRuleType to restrict the rules to.
@@ -76,13 +87,22 @@ export interface PolicyListRevisionView {
    */
   findRuleMatchingEntity(
     entity: string,
-    type: PolicyRuleType,
-    recommendation: Recommendation
+    options: EntityMatchOptions
   ): PolicyRule | undefined;
   /**
    * Is this the first revision that has been issued?
    */
   isBlankRevision(): boolean;
+
+  hasPolicy(eventID: StringEventID): boolean;
+  getPolicy(eventID: StringEventID): PolicyRule | undefined;
+
+  findRulesMatchingHash(
+    hash: string,
+    algorithm: string,
+    options: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
+      Pick<EntityMatchOptions, 'type'>
+  ): HashedLiteralPolicyRule[];
 }
 
 /**
@@ -122,6 +142,13 @@ export interface PolicyRoomRevision extends PolicyListRevision {
    * @returns A list of changes to `PolicyRule`s.
    */
   changesFromState(state: PolicyRuleEvent[]): PolicyRuleChange[];
+  /**
+   * Calculate the changes to `PolicyRule`'s contained within the revision based
+   * on hashed policy rules that have been reversed.
+   */
+  changesFromRevealedPolicies(
+    policies: LiteralPolicyRule[]
+  ): PolicyRuleChange[];
   /**
    * Check whether the list has a rule associated with this event.
    * @param eventId The id of a policy rule event.

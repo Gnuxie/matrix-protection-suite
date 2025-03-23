@@ -13,23 +13,68 @@ import Base64 from 'crypto-js/enc-base64';
 import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
 import { RoomStateEventSender } from '../Client/RoomStateEventSender';
 import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyRoomEditor } from './PolicyRoomEditor';
+import { PolicyRoomEditor, TakedownPolicyOption } from './PolicyRoomEditor';
 import {
   PolicyRuleType,
   variantsForPolicyRuleType,
 } from '../MatrixTypes/PolicyEvents';
 import { PolicyRule, Recommendation } from './PolicyRule';
 import { ActionResult, Ok, isError } from '../Interface/Action';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import {
+  MatrixRoomID,
+  StringEventID,
+} from '@the-draupnir-project/matrix-basic-types';
 
 export class StandardPolicyRoomEditor implements PolicyRoomEditor {
   constructor(
-    private readonly room: MatrixRoomID,
+    public readonly room: MatrixRoomID,
     private readonly policyRevisionIssuer: PolicyListRevisionIssuer,
     private readonly roomStateRevisionIssuer: RoomStateRevisionIssuer,
     private readonly roomStateEventSender: RoomStateEventSender
   ) {
     // nothing to do.
+  }
+  public async removePolicyByStateKey(
+    ruleType: PolicyRuleType,
+    stateKey: string
+  ): Promise<ActionResult<void>> {
+    const eventTypesToCheck = variantsForPolicyRuleType(ruleType);
+    const sendNullState = async (
+      stateType: string,
+      stateKey: string
+    ): Promise<ActionResult<void>> => {
+      const sendResult = await this.roomStateEventSender.sendStateEvent(
+        this.room.toRoomIDOrAlias(),
+        stateType,
+        stateKey,
+        {}
+      );
+      if (isError(sendResult)) {
+        return sendResult.elaborate(
+          `Could not remove the policy rule with the type ${ruleType} and state key ${stateKey}`
+        );
+      }
+      return Ok(undefined);
+    };
+    const typesToRemoveResults = eventTypesToCheck
+      .map(
+        (stateType) =>
+          this.roomStateRevisionIssuer.currentRevision.getStateEvent(
+            stateType,
+            stateKey
+          )?.type
+      )
+      .filter((stateType): stateType is string => stateType !== undefined);
+    if (typesToRemoveResults.length === 0) {
+      return Ok(undefined);
+    }
+    for (const stateType of typesToRemoveResults) {
+      const nullResult = await sendNullState(stateType, stateKey);
+      if (isError(nullResult)) {
+        return nullResult;
+      }
+    }
+    return Ok(undefined);
   }
   public async createPolicy(
     entityType: PolicyRuleType,
@@ -112,10 +157,10 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
       }
     };
     const rules =
-      this.policyRevisionIssuer.currentRevision.allRulesMatchingEntity(
-        entity,
-        ruleType
-      );
+      this.policyRevisionIssuer.currentRevision.allRulesMatchingEntity(entity, {
+        type: ruleType,
+        searchHashedRules: true,
+      });
     const removalErrors = (await Promise.all(rules.map(removeRule))).filter(
       isError
     );
@@ -138,6 +183,35 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
       reason ?? '<no reason supplied>',
       {}
     );
+  }
+  public async takedownEntity(
+    ruleType: PolicyRuleType,
+    entity: string,
+    options: TakedownPolicyOption
+  ): Promise<ActionResult<StringEventID>> {
+    const recommendation = Recommendation.Takedown;
+    const stateKey = Base64.stringify(SHA256(entity + recommendation));
+    const sendResult = await this.roomStateEventSender.sendStateEvent(
+      this.room.toRoomIDOrAlias(),
+      ruleType,
+      stateKey,
+      {
+        recommendation,
+        ...(options.shouldHash
+          ? {
+              hashes: {
+                sha256: Base64.stringify(SHA256(entity)),
+              },
+            }
+          : { entity }),
+      }
+    );
+    if (isError(sendResult)) {
+      return sendResult.elaborate(
+        `Failed to create a policy for the entity ${entity} with the recommendation ${recommendation} in ${this.room.toPermalink()}`
+      );
+    }
+    return sendResult;
   }
   public async unbanEntity(
     ruleType: PolicyRuleType,

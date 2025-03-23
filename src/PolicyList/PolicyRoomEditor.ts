@@ -8,14 +8,24 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
+import {
+  MatrixRoomID,
+  StringEventID,
+} from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult } from '../Interface/Action';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
 import { PolicyRule, Recommendation } from './PolicyRule';
+
+export type TakedownPolicyOption = {
+  /** Whether the policy should be hashed, default to true */
+  shouldHash?: boolean | undefined;
+};
 
 /**
  * An interface for editing the policies in a PolicyRoom.
  */
 export interface PolicyRoomEditor {
+  readonly room: MatrixRoomID;
   /**
    * Create a policy in the Matrix room.
    * @param entityType The `PolicyRuleType` for the policy.
@@ -35,6 +45,15 @@ export interface PolicyRoomEditor {
     reason: string,
     additionalProperties: Record<string, unknown>
   ): Promise<ActionResult<string /** The event ID of the new policy. */>>;
+  /**
+   * A lower level utility to remove a single policy rule.
+   * The other methods usually remove all rules by entity,
+   * whereas this one will just remove the relevant rules by state_key (current and legacy).
+   */
+  removePolicyByStateKey(
+    ruleType: PolicyRuleType,
+    stateKey: string
+  ): Promise<ActionResult<void>>;
   /**
    * Remove a policy enacted upon an entity from the Matrix room.
    * Necessary because each `PolicyRuleType` and `Recommendation` can have
@@ -65,6 +84,11 @@ export interface PolicyRoomEditor {
     entity: string,
     reason?: string
   ): Promise<ActionResult<string>>;
+  takedownEntity(
+    ruleType: PolicyRuleType,
+    entity: string,
+    options: TakedownPolicyOption
+  ): Promise<ActionResult<StringEventID>>;
   /**
    * Unban an entity that has a policy with the ban recommendation enacted against it.
    * @param ruleType The `PolicyRuleType` relevant to the entity.

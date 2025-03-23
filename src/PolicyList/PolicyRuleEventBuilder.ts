@@ -30,7 +30,21 @@ export type DescribeBuildPolicyEvent = {
 export function policyStateKeyFromContent(
   content: UnredactedPolicyContent
 ): string {
-  return Base64.stringify(SHA256(content.entity + content.recommendation));
+  if ('entity' in content) {
+    return Base64.stringify(SHA256(content.entity + content.recommendation));
+  } else {
+    const hashes =
+      // we need the expressions mare:
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      ('hashes' in content && content.hashes) ||
+      ('org.matrix.msc4205.hashes' in content &&
+        content['org.matrix.msc4205.hashes']);
+    const words = [content.recommendation];
+    for (const [hash] of Object.entries(hashes)) {
+      words.push(hash);
+    }
+    return Base64.stringify(SHA256(words.join('')));
+  }
 }
 
 export function buildPolicyEvent({

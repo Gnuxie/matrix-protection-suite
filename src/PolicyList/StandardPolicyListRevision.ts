@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 - 2021 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -9,13 +9,25 @@
 // </text>
 
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from './PolicyListRevision';
-import { PolicyRule, Recommendation } from './PolicyRule';
-import { PolicyRuleChange } from './PolicyRuleChange';
+import { EntityMatchOptions, PolicyListRevision } from './PolicyListRevision';
+import {
+  EntityPolicyRule,
+  GlobPolicyRule,
+  HashedLiteralPolicyRule,
+  LiteralPolicyRule,
+  PolicyRule,
+  PolicyRuleMatchType,
+  Recommendation,
+} from './PolicyRule';
+import { PolicyRuleChange, PolicyRuleChangeType } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { Map as PersistentMap, List as PersistentList } from 'immutable';
-import { SimpleChangeType } from '../Interface/SimpleChangeType';
 import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
+import { SHA256 } from 'crypto-js';
+import Base64 from 'crypto-js/enc-base64';
+import { Logger } from '../Logging/Logger';
+
+const log = new Logger('StandardPolicyListRevision');
 
 /**
  * A map of policy rules, by their type and then event id.
@@ -70,15 +82,19 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       .map((byEventId) => [...byEventId.values()])
       .flat();
   }
+
   allRulesMatchingEntity(
     entity: string,
-    ruleKind?: PolicyRuleType | undefined,
-    recommendation?: Recommendation
+    {
+      recommendation,
+      type: ruleKind,
+      searchHashedRules,
+    }: Partial<EntityMatchOptions>
   ): PolicyRule[] {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
         return ruleKind;
-      } else if (entityPart.startsWith('#') || entityPart.startsWith('#')) {
+      } else if (entityPart.startsWith('!') || entityPart.startsWith('#')) {
         return PolicyRuleType.Room;
       } else if (entity.startsWith('@')) {
         return PolicyRuleType.User;
@@ -93,35 +109,71 @@ export class StandardPolicyListRevision implements PolicyListRevision {
       if (scope === undefined) {
         return [];
       }
-      return scope.allRulesMatchingEntity(entity);
+      return scope.allRulesMatchingEntity(entity, Boolean(searchHashedRules));
     }
     return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
-      (rule) => rule.isMatch(entity)
+      (rule) =>
+        rule.matchType !== PolicyRuleMatchType.HashedLiteral &&
+        rule.isMatch(entity)
     );
+  }
+
+  findRulesMatchingHash(
+    hash: string,
+    algorithm: string,
+    {
+      type,
+      recommendation,
+    }: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
+      Pick<EntityMatchOptions, 'type'>
+  ): HashedLiteralPolicyRule[] {
+    if (algorithm !== 'sha256') {
+      throw new TypeError('Unimplemented hash algorithm');
+    }
+    const allScopesForType = this.policyRuleScopes.get(type);
+    if (allScopesForType === undefined) {
+      return [];
+    }
+    const rules: HashedLiteralPolicyRule[] = [];
+    const scopesToCheck = (() => {
+      if (recommendation !== undefined) {
+        const recommendationScope = allScopesForType.get(recommendation);
+        if (recommendationScope === undefined) {
+          return [];
+        } else {
+          return [recommendationScope];
+        }
+      } else {
+        return [...allScopesForType.values()];
+      }
+    })();
+    for (const scope of scopesToCheck) {
+      rules.push(...scope.findHashRules(hash));
+    }
+    return rules;
   }
 
   findRuleMatchingEntity(
     entity: string,
-    type: PolicyRuleType,
-    recommendation: Recommendation
+    { recommendation, type, searchHashedRules }: EntityMatchOptions
   ): PolicyRule | undefined {
     const scope = this.policyRuleScopes.get(type)?.get(recommendation);
     if (scope === undefined) {
       return undefined;
     } else {
-      return scope.findRuleMatchingEntity(entity);
+      return scope.findRuleMatchingEntity(entity, searchHashedRules);
     }
   }
 
   allRulesOfType(
-    kind: PolicyRuleType,
-    recommendation?: Recommendation | undefined
+    type: PolicyRuleType,
+    recommendation?: Recommendation
   ): PolicyRule[] {
     const rules: PolicyRule[] = [];
-    const eventIdMap = this.policyRuleByType.get(kind);
+    const eventIdMap = this.policyRuleByType.get(type);
     if (eventIdMap) {
       for (const rule of eventIdMap.values()) {
-        if (rule.kind === kind) {
+        if (rule.kind === type) {
           if (recommendation === undefined) {
             rules.push(rule);
           } else if (rule.recommendation === recommendation) {
@@ -162,13 +214,27 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     };
     for (const change of changes) {
       if (
-        change.changeType === SimpleChangeType.Added ||
-        change.changeType === SimpleChangeType.Modified
+        change.changeType === PolicyRuleChangeType.Added ||
+        change.changeType === PolicyRuleChangeType.Modified
       ) {
         setPolicyRule(change.rule.kind, change.rule);
+      } else if (change.changeType === PolicyRuleChangeType.RevealedLiteral) {
+        if (
+          this.policyRuleByType
+            .get(change.rule.kind)
+            ?.get(change.rule.sourceEvent.event_id)
+        ) {
+          setPolicyRule(change.rule.kind, change.rule);
+        } else {
+          // We need to discount revealed literals for rules we don't know about... because otherwise we could be interning removed rules.
+          log.error(
+            'got a RevealedLiteral for an unknown policy rule',
+            change.rule
+          );
+        }
         // The code base could change, and then we'd be screwed:
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      } else if (change.changeType === SimpleChangeType.Removed) {
+      } else if (change.changeType === PolicyRuleChangeType.Removed) {
         removePolicyRule(change.rule);
       } else {
         throw new TypeError(`Unknown change type ${change.changeType}`);
@@ -182,6 +248,10 @@ export class StandardPolicyListRevision implements PolicyListRevision {
           [policyRuleType, recommendation],
           undefined
         ) as PolicyRuleScope | undefined;
+        const byEventMap = nextPolicyRulesByType.get(
+          policyRuleType,
+          PersistentMap<StringEventID, PolicyRule>()
+        );
         if (scopeEntry === undefined) {
           return map.setIn(
             [policyRuleType, recommendation],
@@ -189,12 +259,12 @@ export class StandardPolicyListRevision implements PolicyListRevision {
               nextRevisionID,
               policyRuleType,
               recommendation
-            ).reviseFromChanges(nextRevisionID, changes)
+            ).reviseFromChanges(nextRevisionID, changes, byEventMap)
           );
         } else {
           return map.setIn(
             [policyRuleType, recommendation],
-            scopeEntry.reviseFromChanges(nextRevisionID, changes)
+            scopeEntry.reviseFromChanges(nextRevisionID, changes, byEventMap)
           );
         }
       },
@@ -212,6 +282,16 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         byEvent.has(eventId as StringEventID)
       ) !== undefined
     );
+  }
+  hasPolicy(eventID: StringEventID): boolean {
+    return this.hasEvent(eventID);
+  }
+
+  getPolicy(eventID: StringEventID): PolicyRule | undefined {
+    const map = [...this.policyRuleByType.values()].find((byEvent) =>
+      byEvent.has(eventID)
+    );
+    return map?.get(eventID);
   }
 }
 
@@ -265,10 +345,8 @@ function flattenChangesByScope(
   return flatChanges;
 }
 
-type PolicyRuleByEntity = PersistentMap<
-  string /*rule entity*/,
-  PersistentList<PolicyRule>
->;
+type PolicyRuleByEntity<Rule extends EntityPolicyRule = EntityPolicyRule> =
+  PersistentMap<string /*rule entity*/, PersistentList<Rule>>;
 
 /**
  * A scope is a collection of rules that are scoped to a single entity type and
@@ -291,6 +369,7 @@ class PolicyRuleScope {
       ruleType,
       recommendation,
       PersistentMap(),
+      PersistentMap(),
       PersistentMap()
     );
   }
@@ -308,29 +387,39 @@ class PolicyRuleScope {
     /**
      * Glob rules always have to be scanned against every entity.
      */
-    private readonly globRules: PolicyRuleByEntity,
+    private readonly globRules: PolicyRuleByEntity<GlobPolicyRule>,
     /**
      * This table allows us to skip matching an entity against every literal.
      */
-    private readonly literalRules: PolicyRuleByEntity
+    private readonly literalRules: PolicyRuleByEntity<LiteralPolicyRule>,
+    /**
+     * Hashed literal rules. This tables allows us to quickly find hashed rules.
+     */
+    private readonly sha256HashedLiteralRules: PersistentMap<
+      string,
+      PersistentList<HashedLiteralPolicyRule>
+    >
   ) {
     // nothing to do.
   }
   reviseFromChanges(
     revision: Revision,
-    changes: PolicyRuleChange[]
+    changes: PolicyRuleChange[],
+    rulesByEventID: PersistentMap<StringEventID, PolicyRule>
   ): PolicyRuleScope {
-    const addRuleToMap = (
-      map: PolicyRuleByEntity,
-      rule: PolicyRule
-    ): PolicyRuleByEntity => {
+    const addRuleToMap = <Rule extends EntityPolicyRule = EntityPolicyRule>(
+      map: PolicyRuleByEntity<Rule>,
+      rule: Rule
+    ): PolicyRuleByEntity<Rule> => {
       const rules = map.get(rule.entity) ?? PersistentList();
       return map.set(rule.entity, rules.push(rule));
     };
-    const removeRuleFromMap = (
-      map: PolicyRuleByEntity,
-      ruleToRemove: PolicyRule
-    ): PolicyRuleByEntity => {
+    const removeRuleFromMap = <
+      Rule extends EntityPolicyRule = EntityPolicyRule,
+    >(
+      map: PolicyRuleByEntity<Rule>,
+      ruleToRemove: Rule
+    ): PolicyRuleByEntity<Rule> => {
       const rules = (map.get(ruleToRemove.entity) ?? PersistentList()).filter(
         (rule) =>
           rule.sourceEvent.event_id !== ruleToRemove.sourceEvent.event_id
@@ -343,18 +432,43 @@ class PolicyRuleScope {
     };
     let nextGlobRules = this.globRules;
     let nextLiteralRules = this.literalRules;
+    let nextSha256LiteralRules = this.sha256HashedLiteralRules;
     const addRule = (rule: PolicyRule): void => {
-      if (rule.isGlob()) {
+      if (rule.matchType === PolicyRuleMatchType.Glob) {
         nextGlobRules = addRuleToMap(nextGlobRules, rule);
-      } else {
+      } else if (rule.matchType === PolicyRuleMatchType.Literal) {
         nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
+      } else {
+        const sha256 = rule.hashes['sha256'];
+        if (sha256) {
+          nextSha256LiteralRules = ((rules) =>
+            nextSha256LiteralRules.set(sha256, rules.push(rule)))(
+            nextSha256LiteralRules.get(sha256) ??
+              PersistentList<HashedLiteralPolicyRule>()
+          );
+        }
       }
     };
     const removeRule = (rule: PolicyRule): void => {
-      if (rule.isGlob()) {
+      if (rule.matchType === PolicyRuleMatchType.Glob) {
         nextGlobRules = removeRuleFromMap(nextGlobRules, rule);
-      } else {
+      } else if (rule.matchType === PolicyRuleMatchType.Literal) {
         nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
+      } else {
+        const sha256 = rule.hashes['sha256'];
+        if (sha256) {
+          const rules = (
+            nextSha256LiteralRules.get(sha256) ?? PersistentList()
+          ).filter(
+            (existingRule) =>
+              existingRule.sourceEvent.event_id !== rule.sourceEvent.event_id
+          );
+          if (rules.size === 0) {
+            nextSha256LiteralRules = nextSha256LiteralRules.delete(sha256);
+          } else {
+            nextSha256LiteralRules = nextSha256LiteralRules.set(sha256, rules);
+          }
+        }
       }
     };
     for (const change of changes) {
@@ -365,11 +479,17 @@ class PolicyRuleScope {
         continue;
       }
       switch (change.changeType) {
-        case SimpleChangeType.Added:
-        case SimpleChangeType.Modified:
+        case PolicyRuleChangeType.Added:
+        case PolicyRuleChangeType.Modified:
           addRule(change.rule);
           break;
-        case SimpleChangeType.Removed:
+        case PolicyRuleChangeType.RevealedLiteral:
+          // We have to only add the rule if we know it is currently valid.. otherwise we could accidentally add a removed rule.
+          if (rulesByEventID.has(change.event.event_id)) {
+            addRule(change.rule);
+          }
+          break;
+        case PolicyRuleChangeType.Removed:
           removeRule(change.rule);
       }
     }
@@ -378,7 +498,8 @@ class PolicyRuleScope {
       this.entityType,
       this.recommendation,
       nextGlobRules,
-      nextLiteralRules
+      nextLiteralRules,
+      nextSha256LiteralRules
     );
   }
   public literalRulesMatchingEntity(entity: string): PolicyRule[] {
@@ -398,16 +519,40 @@ class PolicyRuleScope {
       .map((rules) => [...rules])
       .flat();
   }
-  allRulesMatchingEntity(entity: string): PolicyRule[] {
+  public hashedRulesMatchingEntity(entity: string): PolicyRule[] {
+    return [
+      ...this.sha256HashedLiteralRules.get(
+        Base64.stringify(SHA256(entity)),
+        []
+      ),
+    ];
+  }
+
+  allRulesMatchingEntity(
+    entity: string,
+    searchHashedRules: boolean
+  ): PolicyRule[] {
     return [
       ...this.literalRulesMatchingEntity(entity),
       ...this.globRulesMatchingEntity(entity),
+      ...(searchHashedRules ? this.hashedRulesMatchingEntity(entity) : []),
     ];
   }
-  findRuleMatchingEntity(entity: string): PolicyRule | undefined {
+  findRuleMatchingEntity(
+    entity: string,
+    searchHashedRules: boolean
+  ): PolicyRule | undefined {
     const literalRule = this.literalRules.get(entity);
     if (literalRule !== undefined) {
       return literalRule.get(0);
+    }
+    if (searchHashedRules) {
+      const hashedRules = this.sha256HashedLiteralRules.get(
+        Base64.stringify(SHA256(entity))
+      );
+      if (hashedRules !== undefined) {
+        return hashedRules.get(0);
+      }
     }
     const globRules = this.globRulesMatchingEntity(entity);
     if (globRules.length === 0) {
@@ -415,5 +560,9 @@ class PolicyRuleScope {
     } else {
       return globRules.at(0);
     }
+  }
+
+  findHashRules(hash: string): HashedLiteralPolicyRule[] {
+    return [...this.sha256HashedLiteralRules.get(hash, [])];
   }
 }
