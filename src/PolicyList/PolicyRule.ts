@@ -108,6 +108,7 @@ export function makeReversedHashedPolicy(
     isMatch(this: LiteralPolicyRule, entity: string) {
       return this.entity === entity;
     },
+    isReversedFromHashedPolicy: true,
   } satisfies LiteralPolicyRule);
 }
 
