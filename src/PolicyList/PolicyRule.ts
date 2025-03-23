@@ -73,27 +73,6 @@ export function normaliseRecommendation(
   }
 }
 
-// grr so we face an issue where appservice usres would share reversed policies
-// in the current model which is a pita.
-// We should probably consider how agree/disagree and filtering is going to work
-// to see if we can leverage off of the same shit to introduce policies selectively.
-// Since with agree mode, we will need to exclude all policies and introduce them
-// one by one. Which is kinda the same deal as reversal if you want to
-// preserve source.
-
-// I think it's ok that in the current model the revision used by the watchProfile
-// is the final say and then the policy room revisions contain all their policies.
-// we just need to be aware of that in the matching command etc.
-// so i think having virtual policy list revisions that include policies from policy
-// room revisions is fine. And its up to other code to present them inline.
-
-// SO TLDR, reversal will have to happen in virtual policy lists.
-
-// Ok but how is this going to work with the SetMembershipPolicy??
-// since it'll need to see all policies aaaaaaaaaa
-
-// we just make more of those revisions don't worry about it.
-
 export function makeReversedHashedPolicy(
   entity: string,
   hashedPolicy: HashedLiteralPolicyRule
