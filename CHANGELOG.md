@@ -11,6 +11,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2025-03-23
+
+### Added
+
+- Introduced `matchType` enum onto `PolicyRule` splitting the `PolicyRule` type
+  into three variants:
+
+  - `Literal`
+  - `Glob`
+  - `HashedLiteral`
+
+- The `PolicyRuleChangeType`enum to replace `SimpleChangeType` on
+  `PolicyRuleChange`.
+
+  - This brings a new variant `RevealedLiteral` for when a `HashedLiteral`
+    policy rule has been reversed by the `SHA256HashReverser`.
+
+- Introduced the `HashedLiteral` `PolicyRule` variant whereby `entity`
+  is missing and is replaced with a `Record` mapped from algorithm to
+  hash.
+
+- The `SHA256HashReverser` has been added to reverse policies in
+  _PolicyRoomRevisionIssuers_ created by a `PolicyRoomManager`. This
+  works in conjunction with a store to match `HashedLiteral` policy
+  rules against known entity literals. Any matches will then be given
+  the the `PolicyRoomRevisionIssuer` to revise their `currentRevision`
+  and emit a revision event with the change `RevealedLiteral`.
+
+- The `SHA256HashStore` interface has been created to store reversed
+  hashes for the `SHA256HashReverser`. No implementation is provided
+  in the matrix-protection-suite you must bring your own. Support for
+  reversing policies is currently focussed on rooms. We haven't added
+  a way to reverse membership policies yet... we will probably do
+  this at the `RoomMembershipRevisionIssuer` level by only calculating
+  the hash at true first join. We will probably also add a way for the
+  hash function to be injected so that you can depend on Subtle or node
+  crypto.
+
+### Changed
+
+- `reason` is now optional on policy rule events to support the
+  `org.matrix.msc4204.takedown` recommendation.
+
+- The `PolicyListRevision` interface has new utilities for dealing
+  with hashed policies and the interface has changed to accomidate for
+  them.
+
+- `PolicyRuleChange['changeType']` uses the `PolicyRuleChangeType`
+  enum.
+
 ## [2.10.0] - 2025-02-12
 
 ### Added
@@ -59,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `Task` has been improved to be more liberal in the closures it
-  accepts.  And `Task` now has more options for logging how tasks have
+  accepts. And `Task` now has more options for logging how tasks have
   failed.
 
 - The `Protection` callback `handleExternalInvite` has been renamed to
@@ -101,7 +151,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An issue with the `SetRoomMembershipRevisionIssuer` that would allow
   duplicate listeners to be added to rooms that were already in the
   set. This would cause lots of issues with downstream revision
-  listeners. We've hardened code downstream, e.g.  with the
+  listeners. We've hardened code downstream, e.g. with the
   `MembershipPolicyRevisionIssuer`, in case this happens again.
 
 ## [2.5.0] - 2025-01-12
@@ -116,7 +166,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `StandardProtectionsConfig` now uses the provided
   `SchemedDataManager` to persist the config while disabling
-  protections.  This was a bug, it was always supposed to use the
+  protections. This was a bug, it was always supposed to use the
   `SchemedDataManager` to persist the version number alongside the
   serialized data. Fixes
   https://github.com/the-draupnir-project/Draupnir/issues/560.
@@ -148,7 +198,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The `ServerACLEvent` Schema wrongly described `content` as optional.
 
-
 ### Fixed
 
 - There was a bug where unwatching a list would cause only the list
@@ -162,10 +211,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* `SetMembershipRevision` for calculating whether a Matrix user is the
+- `SetMembershipRevision` for calculating whether a Matrix user is the
   member of any room in a set of rooms.
 
-* `MembershipPolicyRevision` for easily finding policy rules that
+- `MembershipPolicyRevision` for easily finding policy rules that
   match users within a `SetMembershipRevision`. This revision stops
   protections or capabilities from needing to calculate matches
   themselves.
@@ -192,34 +241,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* Added a method to protections manager for changing a capability in a
+- Added a method to protections manager for changing a capability in a
   protection's capability set.
-* Made capability provider set config actually persist by giving it a
+- Made capability provider set config actually persist by giving it a
   PersistentConfigBackend.
 
 ## [2.0.0] - 2024-11-26
 
 ### Changed
 
-* `ProtectionsManager` depends on three different kinds of
+- `ProtectionsManager` depends on three different kinds of
   config. Config for capability providers, protection settings, and
   enabled protections.
 
 ### Removed
 
-* `ProtectionSettings` are gone.
+- `ProtectionSettings` are gone.
 
 ## [1.7.0] - 2024-10-10
 
 ### Added
 
-* `JoinRulesEvent` and `JoinRulesEventContent` are now available to use.
+- `JoinRulesEvent` and `JoinRulesEventContent` are now available to use.
 
 ## [1.6.0] - 2024-10-04
 
 ### Changed
 
-* `ConfigParseError` and `ConfigPropertyError` now reference the
+- `ConfigParseError` and `ConfigPropertyError` now reference the
   relevant `ConfigDescription`.
 
 ## [1.5.2] - 2024-10-02
@@ -248,7 +297,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MjolnirProtectedRoomsConfig`, `MjolnirWatchedListsConfig`,
   `MjolnirEnanbledProtections` have all been migrated to use
   `PersistentConfigData` with recovery options.
-
 
 ## [1.4.0] - 2024-09-11
 
