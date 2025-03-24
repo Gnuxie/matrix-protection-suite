@@ -98,6 +98,7 @@ export interface SHA256HashStore {
     userIDs: StringUserID[]
   ): Promise<Result<UserHashRecord[]>>;
   storeRoomIdentification(details: HashedRoomDetails): Promise<Result<void>>;
+  destroy(): void;
 }
 
 /**
