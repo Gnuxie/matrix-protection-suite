@@ -10,7 +10,7 @@
 
 import { StaticDecode } from '@sinclair/typebox';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { MembershipChange } from './MembershipChange';
+import { Membership, MembershipChange } from './MembershipChange';
 import {
   MatrixRoomID,
   StringEventID,
@@ -56,4 +56,10 @@ export interface RoomMembershipRevision extends MembershipRevision {
   hasEvent(eventID: StringEventID): boolean;
   members(): IterableIterator<MembershipChange>;
   membershipForUser(userID: StringUserID): MembershipChange | undefined;
+  /**
+   * All the memberships of a specific membership e.g. 'join'.
+   */
+  membersOfMembership(
+    membership: Membership
+  ): IterableIterator<MembershipChange>;
 }
