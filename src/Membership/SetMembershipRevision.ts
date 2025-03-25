@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
+// SPDX-FileCopyrightText: 2024 - 2025 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
@@ -17,8 +17,10 @@ import { Map as PersistentMap, Set as PersistentSet } from 'immutable';
 export enum SetMembershipKind {
   // incorporates knock, join, invite
   Present = 'present',
-  // incorporates leave, ban, and never present
+  // incorporates leave and ban.
   Absent = 'absent',
+  // never seen the user
+  NeverEncountered = 'never-encountered',
 }
 
 export enum SetMembershipChangeType {
@@ -59,6 +61,7 @@ export interface SetMembershipRevision {
   ): SetMembershipDelta;
   reviseFromChanges(changes: SetMembershipDelta): SetMembershipRevision;
   presentMembers(): IterableIterator<StringUserID>;
+  encounteredMembers(): IterableIterator<StringUserID>;
   uniqueMemberCount(): number;
   membershipForUser(userID: StringUserID): SetMembershipKind;
 }
@@ -220,27 +223,40 @@ export class StandardSetMembershipRevision implements SetMembershipRevision {
     for (const change of delta.changes) {
       const oldCount = memberships.get(change.userID, 0);
       const newCount = oldCount + change.roomsJoined - change.roomsLeft;
-      if (newCount === 0) {
-        memberships = memberships.delete(change.userID);
-      } else {
-        memberships = memberships.set(change.userID, newCount);
-      }
+      memberships = memberships.set(change.userID, newCount);
     }
     return new StandardSetMembershipRevision(memberships, internedRooms);
   }
 
   membershipForUser(userID: StringUserID): SetMembershipKind {
-    return this.getMembershipCount(userID) > 0
-      ? SetMembershipKind.Present
-      : SetMembershipKind.Absent;
+    const entry = this.memberships.get(userID);
+    if (entry === undefined) {
+      return SetMembershipKind.NeverEncountered;
+    } else if (entry === 0) {
+      return SetMembershipKind.Absent;
+    } else {
+      return SetMembershipKind.Present;
+    }
   }
 
   presentMembers(): IterableIterator<StringUserID> {
+    const members = this.memberships;
+    function* filteredKeys(): IterableIterator<StringUserID> {
+      for (const [key, value] of members) {
+        if (value > 0) {
+          yield key;
+        }
+      }
+    }
+    return filteredKeys();
+  }
+
+  encounteredMembers(): IterableIterator<StringUserID> {
     return this.memberships.keys();
   }
 
   uniqueMemberCount(): number {
-    return this.memberships.size;
+    return [...this.presentMembers()].length;
   }
 
   public static blankRevision(): SetMembershipRevision {

@@ -15,9 +15,11 @@ import { Membership } from '../Membership/MembershipChange';
 import {
   HashedLiteralPolicyRule,
   makeReversedHashedPolicy,
+  parsePolicyRule,
   Recommendation,
 } from '../PolicyList/PolicyRule';
 import {
+  describePolicyRule,
   describeProtectedRoomsSet,
   describeRoom,
 } from '../StateTracking/DeclareRoomState';
@@ -27,6 +29,9 @@ import {
   randomUserID,
 } from '../TestUtilities/EventGeneration';
 import Base64 from 'crypto-js/enc-base64';
+import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
+import { PolicyRuleChangeType } from '../PolicyList/PolicyRuleChange';
+import { StandardSetMembershipPolicyRevision } from './StandardSetMembershipPolicyRevision';
 
 test('That when the SetMembershipPolicyRevisionIssuer is created, the existing room memberships and policies are accounted for.', async function () {
   const targetUser = randomUserID();
@@ -57,11 +62,26 @@ test('That when the SetMembershipPolicyRevisionIssuer is created, the existing r
   expect(
     [...protectedRoomsSet.setMembership.currentRevision.presentMembers()].length
   ).toBe(1);
-  expect(
-    [
-      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
-    ].length
-  ).toBe(1);
+  const matches =
+    protectedRoomsSet.setPoliciesMatchingMembership.currentRevision
+      .allMembersWithRules()
+      .at(0);
+  if (matches === undefined) {
+    throw new TypeError('We should have been able to find a match');
+  }
+  expect(matches.policies.length).toBe(1);
+  expect(matches.rooms.length).toBe(1);
+  expect(matches.userID).toBe(targetUser);
+  // Now test changes from initial revision
+  const delta =
+    StandardSetMembershipPolicyRevision.blankRevision().changesFromInitialRevisions(
+      protectedRoomsSet.watchedPolicyRooms.currentRevision,
+      protectedRoomsSet.setMembership.currentRevision
+    );
+  expect(delta.addedMemberMatches.length).toBe(1);
+  expect(delta.removedMemberMatches.length).toBe(0);
+  expect(delta.addedMemberRoom).toBe(1);
+  expect(delta.removedMemberMatches.length).toBe(0);
 });
 
 test('When adding and removing rooms with members will update the matches', async function () {
@@ -81,10 +101,9 @@ test('When adding and removing rooms with members will update the matches', asyn
         },
       ],
     });
+  const membershipMatches = protectedRoomsSet.setPoliciesMatchingMembership;
   expect(
-    [
-      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
-    ].length
+    [...membershipMatches.currentRevision.allMembersWithRules()].length
   ).toBe(0);
   const { stateRevisionIssuer, membershipRevisionIssuer } = describeRoom({
     membershipDescriptions: [
@@ -102,9 +121,7 @@ test('When adding and removing rooms with members will update the matches', asyn
     )
   ).expect('Should be able to add the room');
   expect(
-    [
-      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
-    ].length
+    [...membershipMatches.currentRevision.allMembersWithRules()].length
   ).toBe(1);
   (
     await protectedRoomsSet.protectedRoomsManager.removeRoom(
@@ -112,9 +129,7 @@ test('When adding and removing rooms with members will update the matches', asyn
     )
   ).expect('Should be able to remove the room');
   expect(
-    [
-      ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
-    ].length
+    [...membershipMatches.currentRevision.allMembersWithRules()].length
   ).toBe(0);
 });
 

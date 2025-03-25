@@ -23,6 +23,10 @@ import { StandardSetMembershipPolicyRevision } from './StandardSetMembershipPoli
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
 import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
 import { Logger } from '../Logging/Logger';
+import {
+  SetRoomMembership,
+  SetRoomMembershipListener,
+} from '../Membership/SetRoomMembership';
 
 const log = new Logger('SetMembershipPolicyRevisionIssuer');
 
@@ -52,6 +56,7 @@ export class StandardMembershipPolicyRevisionIssuer
   private readonly policyRevisionListener: RevisionListener;
   constructor(
     private readonly setMembershipRevisionIssuer: SetMembershipRevisionIssuer,
+    private readonly setRoomMembership: SetRoomMembership,
     private readonly policyRevisionIssuer: PolicyListRevisionIssuer
   ) {
     super();
@@ -63,7 +68,8 @@ export class StandardMembershipPolicyRevisionIssuer
       this.currentRevision.changesFromInitialRevisions(
         policyRevisionIssuer.currentRevision,
         setMembershipRevisionIssuer.currentRevision
-      )
+      ),
+      this.setRoomMembership
     );
     log.info('Finished creating a SetMembershipPolicyRevision.');
     this.setMembershipRevisionListener = this.setMembershipRevision.bind(this);
@@ -73,6 +79,10 @@ export class StandardMembershipPolicyRevisionIssuer
       this.setMembershipRevisionListener
     );
     policyRevisionIssuer.on('revision', this.policyRevisionListener);
+    setRoomMembership.on(
+      'membership',
+      this.setRoomMembershipMembershipListener
+    );
   }
 
   private setMembershipRevision(
@@ -90,7 +100,10 @@ export class StandardMembershipPolicyRevisionIssuer
     ) {
       return;
     }
-    this.currentRevision = this.currentRevision.reviseFromChanges(changes);
+    this.currentRevision = this.currentRevision.reviseFromChanges(
+      changes,
+      this.setRoomMembership
+    );
     this.emit('revision', this.currentRevision, changes, previousRevision);
   }
 
@@ -103,9 +116,31 @@ export class StandardMembershipPolicyRevisionIssuer
       policyChanges,
       this.setMembershipRevisionIssuer.currentRevision
     );
-    this.currentRevision = this.currentRevision.reviseFromChanges(changes);
+    this.currentRevision = this.currentRevision.reviseFromChanges(
+      changes,
+      this.setRoomMembership
+    );
     this.emit('revision', this.currentRevision, changes, previousRevision);
   }
+
+  private readonly setRoomMembershipMembershipListener = (
+    function (
+      this: StandardMembershipPolicyRevisionIssuer,
+      roomID,
+      revision,
+      setMembershipChanges
+    ) {
+      const changes = this.currentRevision.changedFromRoomMembershipChanges(
+        revision,
+        setMembershipChanges
+      );
+      const previousRevision = this.currentRevision;
+      this.currentRevision = previousRevision.reviseFromChanges(
+        changes,
+        this.setRoomMembership
+      );
+    } satisfies SetRoomMembershipListener
+  ).bind(this);
 
   public unregisterListeners(): void {
     this.setMembershipRevisionIssuer.off(
@@ -113,5 +148,9 @@ export class StandardMembershipPolicyRevisionIssuer
       this.setMembershipRevisionListener
     );
     this.policyRevisionIssuer.off('revision', this.policyRevisionListener);
+    this.setRoomMembership.off(
+      'membership',
+      this.setRoomMembershipMembershipListener
+    );
   }
 }

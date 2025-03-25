@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import {
+  StringRoomID,
   StringUserID,
   userServerName,
 } from '@the-draupnir-project/matrix-basic-types';
@@ -24,13 +25,21 @@ import {
 } from '../PolicyList/PolicyRuleChange';
 import {
   MemberPolicyMatch,
-  MemberPolicyMatches,
+  MemberPolicyMatchesWithRooms,
+  MemberRoomMatch,
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
 } from './MembershipPolicyRevision';
 import { Map as PerisstentMap, List } from 'immutable';
 import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
 import { Revision } from '../PolicyList/Revision';
+import { SetRoomMembership } from '../Membership/SetRoomMembership';
+import {
+  Membership,
+  MembershipChange,
+  MembershipChangeType,
+} from '../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../Membership/MembershipRevision';
 
 // TODO: It would be nice to have a method on PolicyListRevision that would
 // let us pass a membership revision and have it run the matches for us
@@ -59,6 +68,10 @@ import { Revision } from '../PolicyList/Revision';
 // to avoid that by keeping a small set of roomMembershipRevisionID's and successful
 // room bans in a little list and simply compare and pop them off when we get
 // the bans.
+type MemberPoliciesInfo = {
+  readonly policies: List<PolicyRule>;
+  readonly participaitingRoomIDs: List<StringRoomID>;
+};
 
 export class StandardSetMembershipPolicyRevision
   implements SetMembershipPolicyRevision
@@ -67,15 +80,17 @@ export class StandardSetMembershipPolicyRevision
   private constructor(
     private readonly memberPolicies: PerisstentMap<
       StringUserID,
-      List<PolicyRule>
+      MemberPoliciesInfo
     >,
     private readonly policyMembers: PerisstentMap<
       PolicyRule,
       List<StringUserID>
     >
+    // maybe we need two revisions?
   ) {
     // nothing to do.
   }
+
   changesFromMembershipChanges(
     delta: SetMembershipDelta,
     policyRevision: PolicyListRevision
@@ -114,7 +129,7 @@ export class StandardSetMembershipPolicyRevision
           }
         }
       } else {
-        const matchingRules = this.memberPolicies.get(change.userID);
+        const matchingRules = this.memberPolicies.get(change.userID)?.policies;
         if (matchingRules) {
           for (const rule of matchingRules) {
             removedMatches.push({
@@ -128,6 +143,8 @@ export class StandardSetMembershipPolicyRevision
     return {
       addedMemberMatches: addedMatches,
       removedMemberMatches: removedMatches,
+      addedMemberRoom: [],
+      removedMemberRoom: [],
     };
   }
   changesFromPolicyChanges(
@@ -202,6 +219,8 @@ export class StandardSetMembershipPolicyRevision
     return {
       addedMemberMatches: addedMatches,
       removedMemberMatches: removedMatches,
+      addedMemberRoom: [],
+      removedMemberRoom: [],
     };
   }
   changesFromInitialRevisions(
@@ -229,13 +248,96 @@ export class StandardSetMembershipPolicyRevision
         }
       }
     }
+    // FIXME: Typo in interface and this should add the other version too...
+    // We should have added and removed member rooms here always...
+    // it's just we don't want the reviser from changes thing to get
+    // confused by the duplicated information...
+    // addedMemberMatches should always take priority for instance.
+    // We should really add some confidence by testing this thing exclusively
     return {
       addedMemberMatches: addedMatches,
       removedMemberMatches: [],
+      addedMemberRoom: [],
+      removedMemberRoom: [],
     };
   }
+
+  private createNewMembershipInfo(
+    userID: StringUserID,
+    setRoomMembership: SetRoomMembership
+  ): MemberPoliciesInfo {
+    const participaitingRoomIDs = setRoomMembership.allRooms
+      .filter((revision) => {
+        switch (revision.membershipForUser(userID)?.membership) {
+          case Membership.Join:
+          case Membership.Invite:
+          case Membership.Knock:
+            return true;
+          default:
+            return false;
+        }
+      })
+      .map((revision) => revision.room.toRoomIDOrAlias());
+    return {
+      policies: List<PolicyRule>(),
+      participaitingRoomIDs: List(participaitingRoomIDs),
+    };
+  }
+
+  // FIXME: Typo in name to change at interface level
+  changedFromRoomMembershipChanges(
+    revision: RoomMembershipRevision,
+    changes: MembershipChange[]
+  ): MembershipPolicyRevisionDelta {
+    const roomsAdded: MemberRoomMatch[] = [];
+    const roomsRemoved: MemberRoomMatch[] = [];
+    for (const change of changes) {
+      const entry = this.memberPolicies.get(change.userID);
+      if (entry === undefined) {
+        continue;
+      }
+      switch (change.membershipChangeType) {
+        case MembershipChangeType.Joined:
+        case MembershipChangeType.Invited:
+        case MembershipChangeType.Knocked:
+        case MembershipChangeType.Rejoined:
+        case MembershipChangeType.Reknocked:
+          if (!entry.participaitingRoomIDs.includes(change.roomID)) {
+            roomsAdded.push({
+              roomID: change.roomID,
+              policies: entry.policies.toArray(),
+              userID: change.userID,
+            });
+          }
+          break;
+        case MembershipChangeType.Banned:
+        case MembershipChangeType.Kicked:
+        case MembershipChangeType.Left:
+        case MembershipChangeType.Unbanned:
+          roomsRemoved.push({
+            roomID: change.roomID,
+            policies: entry.policies.toArray(),
+            userID: change.userID,
+          });
+          break;
+        case MembershipChangeType.NoChange:
+          // nothing to do mare fall through.
+          break;
+        default:
+          throw new TypeError('Mate the code is fucked');
+      }
+    }
+    return {
+      addedMemberMatches: [],
+      removedMemberMatches: [],
+      addedMemberRoom: roomsAdded,
+      removedMemberRoom: roomsRemoved,
+    };
+  }
+
   reviseFromChanges(
-    delta: MembershipPolicyRevisionDelta
+    delta: MembershipPolicyRevisionDelta,
+    setRoomMembership: SetRoomMembership
   ): SetMembershipPolicyRevision {
     if (
       delta.addedMemberMatches.length === 0 &&
@@ -246,11 +348,13 @@ export class StandardSetMembershipPolicyRevision
     let memberPolicies = this.memberPolicies;
     let policyMembers = this.policyMembers;
     for (const match of delta.addedMemberMatches) {
-      const existing = memberPolicies.get(match.userID, List<PolicyRule>());
-      memberPolicies = memberPolicies.set(
-        match.userID,
-        existing.push(match.policy)
-      );
+      const existing =
+        memberPolicies.get(match.userID) ??
+        this.createNewMembershipInfo(match.userID, setRoomMembership);
+      memberPolicies = memberPolicies.set(match.userID, {
+        ...existing,
+        policies: existing.policies.push(match.policy),
+      });
       const existingMembers = policyMembers.get(
         match.policy,
         List<StringUserID>()
@@ -260,18 +364,38 @@ export class StandardSetMembershipPolicyRevision
         existingMembers.push(match.userID)
       );
     }
+    for (const room of delta.addedMemberRoom) {
+      const existing = memberPolicies.get(room.userID);
+      if (existing === undefined) {
+        // we would otherwise for it to be added properly there is probably some mistake here.
+        throw new TypeError(
+          'The revision issuer is out of sync with the previous revision somehow'
+        );
+      }
+      if (!existing.participaitingRoomIDs.includes(room.roomID)) {
+        memberPolicies.set(room.userID, {
+          ...existing,
+          participaitingRoomIDs: existing.participaitingRoomIDs.push(
+            room.roomID
+          ),
+        });
+      }
+    }
     for (const match of delta.removedMemberMatches) {
-      const existingPolicies = memberPolicies.get(
-        match.userID,
-        List<PolicyRule>()
-      );
-      const nextPolicies = existingPolicies.filter(
+      const entry = memberPolicies.get(match.userID);
+      if (entry === undefined) {
+        continue;
+      }
+      const nextPolicies = entry.policies.filter(
         (rule) => rule !== match.policy
       );
       if (nextPolicies.size === 0) {
         memberPolicies = memberPolicies.delete(match.userID);
       } else {
-        memberPolicies = memberPolicies.set(match.userID, nextPolicies);
+        memberPolicies = memberPolicies.set(match.userID, {
+          ...entry,
+          policies: nextPolicies,
+        });
       }
       const existingMembers = policyMembers.get(
         match.policy,
@@ -286,6 +410,18 @@ export class StandardSetMembershipPolicyRevision
         policyMembers = policyMembers.set(match.policy, nextMembers);
       }
     }
+    for (const room of delta.removedMemberRoom) {
+      const entry = memberPolicies.get(room.userID);
+      if (entry === undefined) {
+        continue;
+      }
+      memberPolicies = memberPolicies.set(room.userID, {
+        ...entry,
+        participaitingRoomIDs: entry.participaitingRoomIDs.filter(
+          (roomID) => roomID !== room.roomID
+        ),
+      });
+    }
     return new StandardSetMembershipPolicyRevision(
       memberPolicies,
       policyMembers
@@ -294,12 +430,28 @@ export class StandardSetMembershipPolicyRevision
   isBlankRevision(): boolean {
     return this.memberPolicies.size === 0;
   }
-  allMembersWithRules(): MemberPolicyMatches[] {
-    return this.memberPolicies.reduce<MemberPolicyMatches[]>(
-      (matches, policyRules, userID) => {
+
+  memberMatches(
+    userID: StringUserID
+  ): MemberPolicyMatchesWithRooms | undefined {
+    const entry = this.memberPolicies.get(userID);
+    if (entry === undefined) {
+      return undefined;
+    }
+    return {
+      rooms: entry.participaitingRoomIDs.toArray(),
+      policies: entry.policies.toArray(),
+      userID,
+    };
+  }
+
+  allMembersWithRules(): MemberPolicyMatchesWithRooms[] {
+    return this.memberPolicies.reduce<MemberPolicyMatchesWithRooms[]>(
+      (matches, entry, userID) => {
         matches.push({
           userID: userID,
-          policies: policyRules.toArray(),
+          policies: entry.policies.toArray(),
+          rooms: entry.participaitingRoomIDs.toArray(),
         });
         return matches;
       },
@@ -310,8 +462,7 @@ export class StandardSetMembershipPolicyRevision
     member: StringUserID,
     options: { type?: PolicyRuleType; recommendation?: Recommendation }
   ): PolicyRule[] {
-    return this.memberPolicies
-      .get(member, List<PolicyRule>())
+    return (this.memberPolicies.get(member)?.policies ?? List<PolicyRule>())
       .filter((rule) => {
         if (options.type !== undefined && rule.kind !== options.type) {
           return false;
