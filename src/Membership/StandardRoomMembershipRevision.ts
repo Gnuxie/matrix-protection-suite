@@ -5,12 +5,13 @@
 import { StaticDecode } from '@sinclair/typebox';
 import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import {
+  Membership,
   MembershipChange,
   membershipChangeType,
   profileChangeType,
 } from './MembershipChange';
 import { RoomMembershipRevision } from './MembershipRevision';
-import { Map as PersistentMap } from 'immutable';
+import { Map as PersistentMap, Set as PersistentSet } from 'immutable';
 import { Logger } from '../Logging/Logger';
 import { SafeMembershipEventMirror } from '../SafeMatrixEvents/SafeMembershipEvent';
 import {
@@ -25,11 +26,17 @@ type MembershipByUserID = PersistentMap<StringUserID, MembershipChange>;
 
 type MembershipByEventID = PersistentMap<StringEventID, MembershipChange>;
 
+type MembershipByMembership = PersistentMap<
+  Membership,
+  PersistentSet<MembershipChange>
+>;
+
 export class StandardRoomMembershipRevision implements RoomMembershipRevision {
   private constructor(
     public readonly room: MatrixRoomID,
     public readonly membershipByUserID: MembershipByUserID,
-    public readonly membershipByEventID: MembershipByEventID
+    public readonly membershipByEventID: MembershipByEventID,
+    public readonly membershipByMembership: MembershipByMembership
   ) {
     // nothing to do.
   }
@@ -40,12 +47,21 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
     return new StandardRoomMembershipRevision(
       room,
       PersistentMap(),
+      PersistentMap(),
       PersistentMap()
     );
   }
 
   public members() {
     return this.membershipByEventID.values();
+  }
+
+  public membersOfMembership(
+    membership: Membership
+  ): IterableIterator<MembershipChange> {
+    return this.membershipByMembership
+      .get(membership, PersistentSet<MembershipChange>())
+      .values();
   }
 
   public hasEvent(eventID: StringEventID): boolean {
@@ -121,6 +137,7 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
   ): StandardRoomMembershipRevision {
     let nextMembershipByUserID = this.membershipByUserID;
     let nextMembershipByEventID = this.membershipByEventID;
+    let nextMembershipByMembership = this.membershipByMembership;
     for (const change of changes) {
       nextMembershipByUserID = nextMembershipByUserID.set(
         change.userID,
@@ -136,11 +153,32 @@ export class StandardRoomMembershipRevision implements RoomMembershipRevision {
         change.eventID,
         change
       );
+      if (existingMembership) {
+        nextMembershipByMembership = nextMembershipByMembership.set(
+          existingMembership.membership as Membership,
+          nextMembershipByMembership
+            .get(
+              existingMembership.membership as Membership,
+              PersistentSet<MembershipChange>()
+            )
+            .delete(existingMembership)
+        );
+      }
+      nextMembershipByMembership = nextMembershipByMembership.set(
+        change.membership as Membership,
+        nextMembershipByMembership
+          .get(
+            change.membership as Membership,
+            PersistentSet<MembershipChange>()
+          )
+          .add(change)
+      );
     }
     return new StandardRoomMembershipRevision(
       this.room,
       nextMembershipByUserID,
-      nextMembershipByEventID
+      nextMembershipByEventID,
+      nextMembershipByMembership
     );
   }
 
