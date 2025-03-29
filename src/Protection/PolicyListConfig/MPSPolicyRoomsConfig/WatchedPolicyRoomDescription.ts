@@ -7,8 +7,18 @@ import { describeConfig } from '../../../Config/describeConfig';
 import { EDStatic } from '../../../Interface/Static';
 import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
 import { Recommendation } from '../../../PolicyList/PolicyRule';
-import { StringRoomIDSchema } from '../../../MatrixTypes/StringlyTypedMatrix';
+import {
+  StringRoomIDSchema,
+  StringUserIDSchema,
+} from '../../../MatrixTypes/StringlyTypedMatrix';
 
+// We probably need our own versions of these just because of unstable identifiers.
+// because otherwise the config format will be fucked when we upgrade.
+// sigh, we'll just have to let them be string and then find the most appropriate
+// variant for each one... sucks balls mare but it's how to do it.
+
+// Remember that this system allows configuration to happen for lists that
+// are not being watched, so that the preview can be dynamically updated...
 const PolicyTypeSchema = Type.Union([
   Type.Literal(PolicyRuleType.Room),
   Type.Literal(PolicyRuleType.User),
@@ -21,14 +31,30 @@ const PolicyRecommendationSchema = Type.Union([
   Type.Literal(Recommendation.Takedown),
 ]);
 
-const PolicyTypeConfigurationSchema = Type.Record(
-  PolicyTypeSchema,
+const PolicyPropagationConfigurationSchema = Type.Union([
+  Type.Array(StringUserIDSchema),
+  Type.Literal('all'),
+]);
+
+const PolicyRecommendationConfigurationSchema = Type.Partial(
   Type.Object({
-    recommendations: Type.Union([
-      Type.Array(PolicyRecommendationSchema),
-      Type.Literal('all'),
-    ]),
+    direct_propagation_senders: PolicyPropagationConfigurationSchema,
+    approval_propagation_senders: PolicyPropagationConfigurationSchema,
   })
+);
+
+const PolicyTypeConfigurationSchema = Type.Partial(
+  Type.Record(
+    PolicyTypeSchema,
+    Type.Object({
+      recommendations: Type.Partial(
+        Type.Record(
+          PolicyRecommendationSchema,
+          PolicyRecommendationConfigurationSchema
+        )
+      ),
+    })
+  )
 );
 
 export type WatchedRoomConfigurationSchema = EDStatic<
@@ -36,26 +62,42 @@ export type WatchedRoomConfigurationSchema = EDStatic<
 >;
 export const WatchedRoomConfigurationSchema = Type.Object({
   room_id: StringRoomIDSchema,
-  direct_propagation: PolicyTypeConfigurationSchema,
-  sender_propagation: Type.Union([
-    Type.Record(Type.String(), PolicyTypeConfigurationSchema),
-    Type.Literal('all'),
-  ]),
+  policy_types: PolicyTypeConfigurationSchema,
 });
 
 export const DefaultWatchProfile = Object.freeze({
-  direct_propagation: {
+  policy_types: {
     [PolicyRuleType.Room]: {
-      recommendations: [Recommendation.Ban, Recommendation.Takedown],
+      recommendations: {
+        [Recommendation.Ban]: {
+          direct_propagation_senders: 'all',
+        },
+        [Recommendation.Takedown]: {
+          direct_propagation_senders: 'all',
+        },
+      },
     },
     [PolicyRuleType.User]: {
-      recommendations: [Recommendation.Ban, Recommendation.Takedown],
+      recommendations: {
+        [Recommendation.Ban]: {
+          direct_propagation_senders: 'all',
+        },
+        [Recommendation.Takedown]: {
+          direct_propagation_senders: 'all',
+        },
+      },
     },
     [PolicyRuleType.Server]: {
-      recommendations: [Recommendation.Ban, Recommendation.Takedown],
+      recommendations: {
+        [Recommendation.Ban]: {
+          direct_propagation_senders: 'all',
+        },
+        [Recommendation.Takedown]: {
+          direct_propagation_senders: 'all',
+        },
+      },
     },
   },
-  sender_propagation: 'all',
 } satisfies Omit<WatchedRoomConfigurationSchema, 'room_id'>);
 
 /**
