@@ -12,24 +12,8 @@ import {
   StringUserIDSchema,
 } from '../../../MatrixTypes/StringlyTypedMatrix';
 
-// We probably need our own versions of these just because of unstable identifiers.
-// because otherwise the config format will be fucked when we upgrade.
-// sigh, we'll just have to let them be string and then find the most appropriate
-// variant for each one... sucks balls mare but it's how to do it.
-
 // Remember that this system allows configuration to happen for lists that
 // are not being watched, so that the preview can be dynamically updated...
-const PolicyTypeSchema = Type.Union([
-  Type.Literal(PolicyRuleType.Room),
-  Type.Literal(PolicyRuleType.User),
-  Type.Literal(PolicyRuleType.Server),
-]);
-
-const PolicyRecommendationSchema = Type.Union([
-  Type.Literal(Recommendation.Ban),
-  Type.Literal(Recommendation.Allow),
-  Type.Literal(Recommendation.Takedown),
-]);
 
 const PolicyPropagationConfigurationSchema = Type.Union([
   Type.Array(StringUserIDSchema),
@@ -43,13 +27,19 @@ const PolicyRecommendationConfigurationSchema = Type.Partial(
   })
 );
 
+/**
+ * The reason we don't have a schema for policy types and recommendations here
+ * is to not create a mess when the stable identifier for unstable MSCs change.
+ * Such as takedown. We can just pull out any of the variants in order
+ * until we get one that sticks.
+ */
 const PolicyTypeConfigurationSchema = Type.Partial(
   Type.Record(
-    PolicyTypeSchema,
+    Type.String({ description: 'The policy type' }),
     Type.Object({
       recommendations: Type.Partial(
         Type.Record(
-          PolicyRecommendationSchema,
+          Type.String({ description: 'The policy recommendation' }),
           PolicyRecommendationConfigurationSchema
         )
       ),
