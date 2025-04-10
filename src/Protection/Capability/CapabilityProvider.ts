@@ -45,7 +45,7 @@ export interface Capability {
   readonly requiredPermissions: PowerLevelPermission[];
   readonly requiredStatePermissions: string[];
   readonly requiredEventPermissions: string[];
-  readonly isSimulated?: true;
+  readonly isSimulated?: boolean;
 }
 
 export const Capability = Type.Object({
