@@ -13,8 +13,8 @@ import { ServerConsequences } from './ServerConsequences';
 import { randomEventID } from '../../../TestUtilities/EventGeneration';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { RoomSetResult } from './RoomSetResult';
+import { PolicyListRevisionIssuer } from '../../../PolicyList/PolicyListRevisionIssuer';
 
 const FakeStateSender = Object.freeze({
   sendStateEvent(_room, _stateType, _stateKey, _content) {
@@ -38,18 +38,18 @@ export class SimulatedServerConsequences
   }
   public async consequenceForServersInRoom(
     roomID: StringRoomID,
-    revision: PolicyListRevision
+    issuer: PolicyListRevisionIssuer
   ): Promise<Result<boolean>> {
     return await this.simulatedCapability.consequenceForServersInRoom(
       roomID,
-      revision
+      issuer
     );
   }
   public async consequenceForServersInRoomSet(
-    revision: PolicyListRevision
+    issuer: PolicyListRevisionIssuer
   ): Promise<Result<RoomSetResult>> {
     return await this.simulatedCapability.consequenceForServersInRoomSet(
-      revision
+      issuer
     );
   }
   public async unbanServerFromRoomSet(

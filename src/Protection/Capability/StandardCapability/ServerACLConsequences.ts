@@ -4,6 +4,7 @@
 
 import {
   StringRoomID,
+  StringServerName,
   userServerName,
 } from '@the-draupnir-project/matrix-basic-types';
 import { RoomStateEventSender } from '../../../Client/RoomStateEventSender';
@@ -13,34 +14,45 @@ import {
   Ok,
   isError,
 } from '../../../Interface/Action';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { Access, AccessControl } from '../../AccessControl';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
 import { RoomSetResult, RoomSetResultBuilder } from './RoomSetResult';
 import { ServerConsequences } from './ServerConsequences';
 import './ServerConsequences'; // we need this so the interface is loaded.
+import { Result } from '@gnuxie/typescript-result';
+import { PolicyListRevisionIssuer } from '../../../PolicyList/PolicyListRevisionIssuer';
+import {
+  ActionException,
+  ActionExceptionKind,
+} from '../../../Interface/ActionException';
+class ServerACLQueue {
+  private readonly pendingRoomChecks = new Map<
+    StringRoomID,
+    Promise<Result<boolean>>
+  >();
 
-export class ServerACLConequences implements ServerConsequences, Capability {
-  public readonly requiredPermissions = [];
-  public readonly requiredEventPermissions = [];
-  public readonly requiredStatePermissions = ['m.room.server_acl'];
-  /** The name of the server we are operating from, so that we don't brick ourselves */
-  private readonly serverName: string;
+  private readonly activeRoomChecks = new Map<
+    StringRoomID,
+    Promise<Result<boolean>>
+  >();
 
   public constructor(
     private readonly stateEventSender: RoomStateEventSender,
+    private readonly serverName: StringServerName,
     private readonly protectedRoomsSet: ProtectedRoomsSet
   ) {
     // nothing to do.
-    this.serverName = userServerName(this.protectedRoomsSet.userID);
   }
 
   private async applyPolicyRevisionToRoom(
     roomID: StringRoomID,
-    revision: PolicyListRevision
+    issuer: PolicyListRevisionIssuer
   ): Promise<ActionResult<boolean>> {
-    const ACL = AccessControl.compileServerACL(this.serverName, revision);
+    const ACL = AccessControl.compileServerACL(
+      this.serverName,
+      issuer.currentRevision
+    );
     const stateRevision =
       this.protectedRoomsSet.setRoomState.getRevision(roomID);
     if (stateRevision === undefined) {
@@ -71,37 +83,124 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     }
   }
 
+  private async doActiveCheck(
+    roomID: StringRoomID,
+    revisionIssuer: PolicyListRevisionIssuer
+  ): Promise<Result<boolean>> {
+    try {
+      const activeCheck = this.applyPolicyRevisionToRoom(
+        roomID,
+        revisionIssuer
+      );
+      this.activeRoomChecks.set(roomID, activeCheck);
+      return await activeCheck;
+    } finally {
+      this.activeRoomChecks.delete(roomID);
+    }
+  }
+
+  private async enqueueCheck(
+    roomID: StringRoomID,
+    revisionIssuer: PolicyListRevisionIssuer,
+    activeCheck: Promise<Result<boolean>>
+  ): Promise<Result<boolean>> {
+    try {
+      await activeCheck;
+    } finally {
+      this.pendingRoomChecks.delete(roomID);
+    }
+    return await this.doActiveCheck(roomID, revisionIssuer);
+  }
+
+  public async enqueueRoomCheck(
+    roomID: StringRoomID,
+    revisionIssuer: PolicyListRevisionIssuer
+  ): Promise<Result<boolean>> {
+    const pendingCheck = this.pendingRoomChecks.get(roomID);
+    if (pendingCheck) {
+      return pendingCheck;
+    }
+    const activeCheck = this.activeRoomChecks.get(roomID);
+    if (activeCheck) {
+      const pendingCheck = this.enqueueCheck(
+        roomID,
+        revisionIssuer,
+        activeCheck
+      );
+      this.pendingRoomChecks.set(roomID, pendingCheck);
+      return await pendingCheck;
+    } else {
+      return await this.doActiveCheck(roomID, revisionIssuer);
+    }
+  }
+}
+
+export class ServerACLConequences implements ServerConsequences, Capability {
+  public readonly requiredPermissions = [];
+  public readonly requiredEventPermissions = [];
+  public readonly requiredStatePermissions = ['m.room.server_acl'];
+  private readonly queue: ServerACLQueue;
+
+  public constructor(
+    stateEventSender: RoomStateEventSender,
+    private readonly protectedRoomsSet: ProtectedRoomsSet
+  ) {
+    this.queue = new ServerACLQueue(
+      stateEventSender,
+      userServerName(this.protectedRoomsSet.userID),
+      protectedRoomsSet
+    );
+  }
+
   private async applyPolicyRevisionToSet(
-    revision: PolicyListRevision
+    revisionIssuer: PolicyListRevisionIssuer
   ): Promise<ActionResult<RoomSetResult>> {
     const resultBuilder = new RoomSetResultBuilder();
-    for (const room of this.protectedRoomsSet.allProtectedRooms) {
-      resultBuilder.addResult(
-        room.toRoomIDOrAlias(),
-        (await this.applyPolicyRevisionToRoom(
-          room.toRoomIDOrAlias(),
-          revision
-        )) as ActionResult<void>
+    try {
+      await Promise.all(
+        this.protectedRoomsSet.allProtectedRooms.map((room) =>
+          this.queue
+            .enqueueRoomCheck(room.toRoomIDOrAlias(), revisionIssuer)
+            .then((result) => {
+              resultBuilder.addResult(
+                room.toRoomIDOrAlias(),
+                result as Result<void>
+              );
+            })
+        )
       );
+    } catch (e) {
+      if (e instanceof Error) {
+        return ActionException.Result(
+          `Uncaught error while applying server ACLS`,
+          {
+            exception: e,
+            exceptionKind: ActionExceptionKind.Unknown,
+          }
+        );
+      }
     }
+
     return Ok(resultBuilder.getResult());
   }
   public async consequenceForServersInRoom(
     roomID: StringRoomID,
-    revision: PolicyListRevision
+    revisionIssuer: PolicyListRevisionIssuer
   ): Promise<ActionResult<boolean>> {
-    return await this.applyPolicyRevisionToRoom(roomID, revision);
+    return await this.queue.enqueueRoomCheck(roomID, revisionIssuer);
   }
   public async consequenceForServersInRoomSet(
-    revision: PolicyListRevision
+    revisionIssuer: PolicyListRevisionIssuer
   ): Promise<ActionResult<RoomSetResult>> {
-    return await this.applyPolicyRevisionToSet(revision);
+    return await this.applyPolicyRevisionToSet(revisionIssuer);
   }
   public async unbanServerFromRoomSet(
     serverName: string,
     _reason: string
   ): Promise<ActionResult<RoomSetResult>> {
-    const revision = this.protectedRoomsSet.watchedPolicyRooms.currentRevision;
+    const revisionIssuer =
+      this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer;
+    const revision = revisionIssuer.currentRevision;
     // this method is for applying the ACL, not removing policies.
     const access = AccessControl.getAccessForServer(revision, serverName);
     if (access.outcome !== Access.Allowed) {
@@ -111,7 +210,7 @@ export class ServerACLConequences implements ServerConsequences, Capability {
         }`
       );
     }
-    return await this.applyPolicyRevisionToSet(revision);
+    return await this.applyPolicyRevisionToSet(revisionIssuer);
   }
 }
 

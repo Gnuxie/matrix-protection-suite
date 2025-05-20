@@ -19,6 +19,7 @@ import { Ok } from '@gnuxie/typescript-result';
 import { ServerACLConequences } from './ServerACLConsequences';
 import { ServerACLEvent } from '../../../MatrixTypes/ServerACL';
 import { StandardPolicyListRevision } from '../../../PolicyList/StandardPolicyListRevision';
+import { PolicyListRevisionIssuer } from '../../../PolicyList/PolicyListRevisionIssuer';
 
 test('Adding and removing server policies causes the servers to be banned', async function () {
   const badServer = 'badpeople.example.com';
@@ -72,7 +73,7 @@ test('Adding and removing server policies causes the servers to be banned', asyn
   const initialACLResult = (
     await serverConsequences.consequenceForServersInRoom(
       protectedRoom.toRoomIDOrAlias(),
-      policyRevisionIssuer.currentRevision
+      policyRevisionIssuer
     )
   ).expect('Should be able to set the initial ACL');
   expect(initialACLResult).toBe(true);
@@ -88,7 +89,9 @@ test('Adding and removing server policies causes the servers to be banned', asyn
   const removeResult = (
     await serverConsequences.consequenceForServersInRoom(
       protectedRoom.toRoomIDOrAlias(),
-      StandardPolicyListRevision.blankRevision()
+      {
+        currentRevision: StandardPolicyListRevision.blankRevision(),
+      } as unknown as PolicyListRevisionIssuer
     )
   ).expect('Should be able to remove the ACL');
   expect(removeResult).toBe(true);

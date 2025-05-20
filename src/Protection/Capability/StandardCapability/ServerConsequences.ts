@@ -4,15 +4,28 @@
 
 import { Type } from '@sinclair/typebox';
 import { ActionResult } from '../../../Interface/Action';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
 import { CapabilityMethodSchema } from './CapabilityMethodSchema';
 import { describeCapabilityInterface } from '../CapabilityInterface';
 import { Capability } from '../CapabilityProvider';
 import { RoomSetResult } from './RoomSetResult';
 import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { PolicyListRevisionIssuer } from '../../../PolicyList/PolicyListRevisionIssuer';
 
 export type ResultForServerInSetMap = Map<StringRoomID, ActionResult<void>>;
 
+// How do we gate this then?
+// 1. Take a policyListRevisionIssuer as the argument
+// 2. Require everything to go through an internal per room queue
+// 3. a. There has to be a queue exectuor unfortunatley that takes things off the map
+//    It can do so concurrently but f'knows how we make it configurable.
+//    b. We probably can actually make it configurable and just expose it as
+//       an argument.
+
+/**
+ * This started as a generic capability provider to serve as an example
+ * for others. But it really isn't generic at all and is quite specific
+ * to the serverBanSynchronisation protection and server ACL.
+ */
 export interface ServerConsequences extends Capability {
   /**
    * Take a consequence against a server in a room.
@@ -21,10 +34,10 @@ export interface ServerConsequences extends Capability {
    */
   consequenceForServersInRoom(
     roomID: StringRoomID,
-    revision: PolicyListRevision
+    revisionIssuer: PolicyListRevisionIssuer
   ): Promise<ActionResult<boolean>>;
   consequenceForServersInRoomSet(
-    revision: PolicyListRevision
+    revisionIssuer: PolicyListRevisionIssuer
   ): Promise<ActionResult<RoomSetResult>>;
   unbanServerFromRoomSet(
     serverName: string,
