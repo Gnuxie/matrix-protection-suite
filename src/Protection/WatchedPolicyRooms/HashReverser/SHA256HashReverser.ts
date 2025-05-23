@@ -98,6 +98,8 @@ export interface SHA256HashStore {
     userIDs: StringUserID[]
   ): Promise<Result<UserHashRecord[]>>;
   storeRoomIdentification(details: HashedRoomDetails): Promise<Result<void>>;
+  findRoomsByServer(server: StringServerName): Promise<Result<StringRoomID[]>>;
+  findRoomsByCreator(creator: StringUserID): Promise<Result<StringRoomID[]>>;
   destroy(): void;
 }
 
