@@ -25,17 +25,17 @@ import {
 import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
 import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 
-function createMemberBanSynchronisationProtection(
+async function createMemberBanSynchronisationProtection(
   capabilities: MemberBanSynchronisationProtectionCapabilities,
   protectedRoomsSet: ProtectedRoomsSet
-): MemberBanSynchronisationProtection {
+): Promise<MemberBanSynchronisationProtection> {
   const description = findProtection('MemberBanSynchronisationProtection');
   if (description === undefined) {
     throw new TypeError(
       'Should be able to find the member ban synchronisation protection'
     );
   }
-  const protectionResult = description.factory(
+  const protectionResult = await description.factory(
     description,
     protectedRoomsSet,
     undefined,
@@ -96,7 +96,7 @@ test('Membership changes that should result in a ban when matching an existing p
     userConsequences,
     'consequenceForUserInRoom'
   );
-  const protection = createMemberBanSynchronisationProtection(
+  const protection = await createMemberBanSynchronisationProtection(
     { userConsequences },
     protectedRoomsSet
   );
@@ -174,7 +174,7 @@ test('A policy change banning a user on a directly watched list will call the co
     'consequenceForUsersInRoomSet'
   );
 
-  const protection = createMemberBanSynchronisationProtection(
+  const protection = await createMemberBanSynchronisationProtection(
     { userConsequences },
     protectedRoomsSet
   );

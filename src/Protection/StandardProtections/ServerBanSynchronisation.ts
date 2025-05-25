@@ -114,7 +114,7 @@ describeProtection<Capabilities>({
   defaultCapabilities: {
     serverConsequences: 'ServerACLConsequences',
   },
-  factory: (description, protectedRoomsSet, _settings, capabilities) =>
+  factory: async (description, protectedRoomsSet, _settings, capabilities) =>
     Ok(
       new ServerBanSynchronisationProtection(
         description,

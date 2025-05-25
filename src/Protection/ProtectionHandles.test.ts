@@ -51,7 +51,7 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
     capabilities: {},
     defaultCapabilities: {},
     protectionSettings: new StandardConfigDescription(Type.Object({})),
-    factory(
+    async factory(
       description,
       _protectedRoomsSet,
       _context,

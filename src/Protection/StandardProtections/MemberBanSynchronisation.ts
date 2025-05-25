@@ -165,7 +165,7 @@ describeProtection<MemberBanSynchronisationProtectionCapabilities>({
   defaultCapabilities: {
     userConsequences: 'StandardUserConsequences',
   },
-  factory: (decription, protectedRoomsSet, _settings, capabilitySet) =>
+  factory: async (decription, protectedRoomsSet, _settings, capabilitySet) =>
     Ok(
       new MemberBanSynchronisationProtection(
         decription,

@@ -74,8 +74,10 @@ export type ProtectionFactoryMethod<
   context: Context,
   capabilities: TCapabilitySet,
   settings: EDStatic<TConfigSchema>
-) => ActionResult<
-  Protection<ProtectionDescription<Context, TConfigSchema, TCapabilitySet>>
+) => Promise<
+  ActionResult<
+    Protection<ProtectionDescription<Context, TConfigSchema, TCapabilitySet>>
+  >
 >;
 
 /**

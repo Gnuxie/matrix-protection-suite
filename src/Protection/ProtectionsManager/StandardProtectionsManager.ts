@@ -95,7 +95,7 @@ export class StandardProtectionsManager<Context = unknown>
       capabilityProviderSet,
       context
     );
-    const protectionResult = protectionDescription.factory(
+    const protectionResult = await protectionDescription.factory(
       protectionDescription,
       protectedRoomsSet,
       context,
