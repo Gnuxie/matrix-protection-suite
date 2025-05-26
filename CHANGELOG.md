@@ -11,6 +11,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-05-26
+
+### Changed
+
+- Change protection factories to be async. It's not clear why they weren't
+  async to begin with but this allows for more advanced factory code.
+
 ## [3.1.2] - 2025-05-20
 
 ### Fixed
