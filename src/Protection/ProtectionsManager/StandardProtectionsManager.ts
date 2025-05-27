@@ -191,25 +191,32 @@ export class StandardProtectionsManager<Context = unknown>
     }
     return Ok(undefined);
   }
-  public async changeProtectionSettings(
-    protectionDescription: ProtectionDescription,
+  public async changeProtectionSettings<
+    TProtectionDescription extends
+      ProtectionDescription = ProtectionDescription,
+  >(
+    protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     settings: Record<string, unknown>
-  ): Promise<Result<void>> {
-    const result = await this.startProtection(
+  ): Promise<Result<Protection<TProtectionDescription>>> {
+    const protectionEnableResult = await this.startProtection(
       protectionDescription,
       protectedRoomsSet,
       context,
       { settings }
     );
-    if (isError(result)) {
-      return result;
+    if (isError(protectionEnableResult)) {
+      return protectionEnableResult;
     }
-    return await this.settingsConfig.storeProtectionSettings(
+    const settingsResult = await this.settingsConfig.storeProtectionSettings(
       protectionDescription,
       settings
     );
+    if (isError(settingsResult)) {
+      return settingsResult;
+    }
+    return protectionEnableResult as Result<Protection<TProtectionDescription>>;
   }
 
   public async changeCapabilityProvider(

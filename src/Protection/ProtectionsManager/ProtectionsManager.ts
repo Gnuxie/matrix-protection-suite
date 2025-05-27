@@ -86,12 +86,15 @@ export interface ProtectionsManager<Context = unknown> {
    * @param settings The parsed settings for the protection. If these are wrong,
    * then this method will fail.
    */
-  changeProtectionSettings(
-    protectionDescription: ProtectionDescription,
+  changeProtectionSettings<
+    TProtectionDescription extends
+      ProtectionDescription = ProtectionDescription,
+  >(
+    protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
     context: Context,
     settings: Record<string, unknown>
-  ): Promise<ActionResult<void>>;
+  ): Promise<ActionResult<Protection<TProtectionDescription>>>;
 
   /**
    * Change the current capability provider for a specific capability interface
