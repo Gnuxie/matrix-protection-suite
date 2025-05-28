@@ -199,7 +199,7 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
         recommendation,
         ...(options.shouldHash
           ? {
-              hashes: {
+              ['org.matrix.msc4205.hashes']: {
                 sha256: Base64.stringify(SHA256(entity)),
               },
             }
