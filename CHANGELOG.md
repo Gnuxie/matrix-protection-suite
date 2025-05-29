@@ -11,6 +11,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2025-05-29
+
+### Fixed
+
+- Stop using the unnamespaced `hashes` property in MSC4205 hashed entities when
+  writing policies.
+
+### Changed
+
+- The interface of `ProtectionsManager['changeProtectionSettings']` now returns
+  the new instance of the protection created by the protection description factory.
+  This is so that the method can be used from protection factories themselves
+  to alter protection settings.
+
 ## [3.3.0] - 2025-05-27
 
 ### Added
