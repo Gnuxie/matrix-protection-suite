@@ -1,12 +1,15 @@
-// SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
+// SPDX-FileCopyrightText: 2024 - 2025 Gnuxie <Gnuxie@protonmail.com>
 //
 // SPDX-License-Identifier: AFL-3.0
 
 import { FormatRegistry, StaticDecode, Type } from '@sinclair/typebox';
 import { ActionError, ActionResult, Ok, isError } from '../Interface/Action';
 
-const PaginationTokenSecret = Symbol('PaginationTokenSecret');
-export type StringPaginationToken = string & { [PaginationTokenSecret]: true };
+export type PaignationTokenBrand = {
+  readonly StringPaginationToken: unique symbol;
+};
+
+export type StringPaginationToken = string & PaignationTokenBrand;
 
 FormatRegistry.Set(
   'StringPaginationToken',
