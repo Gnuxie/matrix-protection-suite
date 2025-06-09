@@ -25,8 +25,11 @@ export interface ChunkPage<ChunkItem> {
   chunk: ChunkItem[];
   nextToken: StringPaginationToken | undefined;
   previousToken: StringPaginationToken | undefined;
+  /** Whether the server is indicating that there is another page available */
   hasNext(): boolean;
+  /** Whether the server is indicating that there is a previous page available */
   hasPrevious(): boolean;
+  /** Whether this is the first page in the pagination direction */
   isFirstPage(): boolean;
 }
 
