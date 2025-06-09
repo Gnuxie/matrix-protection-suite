@@ -3,17 +3,25 @@
 // SPDX-License-Identifier: AFL-3.0
 
 // For the love of god keep this in alphabetical order please.
+export * from './Client/Pagination/MatrixPaginator';
+export * from './Client/Pagination/PaginationChunk';
+export * from './Client/Pagination/PaginationIteration';
+export * from './Client/Pagination/PaginationRequest';
+export * from './Client/Pagination/PaginationSession';
+export * from './Client/Pagination/PaginationToken';
+export * from './Client/Pagination/StandardPaginationIterator';
+
 export * from './Client/ClientCapabilityNegotiation';
 export * from './Client/ClientPlatform';
-export * from './Client/Pagination';
 export * from './Client/PowerLevelsMirror';
 export * from './Client/RoomBanner';
 export * from './Client/RoomCreator';
+export * from './Client/RoomEventFilter';
 export * from './Client/RoomEventRedacter';
-export * from './Client/RoomEventRelationsGetter';
 export * from './Client/RoomInviter';
 export * from './Client/RoomJoiner';
 export * from './Client/RoomKicker';
+export * from './Client/RoomMessages';
 export * from './Client/RoomMessageSender';
 export * from './Client/RoomResolver';
 export * from './Client/RoomStateGetter';

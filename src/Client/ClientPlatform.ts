@@ -7,10 +7,10 @@ import { RoomBanner } from './RoomBanner';
 import { RoomCreator } from './RoomCreator';
 import { RoomEventGetter } from './RoomEventGetter';
 import { RoomEventRedacter } from './RoomEventRedacter';
-import { RoomEventRelationsGetter } from './RoomEventRelationsGetter';
 import { RoomInviter } from './RoomInviter';
 import { RoomJoiner } from './RoomJoiner';
 import { RoomKicker } from './RoomKicker';
+import { RoomMessages } from './RoomMessages';
 import { RoomMessageSender } from './RoomMessageSender';
 import { RoomReactionSender } from './RoomReactionSender';
 import { RoomResolver } from './RoomResolver';
@@ -32,7 +32,6 @@ export interface ClientPlatform {
   toRoomCreator(): RoomCreator;
   toRoomEventGetter(): RoomEventGetter;
   toRoomEventRedacter(): RoomEventRedacter;
-  toRoomEventRelationsGetter(): RoomEventRelationsGetter;
   toRoomInviter(): RoomInviter;
   toRoomJoiner(): RoomJoiner;
   toRoomKicker(): RoomKicker;
@@ -47,5 +46,6 @@ export interface ClientPlatform {
   // which types can be sent.
   toRoomStateEventSender(): RoomStateEventSender;
   toRoomUnbanner(): RoomUnbanner;
+  toRoomMessages(): RoomMessages;
   toRoomMessageSender(): RoomMessageSender;
 }
