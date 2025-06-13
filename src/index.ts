@@ -28,6 +28,7 @@ export * from './ClientManagement/JoinedRoomsRevision';
 export * from './ClientManagement/RoomEventAcivity';
 export * from './ClientManagement/RoomPauser';
 export * from './ClientManagement/StandardClientRooms';
+export * from './ClientManagement/TimedGate';
 
 export * from './Config/ConfigDescription';
 export * from './Config/ConfigMirror';

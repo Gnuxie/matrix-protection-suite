@@ -1,11 +1,17 @@
 // Copyright (C) 2024 Gnuxie <Gnuxie@protonmail.com>
 //
-// SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
+//
+// SPDX-FileAttributionText: <text>
+// This modified file incorporates work from matrix-protection-suite
+// https://github.com/Gnuxie/matrix-protection-suite
+// </text>
 
 export class ConstantPeriodBatch {
   private finished = false;
+  private readonly timeoutID: NodeJS.Timeout;
   constructor(cb: () => void, delayMS = 0) {
-    setTimeout(() => {
+    this.timeoutID = setTimeout(() => {
       this.finished = true;
       cb();
     }, delayMS);
@@ -13,5 +19,10 @@ export class ConstantPeriodBatch {
 
   public isFinished() {
     return this.finished;
+  }
+
+  public cancel() {
+    clearTimeout(this.timeoutID);
+    this.finished = true;
   }
 }

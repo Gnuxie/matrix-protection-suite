@@ -11,6 +11,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased] - 2025-06-13
+
+### Added
+
+- `TimedGate` interface. The idea is just a simple scheduler for a background
+  task that will only allow 1 task to run at a time and 1 task to be scheduled
+  to run, without chaining. This is perfect for e.g. scanning the synapse
+  room directory or synchronising server ACL across a protected rooms set.
+
+### Changed
+
+- `ConstantPeriodBatch` is now cancellable.
+
 ## [3.5.0] - 2025-06-02
 
 ### Added
