@@ -360,6 +360,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.watchedPolicyRooms.unregisterListeners();
     this.protectedRoomsManager.off('change', this.roomsChangeListener);
     this.protectedRoomsManager.unregisterListeners();
+    this.protections.unregisterListeners();
     this.setMembership.off('revision', this.setMembershiprevisionListener);
     this.setMembership.unregisterListeners();
     this.setPoliciesMatchingMembership.off(

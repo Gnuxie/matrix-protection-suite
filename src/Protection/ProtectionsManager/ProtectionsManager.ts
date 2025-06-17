@@ -153,4 +153,6 @@ export interface ProtectionsManager<Context = unknown> {
     name: string,
     cb: (protection: Protection<TProtectionDescription>) => void
   ): void;
+
+  unregisterListeners(): void;
 }

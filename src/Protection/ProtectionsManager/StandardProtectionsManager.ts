@@ -312,4 +312,18 @@ export class StandardProtectionsManager<Context = unknown>
       cb(protection as Protection<TProtectionDescription>);
     }
   }
+
+  unregisterListeners(): void {
+    for (const protection of this.allProtections) {
+      try {
+        protection.handleProtectionDisable?.();
+      } catch (ex) {
+        log.error(
+          `Caught unhandled exception while unregistering listeners for ${protection.description.name}:`,
+          ex
+        );
+      }
+    }
+    this.enabledProtections.clear();
+  }
 }
