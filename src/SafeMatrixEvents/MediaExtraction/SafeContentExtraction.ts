@@ -170,6 +170,7 @@ export type SafeMediaEvent = {
   type: string;
   sender: StringUserID;
   media: MediaMixin[];
+  sourceEvent: RoomEvent;
 };
 
 export function extractPrimaryContent(
@@ -216,5 +217,6 @@ export function extractSafeMediaEvent(event: RoomEvent): SafeMediaEvent {
     type: eventType,
     sender: event.sender,
     media: mixins,
+    sourceEvent: event,
   };
 }
