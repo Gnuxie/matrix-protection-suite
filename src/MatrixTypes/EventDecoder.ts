@@ -7,7 +7,6 @@ import { ActionResult, isError, isOk } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
 import { RoomEvent, StateEvent } from './Events';
 import { Map as PersistentMap } from 'immutable';
-import { decodeEventWithUndecodableContent } from '../SafeMatrixEvents/UndecodableEventContent';
 
 type EventDecoderFn = (
   event: unknown
@@ -25,7 +24,7 @@ export interface EventDecoder {
    */
   setDecoderForEventType(type: string, decoder: EventDecoderFn): EventDecoder;
   getDecoderForEventType(type: string): EventDecoderFn | undefined;
-  setDecoderForInvalidEvnetContent(decoder: EventDecoderFn): EventDecoder;
+  setDecoderForInvalidEventContent(decoder: EventDecoderFn): EventDecoder;
   decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException>;
   decodeStateEvent(event: unknown): ActionResult<StateEvent, DecodeException>;
 }
@@ -50,7 +49,10 @@ export class StandardEventDecoder implements EventDecoder {
     type: string,
     decoder: EventDecoderFn
   ): EventDecoder {
-    return new StandardEventDecoder(this.decodersByType.set(type, decoder));
+    return new StandardEventDecoder(
+      this.decodersByType.set(type, decoder),
+      this.invalidContentDecoder
+    );
   }
 
   public decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException> {
@@ -91,11 +93,10 @@ export class StandardEventDecoder implements EventDecoder {
     throw new TypeError('Somehow decoded a state event without a state key');
   }
 
-  public setDecoderForInvalidEvnetContent(
+  public setDecoderForInvalidEventContent(
     decoder: EventDecoderFn
   ): EventDecoder {
-    this.invalidContentDecoder = decoder;
-    return this;
+    return new StandardEventDecoder(this.decodersByType, decoder);
   }
 
   public getDecoderForInvalidContent(): EventDecoderFn {
@@ -109,18 +110,3 @@ export class StandardEventDecoder implements EventDecoder {
 }
 
 const UnknownEvent = RoomEvent(Type.Record(Type.String(), Type.Unknown()));
-
-export let DefaultEventDecoder =
-  StandardEventDecoder.blankEventDecoder().setDecoderForInvalidEvnetContent(
-    decodeEventWithUndecodableContent
-  );
-
-export function registerDefaultDecoder(
-  type: string,
-  decoder: EventDecoderFn
-): void {
-  DefaultEventDecoder = DefaultEventDecoder.setDecoderForEventType(
-    type,
-    decoder
-  );
-}

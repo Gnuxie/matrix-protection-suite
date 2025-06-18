@@ -56,6 +56,7 @@ export * from './Logging/Logger';
 export * from './MatrixTypes/SynapseAdmin/APIBodies';
 
 export * from './MatrixTypes/CreateRoom';
+export * from './MatrixTypes/DefaultEventDecoder';
 export * from './MatrixTypes/EventDecoder';
 export * from './MatrixTypes/Events';
 export * from './MatrixTypes/JoinRules';

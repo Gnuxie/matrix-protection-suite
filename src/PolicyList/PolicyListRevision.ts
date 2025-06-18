@@ -20,8 +20,6 @@ import {
 import { PolicyRuleChange } from './PolicyRuleChange';
 import { Revision } from './Revision';
 import { StateEvent } from '../MatrixTypes/Events';
-import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
-import { Value } from '../Interface/Value';
 import {
   MatrixRoomID,
   StringEventID,
@@ -42,10 +40,6 @@ export const MjolnirShortcodeEventContent = Type.Object({
 
 export type MjolnirShortcodeEvent = StaticDecode<typeof MjolnirShortcodeEvent>;
 export const MjolnirShortcodeEvent = StateEvent(MjolnirShortcodeEventContent);
-
-registerDefaultDecoder(MJOLNIR_SHORTCODE_EVENT_TYPE, (event) =>
-  Value.Decode(MjolnirShortcodeEvent, event)
-);
 
 export type EntityMatchOptions = {
   type: PolicyRuleType;
