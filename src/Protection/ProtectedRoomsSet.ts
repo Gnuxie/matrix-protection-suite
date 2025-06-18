@@ -56,6 +56,7 @@ import {
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
 import { WatchedPolicyRooms } from './WatchedPolicyRooms/WatchedPolicyRooms';
+import { extractSafeMediaEvent } from '../SafeMatrixEvents/MediaExtraction/SafeContentExtraction';
 
 export interface ProtectedRoomsSet {
   readonly watchedPolicyRooms: WatchedPolicyRooms;
@@ -149,11 +150,12 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         `The protected rooms set should not be being informed about events that it is not protecting`
       );
     }
+    const mediaEvent = extractSafeMediaEvent(event);
     for (const protection of this.protections.allProtections) {
-      if (protection.handleTimelineEvent === undefined) {
-        continue;
+      if (protection.handleTimelineEvent !== undefined) {
+        void Task(protection.handleTimelineEvent(room, event));
       }
-      void Task(protection.handleTimelineEvent(room, event));
+      protection.handleTimelineMedia?.(room, mediaEvent);
     }
   }
 

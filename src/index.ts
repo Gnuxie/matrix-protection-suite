@@ -163,7 +163,11 @@ export * from './Protection/Protection';
 
 export * from './Reporting/EventReport';
 
+export * from './SafeMatrixEvents/MediaExtraction/hasOwn';
+export * from './SafeMatrixEvents/MediaExtraction/SafeContentExtraction';
 export * from './SafeMatrixEvents/SafeMembershipEvent';
+export * from './SafeMatrixEvents/UndecodableEventContent';
+export * from './SafeMatrixEvents/UnsafeEvent';
 
 export * from './StateTracking/DeclareRoomState';
 export * from './StateTracking/EventBatch';
