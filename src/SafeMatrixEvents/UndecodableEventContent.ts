@@ -28,7 +28,7 @@ export function isUndecodableEvent(
 }
 
 export function decodeEventWithUndecodableContent(
-  event: Record<string, unknown>
+  event: unknown
 ): Result<UndecodableEvent, DecodeException> {
   const decodeResult = Value.Decode(RoomEventWithUnknownContent, event);
   if (isError(decodeResult)) {

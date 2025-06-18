@@ -7,6 +7,7 @@ import { ActionResult, isError, isOk } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
 import { RoomEvent, StateEvent } from './Events';
 import { Map as PersistentMap } from 'immutable';
+import { decodeEventWithUndecodableContent } from '../SafeMatrixEvents/UndecodableEventContent';
 
 type EventDecoderFn = (
   event: unknown
@@ -109,7 +110,10 @@ export class StandardEventDecoder implements EventDecoder {
 
 const UnknownEvent = RoomEvent(Type.Record(Type.String(), Type.Unknown()));
 
-export let DefaultEventDecoder = StandardEventDecoder.blankEventDecoder();
+export let DefaultEventDecoder =
+  StandardEventDecoder.blankEventDecoder().setDecoderForInvalidEvnetContent(
+    decodeEventWithUndecodableContent
+  );
 
 export function registerDefaultDecoder(
   type: string,
