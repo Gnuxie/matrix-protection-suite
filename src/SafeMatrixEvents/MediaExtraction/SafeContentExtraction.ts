@@ -37,6 +37,7 @@ export type MediaMixin =
   | FormattedBodyMediaMimxin
   | MediaURLMediaMixin
   | ThumbnailURLMediaMixin
+  | FileMediaMixin
   | MentionsMediaMixin;
 
 export type ErroneousMediaMixin = {
@@ -97,6 +98,47 @@ export function extractFormattedBodyMixin(
     };
   }
   return ErroneousMixin(MediaMixinTypes.FormattedBody);
+}
+
+export type FileMediaMixin = {
+  mixinType: MediaMixinTypes.File;
+  url: string;
+  filename: string;
+  caption: string | undefined;
+};
+
+const FileMediaMixinSchema = Type.Object({
+  body: Type.Optional(Type.String()),
+  file: Type.Object({
+    url: Type.String(),
+  }),
+  filename: Type.Optional(Type.String()),
+});
+
+export function extractFileMixin(
+  content: Record<string, unknown>
+): FileMediaMixin | ErroneousMediaMixin | undefined {
+  if (!hasOwn(content, 'file')) {
+    return undefined;
+  }
+  if (Value.Check(FileMediaMixinSchema, content)) {
+    const filename = content.filename ?? content.body;
+    const caption =
+      content.filename !== undefined && content.body !== content.filename
+        ? content.body
+        : undefined;
+    if (filename === undefined) {
+      // A filename is required
+      return ErroneousMixin(MediaMixinTypes.File);
+    }
+    return {
+      mixinType: MediaMixinTypes.File,
+      filename,
+      caption,
+      url: content.file.url,
+    };
+  }
+  return ErroneousMixin(MediaMixinTypes.File);
 }
 
 /**
@@ -184,6 +226,7 @@ export function extractMixinsFromContent(
     extractFormattedBodyMixin,
     extractMediaURLMixin,
     extractThumbnailURLMixin,
+    extractFileMixin,
     extractMentionsMixin,
   ]) {
     const mixin = extractor(content);
