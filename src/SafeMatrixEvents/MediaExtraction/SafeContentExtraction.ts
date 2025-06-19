@@ -152,7 +152,7 @@ export type MentionsMediaMixin = {
 type MentionsContentSchema = EDStatic<typeof MentionsContentSchema>;
 const MentionsContentSchema = Type.Object({
   'm.mentions': Type.Object({
-    user_ids: Type.Array(StringUserIDSchema),
+    user_ids: Type.Optional(Type.Array(StringUserIDSchema)),
   }),
 });
 
@@ -163,6 +163,9 @@ export function extractMentionsMixin(
     return undefined;
   }
   if (Value.Check(MentionsContentSchema, content)) {
+    if (content['m.mentions']['user_ids'] === undefined) {
+      return undefined;
+    }
     return {
       mixinType: MediaMixinTypes.Mentions,
       user_ids: content['m.mentions'].user_ids,
