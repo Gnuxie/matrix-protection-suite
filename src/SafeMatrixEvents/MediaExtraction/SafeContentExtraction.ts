@@ -19,6 +19,7 @@ import { Value } from '../../Interface/Value';
 import { isUndecodableEvent } from '../UndecodableEventContent';
 import { UnsafeContentKey } from '../SafeMembershipEvent';
 import { hasOwn } from './hasOwn';
+import { StringUserIDSchema } from '../../MatrixTypes/StringlyTypedMatrix';
 
 export enum MediaMixinTypes {
   Body = 'body',
@@ -27,14 +28,30 @@ export enum MediaMixinTypes {
   ThumbnailURL = 'mxc_thumbnail_url',
   File = 'file',
   Mentions = 'm.mentions',
+  Erroneous = 'erroneous',
 }
 
 export type MediaMixin =
+  | ErroneousMediaMixin
   | BodyMediaMixin
   | FormattedBodyMediaMimxin
   | MediaURLMediaMixin
   | ThumbnailURLMediaMixin
   | MentionsMediaMixin;
+
+export type ErroneousMediaMixin = {
+  attemptedMixinType: MediaMixinTypes;
+  mixinType: MediaMixinTypes.Erroneous;
+};
+
+function ErroneousMixin(
+  attemptedMixinType: Exclude<MediaMixinTypes, MediaMixinTypes.Erroneous>
+): ErroneousMediaMixin {
+  return {
+    mixinType: MediaMixinTypes.Erroneous,
+    attemptedMixinType,
+  };
+}
 
 export type BodyMediaMixin = {
   mixinType: MediaMixinTypes.Body;
@@ -43,14 +60,17 @@ export type BodyMediaMixin = {
 
 export function extractBodyMixin(
   content: Record<string, unknown>
-): BodyMediaMixin | undefined {
-  if (hasOwn(content, 'body') && typeof content.body === 'string') {
+): BodyMediaMixin | ErroneousMediaMixin | undefined {
+  if (!hasOwn(content, 'body')) {
+    return undefined;
+  }
+  if (typeof content.body === 'string') {
     return {
       mixinType: MediaMixinTypes.Body,
       body: content.body,
     };
   }
-  return undefined;
+  return ErroneousMixin(MediaMixinTypes.Body);
 }
 
 export type FormattedBodyMediaMimxin = {
@@ -61,21 +81,22 @@ export type FormattedBodyMediaMimxin = {
 
 export function extractFormattedBodyMixin(
   content: Record<string, unknown>
-): FormattedBodyMediaMimxin | undefined {
+): FormattedBodyMediaMimxin | ErroneousMediaMixin | undefined {
+  if (!hasOwn(content, 'formatted_body')) {
+    return undefined;
+  }
   if (
-    hasOwn(content, 'formatted_body') &&
-    typeof content.formatted_body === 'string'
+    typeof content.formatted_body === 'string' &&
+    hasOwn(content, 'format') &&
+    typeof content.format === 'string'
   ) {
     return {
       mixinType: MediaMixinTypes.FormattedBody,
       formatted_body: content.formatted_body,
-      format:
-        hasOwn(content, 'format') && typeof content.format === 'string'
-          ? content.format
-          : undefined,
+      format: content.format,
     };
   }
-  return undefined;
+  return ErroneousMixin(MediaMixinTypes.FormattedBody);
 }
 
 /**
@@ -90,14 +111,17 @@ export type MediaURLMediaMixin = {
 
 export function extractMediaURLMixin(
   content: Record<string, unknown>
-): MediaURLMediaMixin | undefined {
-  if (hasOwn(content, 'url') && typeof content.url === 'string') {
+): MediaURLMediaMixin | ErroneousMediaMixin | undefined {
+  if (!hasOwn(content, 'url')) {
+    return undefined;
+  }
+  if (typeof content.url === 'string') {
     return {
       mixinType: MediaMixinTypes.MediaURL,
       url: content.url,
     };
   }
-  return undefined;
+  return ErroneousMixin(MediaMixinTypes.MediaURL);
 }
 
 export type ThumbnailURLMediaMixin = {
@@ -107,41 +131,44 @@ export type ThumbnailURLMediaMixin = {
 
 export function extractThumbnailURLMixin(
   content: Record<string, unknown>
-): ThumbnailURLMediaMixin | undefined {
-  if (
-    hasOwn(content, 'thumbnail_url') &&
-    typeof content.thumbnail_url === 'string'
-  ) {
+): ThumbnailURLMediaMixin | ErroneousMediaMixin | undefined {
+  if (!hasOwn(content, 'thumbnail_url')) {
+    return undefined;
+  }
+  if (typeof content.thumbnail_url === 'string') {
     return {
       mixinType: MediaMixinTypes.ThumbnailURL,
       url: content.thumbnail_url,
     };
   }
-  return undefined;
+  return ErroneousMixin(MediaMixinTypes.ThumbnailURL);
 }
 
 export type MentionsMediaMixin = {
   mixinType: MediaMixinTypes.Mentions;
-  user_ids: string[];
+  user_ids: StringUserID[];
 };
 
 type MentionsContentSchema = EDStatic<typeof MentionsContentSchema>;
 const MentionsContentSchema = Type.Object({
   'm.mentions': Type.Object({
-    user_ids: Type.Array(Type.String()),
+    user_ids: Type.Array(StringUserIDSchema),
   }),
 });
 
 export function extractMentionsMixin(
   content: Record<string, unknown>
-): MentionsMediaMixin | undefined {
+): MentionsMediaMixin | ErroneousMediaMixin | undefined {
+  if (!hasOwn(content, 'm.mentions')) {
+    return undefined;
+  }
   if (Value.Check(MentionsContentSchema, content)) {
     return {
       mixinType: MediaMixinTypes.Mentions,
       user_ids: content['m.mentions'].user_ids,
     };
   }
-  return undefined;
+  return ErroneousMixin(MediaMixinTypes.Mentions);
 }
 
 export function extractMixinsFromContent(
