@@ -14,6 +14,8 @@ import {
   ErroneousEventMixin,
   EventMixin,
   EventMixinDescription,
+  ExtractEerrorMixinFromDescription,
+  ExtractOkMixinFromDescription,
   OkEventMixin,
 } from './EventMixinDescription';
 import {
@@ -80,7 +82,22 @@ export class StandardMixinExtractor implements MixinExtractor {
       additionalProperties: Object.fromEntries(
         Object.entries(content).filter(([key]) => !usedPropeties.includes(key))
       ),
-    };
+      findMixin<
+        TDescription extends EventMixinDescription<
+          OkEventMixin,
+          ErroneousEventMixin
+        >,
+      >(
+        description: TDescription
+      ):
+        | undefined
+        | ExtractOkMixinFromDescription<TDescription>
+        | ExtractEerrorMixinFromDescription<TDescription> {
+        return this.mixins.find(
+          (mixin) => mixin.description === description
+        ) as never;
+      },
+    } satisfies ContentMixins;
   }
 
   public parseEvent(event: RoomEvent): EventWithMixins {

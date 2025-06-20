@@ -39,3 +39,9 @@ export type EventMixinDescription<
   properties: string[];
   parser: EventMixinParser<TEventMixinShape, TErroneousEventMixinShape>;
 }>;
+
+export type ExtractOkMixinFromDescription<T> =
+  T extends EventMixinDescription<infer Ok, ErroneousEventMixin> ? Ok : never;
+
+export type ExtractEerrorMixinFromDescription<T> =
+  T extends EventMixinDescription<OkEventMixin, infer Err> ? Err : never;

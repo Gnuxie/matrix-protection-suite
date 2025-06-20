@@ -8,13 +8,31 @@
 // </text>
 
 import { RoomEvent } from '../../MatrixTypes/Events';
-import { EventMixin } from './EventMixinDescription';
+import {
+  ErroneousEventMixin,
+  EventMixin,
+  EventMixinDescription,
+  ExtractEerrorMixinFromDescription,
+  ExtractOkMixinFromDescription,
+  OkEventMixin,
+} from './EventMixinDescription';
 
 // mixins can be nested arbritrarily in other mixins unfortunatly,
 // see m.new_content.
 export type ContentMixins = Readonly<{
-  mixins: EventMixin[];
-  additionalProperties: Record<string, unknown>;
+  readonly mixins: EventMixin[];
+  readonly additionalProperties: Record<string, unknown>;
+  findMixin<
+    TDescription extends EventMixinDescription<
+      OkEventMixin,
+      ErroneousEventMixin
+    >,
+  >(
+    description: TDescription
+  ):
+    | undefined
+    | ExtractOkMixinFromDescription<TDescription>
+    | ExtractEerrorMixinFromDescription<TDescription>;
 }>;
 
 export type EventWithMixins = Readonly<{
