@@ -8,7 +8,6 @@ import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { Membership } from '../Membership/MembershipChange';
 import { StandardRoomStateRevision } from './StandardRoomStateRevision';
-import { DefaultEventDecoder } from '../MatrixTypes/EventDecoder';
 import { isError } from '../Interface/Action';
 import { Recommendation } from '../PolicyList/PolicyRule';
 import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
@@ -41,6 +40,8 @@ import { FakePersistentConfigBackend } from '../Interface/FakePersistentMatrixDa
 import { MjolnirPolicyRoomsEncodedShape } from '../Protection/PolicyListConfig/MjolnirPolicyRoomsDescription';
 import { MjolnirPolicyRoomsConfig } from '../Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
 import { StandardWatchedPolicyRooms } from '../Protection/WatchedPolicyRooms/StandardWatchedPolicyRooms';
+import { DefaultEventDecoder } from '../MatrixTypes/DefaultEventDecoder';
+import { DefaultMixinExtractor } from '../SafeMatrixEvents/MatrixEventMixinDescriptions/DefaultMixinExtractor';
 
 const log = new Logger('DeclareRoomState');
 
@@ -136,7 +137,8 @@ export async function describeProtectedRoomsSet({
     watchedPolicyRooms,
     protectedRoomsManager.ok,
     new FakeProtectionsManager(),
-    clientUserID
+    clientUserID,
+    DefaultMixinExtractor
   );
   return {
     protectedRoomsSet,

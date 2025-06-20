@@ -11,8 +11,6 @@
 import { Type } from '@sinclair/typebox';
 import { EDStatic } from '../Interface/Static';
 import { StateEvent } from './Events';
-import { registerDefaultDecoder } from './EventDecoder';
-import { Value } from '../Interface/Value';
 
 export type JoinRulesEventContent = EDStatic<typeof JoinRulesEventContent>;
 export const JoinRulesEventContent = Type.Object({
@@ -54,7 +52,3 @@ export const JoinRulesEvent = Type.Intersect([
     type: Type.Union([Type.Literal('m.room.join_rules')]),
   }),
 ]);
-
-registerDefaultDecoder('m.room.join_rules', (event) =>
-  Value.Decode(JoinRulesEvent, event)
-);

@@ -52,6 +52,7 @@ import {
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
+import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 
 /**
  * @param description The description for the protection being constructed.
@@ -122,6 +123,15 @@ export interface Protection<TProtectionDescription> {
     room: MatrixRoomID,
     event: RoomEvent
   ): Promise<ActionResult<void>>;
+
+  /**
+   * Handle a single timeline event from a protected room.
+   * Rather than providing protections with the raw event,
+   * media mixins (including text) are extracted from the event
+   * for protections. This prevents parsing errors that would
+   * enable evasion of protections.
+   */
+  handleTimelineEventMixins?(room: MatrixRoomID, event: EventWithMixins): void;
 
   handlePolicyChange?(
     revision: PolicyListRevision,

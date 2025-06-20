@@ -9,7 +9,7 @@ import {
   randomRawEvent,
   randomRoomID,
 } from '../TestUtilities/EventGeneration';
-import { DefaultEventDecoder } from './EventDecoder';
+import { DefaultEventDecoder } from './DefaultEventDecoder';
 import { PolicyRuleEvent } from './PolicyEvents';
 import { NoticeMessageContent } from './RoomMessage';
 

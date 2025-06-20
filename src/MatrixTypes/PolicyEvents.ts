@@ -11,7 +11,6 @@
 import { Type } from '@sinclair/typebox';
 import { EmptyContent, StateEvent } from './Events';
 import { Value } from '../Interface/Value';
-import { registerDefaultDecoder } from './EventDecoder';
 import { EDStatic } from '../Interface/Static';
 
 export enum PolicyRuleType {
@@ -200,12 +199,4 @@ Value.Compile(PolicyRuleEvent);
 
 export function isPolicyRuleEvent(value: unknown): value is PolicyRuleEvent {
   return Value.Check(PolicyRuleEvent, value);
-}
-
-function decodePolicyEvent(event: unknown) {
-  return Value.Decode(PolicyRuleEvent, event);
-}
-
-for (const type of ALL_RULE_TYPES) {
-  registerDefaultDecoder(type, decodePolicyEvent);
 }
