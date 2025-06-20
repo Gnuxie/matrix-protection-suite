@@ -164,8 +164,21 @@ export * from './Protection/Protection';
 
 export * from './Reporting/EventReport';
 
-export * from './SafeMatrixEvents/MediaExtraction/hasOwn';
-export * from './SafeMatrixEvents/MediaExtraction/SafeContentExtraction';
+export * from './SafeMatrixEvents/EventMixinExtraction/EventMixinDescription';
+export * from './SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
+export * from './SafeMatrixEvents/EventMixinExtraction/StandardMixinExtractor';
+
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/DefaultMixinExtractor';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/ExtensibleTextMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/MentionsMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/NewContentMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageBodyMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageFileMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageFormatedBodyMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageMediaURLMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageThumbnailURLMixin';
+
+export * from './SafeMatrixEvents/hasOwn';
 export * from './SafeMatrixEvents/SafeMembershipEvent';
 export * from './SafeMatrixEvents/UndecodableEventContent';
 export * from './SafeMatrixEvents/UnsafeEvent';

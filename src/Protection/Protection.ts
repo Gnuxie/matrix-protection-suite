@@ -52,7 +52,7 @@ import {
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
-import { SafeMediaEvent } from '../SafeMatrixEvents/MediaExtraction/SafeContentExtraction';
+import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 
 /**
  * @param description The description for the protection being constructed.
@@ -131,7 +131,7 @@ export interface Protection<TProtectionDescription> {
    * for protections. This prevents parsing errors that would
    * enable evasion of protections.
    */
-  handleTimelineMedia?(room: MatrixRoomID, event: SafeMediaEvent): void;
+  handleTimelineEventMixins?(room: MatrixRoomID, event: EventWithMixins): void;
 
   handlePolicyChange?(
     revision: PolicyListRevision,
