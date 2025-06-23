@@ -52,7 +52,7 @@ test('That the migration handler is applied appropriatley when disabling protect
   ).expect('Should be able to disable protections');
   const postDisableProtections = Value.Decode(
     MjolnirEnabledProtectionsEvent,
-    (await fakeConfigBackend.requestConfig()).expect(
+    (await fakeConfigBackend.requestUnparsedConfig()).expect(
       'Should be able to get the fake account data'
     )
   ).expect('Should be able to decode the fake account data');

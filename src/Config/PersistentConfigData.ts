@@ -36,7 +36,7 @@ export type ConfigRecoveryOption = {
  */
 export interface PersistentConfigData<T extends TObject = TObject> {
   readonly description: ConfigDescription<T>;
-  requestConfig(): Promise<
+  requestParsedConfig(): Promise<
     Result<EDStatic<T> | undefined, ResultError | ConfigParseError>
   >;
   saveConfig(config: EDStatic<T>): Promise<Result<void>>;
@@ -77,7 +77,7 @@ export interface PersistentConfigData<T extends TObject = TObject> {
 export interface PersistentConfigBackend<
   TEncodedShape extends Record<string, unknown> = Record<string, unknown>,
 > {
-  requestConfig(): Promise<Result<Record<string, unknown> | undefined>>;
+  requestUnparsedConfig(): Promise<Result<Record<string, unknown> | undefined>>;
   saveEncodedConfig(data: TEncodedShape): Promise<Result<void>>;
 }
 
@@ -93,10 +93,10 @@ export class StandardPersistentConfigData<TConfigSchema extends TObject>
     // nothing to do.
   }
 
-  public async requestConfig(): Promise<
+  public async requestParsedConfig(): Promise<
     Result<EDStatic<TConfigSchema> | undefined, ResultError | ConfigParseError>
   > {
-    const loadResult = await this.backend.requestConfig();
+    const loadResult = await this.backend.requestUnparsedConfig();
     if (isError(loadResult)) {
       return loadResult;
     }
@@ -214,7 +214,7 @@ export class StandardPersistentConfigData<TConfigSchema extends TObject>
     message: string,
     options: { path: string; value: unknown; cause: ResultError }
   ): Promise<Result<never>> {
-    const loadResult = await this.backend.requestConfig();
+    const loadResult = await this.backend.requestUnparsedConfig();
     if (isError(loadResult)) {
       return loadResult;
     }

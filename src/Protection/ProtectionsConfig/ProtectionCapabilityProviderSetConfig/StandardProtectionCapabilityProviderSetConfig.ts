@@ -77,7 +77,7 @@ export class StandardProtectionCapabilityProviderSetConfig
     if (isError(persistentConfigData)) {
       return persistentConfigData;
     }
-    const result = await persistentConfigData.ok.requestConfig();
+    const result = await persistentConfigData.ok.requestUnparsedConfig();
     if (isError(result)) {
       return result;
     }

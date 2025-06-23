@@ -41,7 +41,7 @@ async function loadProtecitons(
       | undefined;
   }
 ): Promise<ActionResult<ProtectionsInfo>> {
-  const storeResult = await config.requestConfig();
+  const storeResult = await config.requestParsedConfig();
   if (isError(storeResult)) {
     return storeResult;
   }

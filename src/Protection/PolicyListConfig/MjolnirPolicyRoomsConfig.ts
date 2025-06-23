@@ -48,7 +48,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
       MjolnirPolicyRoomsDescription,
       store
     );
-    const dataResult = await config.requestConfig();
+    const dataResult = await config.requestParsedConfig();
     if (isError(dataResult)) {
       return dataResult.elaborate(
         'Failed to load MjolnirPolicyRoomsConfig from account data'

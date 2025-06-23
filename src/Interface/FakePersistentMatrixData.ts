@@ -33,7 +33,9 @@ export class FakePersistentConfigBackend<T extends Record<string, unknown>>
     this.fakePersistedData = data as T;
     return Promise.resolve(Ok(undefined));
   }
-  requestConfig(): Promise<ActionResult<Record<string, unknown> | undefined>> {
+  requestUnparsedConfig(): Promise<
+    ActionResult<Record<string, unknown> | undefined>
+  > {
     return Promise.resolve(Ok(this.fakePersistedData));
   }
 }
