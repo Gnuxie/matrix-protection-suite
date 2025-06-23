@@ -11,6 +11,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2025-06-23
+
+### Fixed
+
+- Prevent compatible PersistentConfigData and PersistentConfigBackend.
+  We had instantiated a PersistentConfigBackend instance to provide to a
+  dependency requiring a PersistentConfigData instance. So we must now
+  make these interfaces mutually incompatible.
+
 ## [3.7.0] - 2025-06-23
 
 ### Added

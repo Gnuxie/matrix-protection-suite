@@ -46,13 +46,17 @@ export class MjolnirProtectionSettingsConfig
   >(
     protectionDescription: ProtectionDescription
   ): Promise<Result<EDStatic<TConfigSchema>>> {
-    const persistentConfigData = this.makePersistentConfigBackend(
+    const persistentConfigBackend = this.makePersistentConfigBackend(
       protectionDescription
     );
-    if (isError(persistentConfigData)) {
-      return persistentConfigData;
+    if (isError(persistentConfigBackend)) {
+      return persistentConfigBackend;
     }
-    const result = await persistentConfigData.ok.requestConfig();
+    const persistentConfigData = new StandardPersistentConfigData(
+      protectionDescription.protectionSettings,
+      persistentConfigBackend.ok
+    );
+    const result = await persistentConfigData.requestParsedConfig();
     if (isError(result)) {
       return result;
     }
