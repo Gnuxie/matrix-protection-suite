@@ -10,8 +10,6 @@
 
 import { Type } from '@sinclair/typebox';
 import { EmptyContent, RoomEvent } from './Events';
-import { registerDefaultDecoder } from './EventDecoder';
-import { Value } from '../Interface/Value';
 import { EDStatic } from '../Interface/Static';
 
 export type MessageContent = EDStatic<typeof MessageContent>;
@@ -239,7 +237,3 @@ export const RoomMessage = Type.Intersect([
     type: Type.Literal('m.room.message'),
   }),
 ]);
-
-registerDefaultDecoder('m.room.message', (event) =>
-  Value.Decode(RoomMessage, event)
-);

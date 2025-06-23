@@ -11,8 +11,6 @@
 import { Type } from '@sinclair/typebox';
 import { StringEventIDSchema } from './StringlyTypedMatrix';
 import { RoomEvent } from './Events';
-import { registerDefaultDecoder } from './EventDecoder';
-import { Value } from '../Interface/Value';
 import { EDStatic } from '../Interface/Static';
 
 export type ReactionContent = EDStatic<typeof ReactionContent>;
@@ -40,7 +38,3 @@ export const ReactionEvent = Type.Intersect([
     type: Type.Literal('m.reaction'),
   }),
 ]);
-
-registerDefaultDecoder('m.reaction', (event) =>
-  Value.Decode(ReactionEvent, event)
-);

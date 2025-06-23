@@ -4,7 +4,6 @@
 
 import { ActionResult, Ok, isError, isOk } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
-import { registerDefaultDecoder } from '../MatrixTypes/EventDecoder';
 import {
   BaseMembershipEvent,
   MembershipEventContent,
@@ -122,5 +121,3 @@ export const SafeMembershipEventMirror = Object.freeze({
 });
 
 export type SafeMembershipEventMirror = typeof SafeMembershipEventMirror;
-
-registerDefaultDecoder('m.room.member', SafeMembershipEventMirror.parseEvent);

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { Type } from '@sinclair/typebox';
-import { ActionResult, isError } from '../Interface/Action';
+import { ActionResult, isError, isOk } from '../Interface/Action';
 import { DecodeException, Value } from '../Interface/Value';
 import { RoomEvent, StateEvent } from './Events';
 import { Map as PersistentMap } from 'immutable';
@@ -24,13 +24,15 @@ export interface EventDecoder {
    */
   setDecoderForEventType(type: string, decoder: EventDecoderFn): EventDecoder;
   getDecoderForEventType(type: string): EventDecoderFn | undefined;
+  setDecoderForInvalidEventContent(decoder: EventDecoderFn): EventDecoder;
   decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException>;
   decodeStateEvent(event: unknown): ActionResult<StateEvent, DecodeException>;
 }
 
 export class StandardEventDecoder implements EventDecoder {
   private constructor(
-    private readonly decodersByType = PersistentMap<string, EventDecoderFn>()
+    private readonly decodersByType = PersistentMap<string, EventDecoderFn>(),
+    private invalidContentDecoder?: EventDecoderFn | undefined
   ) {
     // nothing to do.
   }
@@ -47,7 +49,10 @@ export class StandardEventDecoder implements EventDecoder {
     type: string,
     decoder: EventDecoderFn
   ): EventDecoder {
-    return new StandardEventDecoder(this.decodersByType.set(type, decoder));
+    return new StandardEventDecoder(
+      this.decodersByType.set(type, decoder),
+      this.invalidContentDecoder
+    );
   }
 
   public decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException> {
@@ -62,11 +67,16 @@ export class StandardEventDecoder implements EventDecoder {
       );
     }
     const decoder = this.decodersByType.get(event.type);
-    if (decoder === undefined) {
-      return Value.Decode(UnknownEvent, event);
-    } else {
-      return decoder(event);
+    const decodeResult = decoder
+      ? decoder(event)
+      : Value.Decode(UnknownEvent, event);
+    if (isOk(decodeResult)) {
+      return decodeResult;
     }
+    if (this.invalidContentDecoder === undefined) {
+      return decodeResult;
+    }
+    return this.invalidContentDecoder(event);
   }
   public decodeStateEvent(
     event: unknown
@@ -82,18 +92,21 @@ export class StandardEventDecoder implements EventDecoder {
     }
     throw new TypeError('Somehow decoded a state event without a state key');
   }
+
+  public setDecoderForInvalidEventContent(
+    decoder: EventDecoderFn
+  ): EventDecoder {
+    return new StandardEventDecoder(this.decodersByType, decoder);
+  }
+
+  public getDecoderForInvalidContent(): EventDecoderFn {
+    if (this.invalidContentDecoder === undefined) {
+      throw new TypeError(
+        'No decoder for invalid content has been set on this event decoder.'
+      );
+    }
+    return this.invalidContentDecoder;
+  }
 }
 
-const UnknownEvent = RoomEvent(Type.Unknown());
-
-export let DefaultEventDecoder = StandardEventDecoder.blankEventDecoder();
-
-export function registerDefaultDecoder(
-  type: string,
-  decoder: EventDecoderFn
-): void {
-  DefaultEventDecoder = DefaultEventDecoder.setDecoderForEventType(
-    type,
-    decoder
-  );
-}
+const UnknownEvent = RoomEvent(Type.Record(Type.String(), Type.Unknown()));

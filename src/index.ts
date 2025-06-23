@@ -56,6 +56,7 @@ export * from './Logging/Logger';
 export * from './MatrixTypes/SynapseAdmin/APIBodies';
 
 export * from './MatrixTypes/CreateRoom';
+export * from './MatrixTypes/DefaultEventDecoder';
 export * from './MatrixTypes/EventDecoder';
 export * from './MatrixTypes/Events';
 export * from './MatrixTypes/JoinRules';
@@ -163,7 +164,24 @@ export * from './Protection/Protection';
 
 export * from './Reporting/EventReport';
 
+export * from './SafeMatrixEvents/EventMixinExtraction/EventMixinDescription';
+export * from './SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
+export * from './SafeMatrixEvents/EventMixinExtraction/StandardMixinExtractor';
+
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/DefaultMixinExtractor';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/ExtensibleTextMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/MentionsMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/NewContentMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageBodyMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageFileMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageFormatedBodyMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageMediaURLMixin';
+export * from './SafeMatrixEvents/MatrixEventMixinDescriptions/RoomMessageThumbnailURLMixin';
+
+export * from './SafeMatrixEvents/hasOwn';
 export * from './SafeMatrixEvents/SafeMembershipEvent';
+export * from './SafeMatrixEvents/UndecodableEventContent';
+export * from './SafeMatrixEvents/UnsafeEvent';
 
 export * from './StateTracking/DeclareRoomState';
 export * from './StateTracking/EventBatch';

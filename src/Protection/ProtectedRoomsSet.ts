@@ -56,6 +56,7 @@ import {
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
 import { WatchedPolicyRooms } from './WatchedPolicyRooms/WatchedPolicyRooms';
+import { MixinExtractor } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 
 export interface ProtectedRoomsSet {
   readonly watchedPolicyRooms: WatchedPolicyRooms;
@@ -104,6 +105,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     public readonly protectedRoomsManager: ProtectedRoomsManager,
     public readonly protections: ProtectionsManager,
     public readonly userID: StringUserID,
+    public readonly eventMixinExtractor: MixinExtractor,
     private readonly handleMissingProtectionPermissions?: HandleMissingProtectionPermissions
   ) {
     this.setRoomMembership.on('membership', this.membershipChangeListener);
@@ -149,11 +151,12 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
         `The protected rooms set should not be being informed about events that it is not protecting`
       );
     }
+    const mixinEvent = this.eventMixinExtractor.parseEvent(event);
     for (const protection of this.protections.allProtections) {
-      if (protection.handleTimelineEvent === undefined) {
-        continue;
+      if (protection.handleTimelineEvent !== undefined) {
+        void Task(protection.handleTimelineEvent(room, event));
       }
-      void Task(protection.handleTimelineEvent(room, event));
+      protection.handleTimelineEventMixins?.(room, mixinEvent);
     }
   }
 

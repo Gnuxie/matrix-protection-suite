@@ -10,8 +10,6 @@
 
 import { Type } from '@sinclair/typebox';
 import { StateEvent } from './Events';
-import { registerDefaultDecoder } from './EventDecoder';
-import { Value } from '../Interface/Value';
 import { EDStatic } from '../Interface/Static';
 
 export type ServerACLContent = EDStatic<typeof ServerACLContent>;
@@ -46,7 +44,3 @@ export const ServerACLEvent = Type.Intersect([
     type: Type.Literal('m.room.server_acl'),
   }),
 ]);
-
-registerDefaultDecoder('m.room.server_acl', (event) =>
-  Value.Decode(ServerACLEvent, event)
-);
