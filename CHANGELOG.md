@@ -11,6 +11,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2025-06-23
+
+### Added
+
+- New concept of event mixin, which largely already exists within Matrix.
+  These are essentially groups of proprties that may appear in matrix events
+  of different types to render media. They are the basis of the "Extensible events"
+  series of MSCs.
+
+- To parse mixins, we use description objects that implement the `EventMixinDescription`
+  interface.
+
+- `handleTimelineEventMixins` callback has been added to the `Protection` interface.
+  This allows protections to handle specific pre-parsed mixins from events.
+
+### Changed
+
+- Should events fail to parse in accordance to their schema, their `type`
+  will be changed to `me.marewolf.undecodable_content`, and the content
+  will be hidden behind `UnsafeContentKey`. This still allows their
+  mixins to be extracted and presented to protections.
+
 ## [3.6.1] - 2025-06-17
 
 ### Fixed
