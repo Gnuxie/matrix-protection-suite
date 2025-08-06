@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AFL-3.0
 
 // For the love of god keep this in alphabetical order please.
+export * from './Client/ClientCapabilityNegotiation';
 export * from './Client/ClientPlatform';
 export * from './Client/Pagination';
 export * from './Client/PowerLevelsMirror';

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
+import { ClientCapabilitiesNegotiation } from './ClientCapabilityNegotiation';
 import { RoomBanner } from './RoomBanner';
 import { RoomCreator } from './RoomCreator';
 import { RoomEventGetter } from './RoomEventGetter';
@@ -26,6 +27,7 @@ import { RoomUnbanner } from './RoomUnbanner';
  * of dependencies.
  */
 export interface ClientPlatform {
+  toClientCapabilitiesNegotiation(): ClientCapabilitiesNegotiation;
   toRoomBanner(): RoomBanner;
   toRoomCreator(): RoomCreator;
   toRoomEventGetter(): RoomEventGetter;
