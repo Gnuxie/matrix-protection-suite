@@ -72,6 +72,7 @@ export * from './MatrixTypes/ServerACL';
 export * from './MatrixTypes/ServerACLBuilder';
 export * from './MatrixTypes/StringlyTypedMatrix';
 export * from './MatrixTypes/SynapseReport';
+export * from './MatrixTypes/Tombstone';
 
 export * from './Membership/MembershipChange';
 export * from './Membership/MembershipRevision';

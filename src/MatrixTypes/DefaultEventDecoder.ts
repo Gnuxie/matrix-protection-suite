@@ -17,6 +17,7 @@ import { ReactionEvent } from './ReactionEvent';
 import { Redaction } from './Redaction';
 import { RoomMessage } from './RoomMessage';
 import { ServerACLEvent } from './ServerACL';
+import { TombstoneEvent } from './Tombstone';
 
 let eventDecoder = StandardEventDecoder.blankEventDecoder()
   .setDecoderForInvalidEventContent(decodeEventWithUndecodableContent)
@@ -41,6 +42,9 @@ let eventDecoder = StandardEventDecoder.blankEventDecoder()
   )
   .setDecoderForEventType('m.room.server_acl', (event) =>
     Value.Decode(ServerACLEvent, event)
+  )
+  .setDecoderForEventType('m.room.tombstone', (event) =>
+    Value.Decode(TombstoneEvent, event)
   );
 
 for (const type of ALL_RULE_TYPES) {
