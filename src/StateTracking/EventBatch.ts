@@ -23,6 +23,7 @@ function logBatchCompleteCallbackError(e: unknown): void {
 
 export interface Batcher<Key extends string, Value> {
   add(key: Key, value: Value): void;
+  dispose(): void;
 }
 
 export class StandardBatcher<Key extends string, Value>
@@ -41,12 +42,19 @@ export class StandardBatcher<Key extends string, Value>
     }
     this.currentBatch.add(key, value);
   }
+
+  public dispose(): void {
+    if (!this.currentBatch.isFinished()) {
+      this.currentBatch.cancel();
+    }
+  }
 }
 
 export interface Batch<Key extends string, Value> {
   add(key: Key, data: Value): void;
   isFinished(): boolean;
   batchCompleteCallback: (entries: [Key, Value][]) => Promise<void>;
+  cancel(): void;
 }
 
 export class ConstantPeriodItemBatch<Key extends string, Value>
@@ -55,7 +63,7 @@ export class ConstantPeriodItemBatch<Key extends string, Value>
   private readonly waitPeriodMS: number;
   private items = new Map<Key, Value>();
   private isBatchComplete = false;
-  private isWaiting = false;
+  private timeoutID: NodeJS.Timeout | undefined = undefined;
   constructor(
     public readonly batchCompleteCallback: Batch<
       Key,
@@ -80,18 +88,20 @@ export class ConstantPeriodItemBatch<Key extends string, Value>
       return;
     }
     this.items.set(key, item);
-    if (!this.isWaiting) {
+    if (!this.timeoutID) {
       // spawn off the timer to call the callback.
       this.startCallbackTimer();
     }
   }
 
   private startCallbackTimer(): void {
-    if (this.isWaiting) {
+    if (this.timeoutID) {
       throw new TypeError('The callback timer is being started more than once');
     }
-    this.isWaiting = true;
-    setTimeout(this.completeBatch.bind(this), this.waitPeriodMS);
+    this.timeoutID = setTimeout(
+      this.completeBatch.bind(this),
+      this.waitPeriodMS
+    );
   }
 
   private completeBatch(): void {
@@ -99,6 +109,13 @@ export class ConstantPeriodItemBatch<Key extends string, Value>
     this.batchCompleteCallback([...this.items.entries()]).catch(
       logBatchCompleteCallbackError
     );
+  }
+
+  public cancel(): void {
+    if (this.timeoutID) {
+      clearTimeout(this.timeoutID);
+      this.timeoutID = undefined;
+    }
   }
 }
 
