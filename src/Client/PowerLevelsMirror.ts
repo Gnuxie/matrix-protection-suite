@@ -4,6 +4,7 @@
 
 import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 import { PowerLevelsEventContent } from '../MatrixTypes/PowerLevels';
+import { RoomCreateEvent, RoomVersionMirror } from '../MatrixTypes/CreateRoom';
 
 export enum PowerLevelPermission {
   Ban = 'ban',
@@ -127,22 +128,53 @@ export const PowerLevelsMirror = Object.freeze({
     }
     return missingPermissions;
   },
-  calculateNewMissingPermissions(
+  calculateMissingPermissionsInNewRoom(
     userID: StringUserID,
-    {
-      nextPowerLevelsContent,
-      previousPowerLevelsContent,
-      requiredEventPermissions,
-      requiredPermissions,
-      requiredStatePermissions,
-    }: {
-      nextPowerLevelsContent?: PowerLevelsEventContent;
-      previousPowerLevelsContent?: PowerLevelsEventContent;
+    options: {
+      createEvent: RoomCreateEvent;
+      nextPowerLevelsContent: PowerLevelsEventContent;
       requiredEventPermissions: string[];
       requiredPermissions: PowerLevelPermission[];
       requiredStatePermissions: string[];
     }
   ): MissingPermissionsChange {
+    return this.calculateNewMissingPermissions(userID, {
+      ...options,
+      previousPowerLevelsContent: {
+        users_default: -1,
+      },
+      isNewlyAddedRoom: true,
+    });
+  },
+  calculateNewMissingPermissions(
+    userID: StringUserID,
+    {
+      createEvent,
+      nextPowerLevelsContent,
+      previousPowerLevelsContent,
+      requiredEventPermissions,
+      requiredPermissions,
+      requiredStatePermissions,
+      isNewlyAddedRoom,
+    }: {
+      createEvent: RoomCreateEvent;
+      nextPowerLevelsContent?: PowerLevelsEventContent;
+      previousPowerLevelsContent?: PowerLevelsEventContent;
+      requiredEventPermissions: string[];
+      requiredPermissions: PowerLevelPermission[];
+      requiredStatePermissions: string[];
+      isNewlyAddedRoom?: boolean;
+    }
+  ): MissingPermissionsChange {
+    if (RoomVersionMirror.isUserAPrivilidgedCreator(userID, createEvent)) {
+      return {
+        missingStatePermissions: [],
+        missingPermissions: [],
+        missingEventPermissions: [],
+        isPrivilidgedInNextPowerLevels: true,
+        isPrivilidgedInPriorPowerLevels: isNewlyAddedRoom ? false : true,
+      };
+    }
     const nextMissingPermissions = this.missingPermissions(
       userID,
       requiredPermissions,

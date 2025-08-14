@@ -57,6 +57,7 @@ import {
 } from '../MembershipPolicies/MembershipPolicyRevision';
 import { WatchedPolicyRooms } from './WatchedPolicyRooms/WatchedPolicyRooms';
 import { MixinExtractor } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
+import { RoomCreateEvent, RoomVersionMirror } from '../MatrixTypes/CreateRoom';
 
 export interface ProtectedRoomsSet {
   readonly watchedPolicyRooms: WatchedPolicyRooms;
@@ -211,11 +212,25 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     }
   }
 
+  /**
+   * To be called only after power levels
+   * have changed in a room. For some reason it's conflicted with
+   * checking permissions within a room that has just been added.
+   * Which is wrong.
+   *
+   * I really don't know how to fix this right now!!
+   */
   private powerLevelsChangeFromContent(
     room: MatrixRoomID,
+    createEvent: RoomCreateEvent,
+    isNewlyAddedRoom: boolean,
     nextPowerLevels: PowerLevelsEventContent | undefined,
     previousPowerLevels: PowerLevelsEventContent | undefined
   ): void {
+    // prividliged creators never change and always have permission.
+    if (RoomVersionMirror.isUserAPrivilidgedCreator(this.userID, createEvent)) {
+      return;
+    }
     const missingPermissionsInfo: ProtectionPermissionsChange[] = [];
     for (const protection of this.protections.allProtections) {
       const permissionsChange =
@@ -225,6 +240,8 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
           requiredEventPermissions: protection.requiredEventPermissions,
           requiredPermissions: protection.requiredPermissions,
           requiredStatePermissions: protection.requiredStatePermissions,
+          createEvent,
+          isNewlyAddedRoom,
         });
       const {
         isPrivilidgedInNextPowerLevels,
@@ -261,8 +278,19 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       'm.room.power_levels',
       ''
     );
+    const createEvent = nextRevision.getStateEvent<RoomCreateEvent>(
+      'm.room.create',
+      ''
+    );
+    if (createEvent === undefined) {
+      throw new TypeError(
+        'Room with missing create event found, this is not ok'
+      );
+    }
     this.powerLevelsChangeFromContent(
       nextRevision.room,
+      createEvent,
+      false,
       nextPowerLevels?.content,
       previousPowerLevels?.content
     );
@@ -307,12 +335,23 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       'm.room.power_levels',
       ''
     );
+    const createEvent = currentRevision.getStateEvent<RoomCreateEvent>(
+      'm.room.create',
+      ''
+    );
+    if (createEvent === undefined) {
+      throw new TypeError(
+        'Room with missing create event found, this is not ok'
+      );
+    }
     // We call the powerLevelsChange so that handlePermissionsMet will be called
     // on protections for with the new room.
     // We also call powerLevelsChange so that the missing permissions CB will
     // get called if we don't have the right permissions for any protection in the new room.
     this.powerLevelsChangeFromContent(
       room,
+      createEvent,
+      true,
       currentPowerLevelsEvent?.content,
       // always treat the previous revision as though we are unprividdged in the new room.
       {
