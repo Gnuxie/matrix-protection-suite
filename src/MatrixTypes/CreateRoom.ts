@@ -1,4 +1,4 @@
-// Copyright 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2023 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2016 OpenMarket Ltd
 // Copyright 2018 New Vector Ltd
 //
@@ -11,6 +11,10 @@
 
 import { Static, Type } from '@sinclair/typebox';
 import { PowerLevelsEventContent } from './PowerLevels';
+import { StringUserIDSchema } from './StringlyTypedMatrix';
+import { StateEvent } from './Events';
+import { isError, Ok, ResultError } from '@gnuxie/typescript-result';
+import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 
 export type RoomCreateOptions = Static<typeof RoomCreateOptions>;
 export const RoomCreateOptions = Type.Object({
@@ -110,4 +114,105 @@ export const RoomCreateOptions = Type.Object({
     })
   ),
   power_level_content_override: Type.Optional(PowerLevelsEventContent),
+});
+
+export type RoomCreateContent = Static<typeof RoomCreateContent>;
+export const RoomCreateContent = Type.Object({
+  creator: Type.Optional(
+    Type.String({
+      description:
+        'The `user_id` of the room creator. **Required** for, and only present in, room versions 1 - 10. Starting with\nroom version 11 the event `sender` should be used instead.',
+    })
+  ),
+  'm.federate': Type.Optional(
+    Type.Boolean({
+      description:
+        'Whether users on other servers can join this room. Defaults to `true` if key does not exist.',
+    })
+  ),
+  room_version: Type.Optional(
+    Type.String({
+      description:
+        'The version of the room. Defaults to `"1"` if the key does not exist.',
+    })
+  ),
+  type: Type.Optional(
+    Type.String({
+      description:
+        "Optional [room type](/client-server-api/#types) to denote a room's intended function outside of traditional\nconversation.\n\nUnspecified room types are possible using [Namespaced Identifiers](/appendices/#common-namespaced-identifier-grammar).",
+    })
+  ),
+  predecessor: Type.Optional(
+    Type.Object({
+      room_id: Type.String({ description: 'The ID of the old room.' }),
+      event_id: Type.Optional(
+        Type.String({
+          description: 'The event ID of the last known event in the old room.',
+        })
+      ),
+    })
+  ),
+  additional_creators: Type.Optional(
+    Type.Array(StringUserIDSchema, {
+      description:
+        'These are users with infinite power level when the room version is 12 and above.',
+    })
+  ),
+});
+
+export type RoomCreateEvent = Static<typeof RoomCreateEvent>;
+export const RoomCreateEvent = Type.Intersect([
+  Type.Omit(StateEvent(RoomCreateContent), ['state_key', 'type']),
+  Type.Object({
+    state_key: Type.String({
+      description: 'A zero-length string.',
+      pattern: '^$',
+    }),
+    type: Type.Literal('m.room.create'),
+  }),
+]);
+
+// FIXME: SHouldn't the prividliged creators function return a result error?
+// i think so, but it just depends how the permission calculation system
+// uses it and whether it supports feeding errors back.
+export const RoomVersionMirror = Object.freeze({
+  isVersionWithPrivilidgedCreators(versionSpecifier: string): boolean {
+    const integerResult = (() => {
+      try {
+        return Ok(parseInt(versionSpecifier, 10));
+      } catch (e) {
+        if (e instanceof Error) {
+          return ResultError.Result(e.message);
+        }
+        throw e; // we don't know what this is.
+      }
+    })();
+    if (isError(integerResult)) {
+      return false; // unknown room version.
+    }
+    if (integerResult.ok >= 12) {
+      return true; // versions below 12 and abovehave privilidged creators.
+    }
+    return false;
+  },
+  isUserAPrivilidgedCreator(
+    userID: StringUserID,
+    creationEvent: RoomCreateEvent
+  ): boolean {
+    if (creationEvent.content.room_version === undefined) {
+      return false;
+    }
+    if (
+      !this.isVersionWithPrivilidgedCreators(creationEvent.content.room_version)
+    ) {
+      return false;
+    }
+    if (userID === creationEvent.sender) {
+      return true;
+    }
+    if (creationEvent.content.additional_creators?.includes(userID)) {
+      return true;
+    }
+    return false;
+  },
 });

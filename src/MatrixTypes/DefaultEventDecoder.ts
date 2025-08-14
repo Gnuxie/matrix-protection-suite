@@ -9,6 +9,7 @@ import {
 } from '../PolicyList/PolicyListRevision';
 import { SafeMembershipEventMirror } from '../SafeMatrixEvents/SafeMembershipEvent';
 import { decodeEventWithUndecodableContent } from '../SafeMatrixEvents/UndecodableEventContent';
+import { RoomCreateEvent } from './CreateRoom';
 import { StandardEventDecoder } from './EventDecoder';
 import { JoinRulesEvent } from './JoinRules';
 import { ALL_RULE_TYPES, PolicyRuleEvent } from './PolicyEvents';
@@ -26,6 +27,9 @@ let eventDecoder = StandardEventDecoder.blankEventDecoder()
   )
   .setDecoderForEventType('m.reaction', (event) =>
     Value.Decode(ReactionEvent, event)
+  )
+  .setDecoderForEventType('m.room.create', (event) =>
+    Value.Decode(RoomCreateEvent, event)
   )
   .setDecoderForEventType('m.room.redaction', (event) =>
     Value.Decode(Redaction, event)
