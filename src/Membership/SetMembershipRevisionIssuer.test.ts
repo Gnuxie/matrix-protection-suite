@@ -29,6 +29,16 @@ test('That when the SetMembershipRevisionIssuer is created, the existing room me
           sender: randomUserID(),
           membership: Membership.Join,
         })),
+        stateDescriptions: [
+          {
+            sender: randomUserID(),
+            type: 'm.room.create',
+            state_key: '',
+            content: {
+              room_version: '11',
+            },
+          },
+        ],
       },
     ],
   });
@@ -55,6 +65,16 @@ test('That adding and removing rooms will update the SetMembershipRevisionIssuer
               membership: Membership.Join,
             },
           ],
+          stateDescriptions: [
+            {
+              sender: randomUserID(),
+              type: 'm.room.create',
+              state_key: '',
+              content: {
+                room_version: '11',
+              },
+            },
+          ],
         },
       ],
     });
@@ -66,6 +86,16 @@ test('That adding and removing rooms will update the SetMembershipRevisionIssuer
       {
         sender: randomUserID(),
         membership: Membership.Join,
+      },
+    ],
+    stateDescriptions: [
+      {
+        sender: randomUserID(),
+        type: 'm.room.create',
+        state_key: '',
+        content: {
+          room_version: '11',
+        },
       },
     ],
   });

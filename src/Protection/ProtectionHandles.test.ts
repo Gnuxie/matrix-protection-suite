@@ -15,6 +15,7 @@ import {
 } from '../StateTracking/DeclareRoomState';
 import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
 import { ProtectionDescription } from './Protection';
+import { RoomCreateContent } from '../MatrixTypes/CreateRoom';
 
 const log = new Logger('ProtectionHandles.test');
 
@@ -34,6 +35,14 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
       },
     ],
     stateDescriptions: [
+      {
+        content: {
+          room_version: '11',
+        } satisfies RoomCreateContent,
+        sender: userID,
+        type: 'm.room.create',
+        state_key: '',
+      },
       {
         content: {
           users_default: 100,

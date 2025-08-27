@@ -93,6 +93,16 @@ test('When adding and removing rooms with members will update the matches', asyn
         membership: Membership.Join,
       },
     ],
+    stateDescriptions: [
+      {
+        sender: randomUserID(),
+        type: 'm.room.create',
+        state_key: '',
+        content: {
+          room_version: '11',
+        },
+      },
+    ],
   });
   roomStateManager.addIssuer(stateRevisionIssuer);
   roomMembershipManager.addIssuer(membershipRevisionIssuer);
