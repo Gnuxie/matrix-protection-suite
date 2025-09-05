@@ -5,13 +5,13 @@
 import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { RoomEvent } from '../MatrixTypes/Events';
 import { MatrixPaginator } from './Pagination/MatrixPaginator';
-import { PaginationRequest } from './Pagination/PaginationRequest';
+import { PaginationOptions } from './Pagination/PaginationOptions';
 import { RoomEventFilter } from './RoomEventFilter';
 import { PaginationIterator } from './Pagination/PaginationIteration';
 import { Type } from '@sinclair/typebox';
 import { StringPaginationTokenSchema } from './Pagination/PaginationToken';
 
-export interface RoomMessagesOptions extends PaginationRequest {
+export interface RoomMessagesOptions extends PaginationOptions {
   filter?: RoomEventFilter;
 }
 

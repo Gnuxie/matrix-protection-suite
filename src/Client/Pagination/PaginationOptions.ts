@@ -4,7 +4,7 @@
 
 import { StringPaginationToken } from './PaginationToken';
 
-export interface PaginationRequest {
+export interface PaginationOptions {
   /** Direction of pagination: forwards or backwards. */
   readonly direction: 'forwards' | 'backwards';
 

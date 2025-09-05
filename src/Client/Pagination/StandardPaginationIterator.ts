@@ -8,11 +8,11 @@ import {
   PaginationIterator,
   PaginationIteratorOptions,
 } from './PaginationIteration';
-import { PaginationRequest } from './PaginationRequest';
+import { PaginationOptions } from './PaginationOptions';
 
 export class StandardPaginationIterator<
   ChunkItem,
-  TOptions extends PaginationRequest = PaginationRequest,
+  TOptions extends PaginationOptions = PaginationOptions,
 > implements PaginationIterator<ChunkItem>
 {
   public constructor(

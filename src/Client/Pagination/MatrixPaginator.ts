@@ -4,14 +4,14 @@
 
 import { Result } from '@gnuxie/typescript-result';
 import { PaginationChunk } from './PaginationChunk';
-import { PaginationRequest } from './PaginationRequest';
+import { PaginationOptions } from './PaginationOptions';
 
 /**
  * A generalized paginator over a Matrix endpoint.
  */
 export interface MatrixPaginator<
   ChunkItem,
-  TRequest extends PaginationRequest = PaginationRequest,
+  TRequest extends PaginationOptions = PaginationOptions,
 > {
   /**
    * Request a page of results.
