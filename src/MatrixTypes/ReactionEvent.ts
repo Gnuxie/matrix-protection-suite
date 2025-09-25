@@ -10,7 +10,7 @@
 
 import { Type } from '@sinclair/typebox';
 import { StringEventIDSchema } from './StringlyTypedMatrix';
-import { RoomEvent } from './Events';
+import { EmptyContent, RoomEvent } from './Events';
 import { EDStatic } from '../Interface/Static';
 
 export type ReactionContent = EDStatic<typeof ReactionContent>;
@@ -34,7 +34,7 @@ export type ReactionEvent = EDStatic<typeof ReactionEvent>;
 export const ReactionEvent = Type.Intersect([
   Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
   Type.Object({
-    content: Type.Optional(ReactionContent),
+    content: Type.Union([ReactionContent, EmptyContent]),
     type: Type.Literal('m.reaction'),
   }),
 ]);
