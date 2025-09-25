@@ -18,6 +18,7 @@ export * from './Client/RoomBanner';
 export * from './Client/RoomCreator';
 export * from './Client/RoomEventFilter';
 export * from './Client/RoomEventRedacter';
+export * from './Client/RoomEventRelations';
 export * from './Client/RoomInviter';
 export * from './Client/RoomJoiner';
 export * from './Client/RoomKicker';
