@@ -215,4 +215,16 @@ export const RoomVersionMirror = Object.freeze({
     }
     return false;
   },
+  priviligedCreators(creationEvent: RoomCreateEvent): StringUserID[] {
+    if (
+      creationEvent.content.room_version === undefined ||
+      !this.isVersionWithPrivilidgedCreators(creationEvent.content.room_version)
+    ) {
+      return [creationEvent.sender];
+    }
+    return [
+      creationEvent.sender,
+      ...(creationEvent.content.additional_creators ?? []),
+    ];
+  },
 });
