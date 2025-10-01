@@ -4,13 +4,13 @@
 
 import { StaticEncode, Type } from '@sinclair/typebox';
 import { describeConfig } from '../../Config/describeConfig';
-import { PermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
+import { RoomReferencePermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
 import { EDStatic } from '../../Interface/Static';
 
 export const MjolnirPolicyRoomsDescription = describeConfig({
   schema: Type.Object(
     {
-      references: Type.Array(PermalinkSchema, {
+      references: Type.Array(RoomReferencePermalinkSchema, {
         default: [],
         uniqueItems: true,
       }),

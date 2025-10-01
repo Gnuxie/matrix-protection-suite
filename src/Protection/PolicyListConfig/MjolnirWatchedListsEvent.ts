@@ -10,13 +10,13 @@
 
 import { StaticDecode, Type } from '@sinclair/typebox';
 import { Value } from '../../Interface/Value';
-import { PermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
+import { RoomReferencePermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
 
 export type MjolnirWatchedPolicyRoomsEvent = StaticDecode<
   typeof MjolnirWatchedPolicyRoomsEvent
 >;
 export const MjolnirWatchedPolicyRoomsEvent = Type.Object({
-  references: Type.Array(PermalinkSchema),
+  references: Type.Array(RoomReferencePermalinkSchema),
 });
 Value.Compile(MjolnirWatchedPolicyRoomsEvent);
 
