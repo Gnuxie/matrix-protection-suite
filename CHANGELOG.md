@@ -11,6 +11,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2025-10-01
+
+### Changed
+
+- `PermalinkSchema` has been split into different schema for each kind of
+  matrix.to url. This wasn't done before because we didn't know how to make
+  a TypeBox transforms for the same base type work in a union.
+
 ## [3.13.0] - 2025-09-29
 
 ### Added
