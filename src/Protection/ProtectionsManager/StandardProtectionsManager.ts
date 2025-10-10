@@ -200,6 +200,29 @@ export class StandardProtectionsManager<Context = unknown>
     context: Context,
     settings: Record<string, unknown>
   ): Promise<Result<Protection<TProtectionDescription>>> {
+    // It is important that we check that storing the settings is successful
+    // BEFORE enabling the new protection. This is to make sure that a cascade
+    // failure cannot occur when a protection can modify its own settings at
+    // startup.
+    // The current settings are used to restore the previous state if the protection
+    // cannot start through a config use error.
+    const currentSettings = await this.settingsConfig.getProtectionSettings(
+      protectionDescription
+    );
+    if (isError(currentSettings)) {
+      return currentSettings.elaborate(
+        "Couldn't fetch the current settings so they cannot be changed"
+      );
+    }
+    const settingsResult = await this.settingsConfig.storeProtectionSettings(
+      protectionDescription,
+      settings
+    );
+    if (isError(settingsResult)) {
+      return settingsResult.elaborate(
+        'Could not store the changed protection settings'
+      );
+    }
     const protectionEnableResult = await this.startProtection(
       protectionDescription,
       protectedRoomsSet,
@@ -207,15 +230,25 @@ export class StandardProtectionsManager<Context = unknown>
       { settings }
     );
     if (isError(protectionEnableResult)) {
-      return protectionEnableResult;
+      const restoreResult = await this.settingsConfig.storeProtectionSettings(
+        protectionDescription,
+        currentSettings.ok
+      );
+      if (isError(restoreResult)) {
+        log.error(
+          `Unable to restore original settings for ${protectionDescription.name}:`,
+          restoreResult
+        );
+      } else {
+        log.info(
+          `Restored the previous settings for ${protectionDescription.name} as the protection would not start`
+        );
+      }
+      return protectionEnableResult.elaborate(
+        'Could not restart the protection with the new settings'
+      );
     }
-    const settingsResult = await this.settingsConfig.storeProtectionSettings(
-      protectionDescription,
-      settings
-    );
-    if (isError(settingsResult)) {
-      return settingsResult;
-    }
+
     return protectionEnableResult as Result<Protection<TProtectionDescription>>;
   }
 
