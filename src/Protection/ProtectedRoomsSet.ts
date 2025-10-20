@@ -117,6 +117,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     this.setPoliciesMatchingMembership =
       new StandardMembershipPolicyRevisionIssuer(
         this.setMembership,
+        this.setRoomMembership,
         watchedPolicyRooms.revisionIssuer
       );
     this.setPoliciesMatchingMembership.on(
