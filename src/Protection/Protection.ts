@@ -53,7 +53,8 @@ import {
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
 import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
-import { OwnLifetime } from '../Interface/Lifetime';
+import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
+import { Ok, Result } from '@gnuxie/typescript-result';
 
 /**
  * @param description The description for the protection being constructed.
@@ -319,4 +320,18 @@ export function describeProtection<
 
 export function getAllProtections(): IterableIterator<ProtectionDescription> {
   return PROTECTIONS.values();
+}
+
+/**
+ * Simple compatibility helper to help the migration to lifetimes.
+ * @deprecated Use lifetimes directly.
+ */
+export function allocateProtection<T>(
+  lifetime: AllocatableLifetime,
+  protection: T & { handleProtectionDisable(): void }
+): Result<T> {
+  return lifetime.allocateResource(
+    () => Ok(protection),
+    (protection) => protection.handleProtectionDisable.bind(protection)
+  );
 }
