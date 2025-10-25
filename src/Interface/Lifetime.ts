@@ -15,6 +15,7 @@ export interface Lifetime<Owner = unknown> {
   isInDisposal(): boolean;
   toChild<Child = unknown>(): OwnLifetime<Child>;
   forget(callback: LifetimeDisposeHandle<Owner>): this;
+  forgetAndDispose(callback: LifetimeDisposeHandle<Owner>): Promise<void>;
 }
 
 export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
@@ -116,6 +117,17 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
     }
     this.callbacks.delete(callback);
     return this;
+  }
+
+  public async forgetAndDispose(
+    callback: LifetimeDisposeHandle<Owner>
+  ): Promise<void> {
+    if (this.isInDisposal()) {
+      await this.disposedPromise;
+      return;
+    }
+    this.forget(callback);
+    await callDisposeHandle(callback);
   }
 
   public toAbortSignal(): AbortSignal {
