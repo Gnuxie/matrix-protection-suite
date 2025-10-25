@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { isError, Result, ResultError } from '@gnuxie/typescript-result';
+import { isError, Ok, Result, ResultError } from '@gnuxie/typescript-result';
 import { Logger } from '../Logging/Logger';
 
 const log = new Logger('Lifetime');
@@ -13,17 +13,16 @@ export type LifetimeDisposeHandle<Owner = unknown> =
 
 export interface Lifetime<Owner = unknown> {
   isInDisposal(): boolean;
-  toChild<Child = unknown>(): OwnLifetime<Child>;
+  toChild<Child = unknown>(): Result<OwnLifetime<Child>>;
   forget(callback: LifetimeDisposeHandle<Owner>): this;
   forgetAndDispose(callback: LifetimeDisposeHandle<Owner>): Promise<void>;
 }
 
 export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
-  /** Use isInDisposal to check whether the resource is in disposal before using this method. */
   allocateResource<T>(
-    factory: (lifetime: AllocatableLifetime<Owner>) => T,
+    factory: (lifetime: AllocatableLifetime<Owner>) => Result<T>,
     disposer: (resource: T) => LifetimeDisposeHandle<Owner>
-  ): T;
+  ): Result<T>;
 
   allocateResourceAsync<T>(
     factory: (lifetime: AllocatableLifetime<Owner>) => Promise<Result<T>>,
@@ -169,21 +168,27 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
     this.resolveDisposed();
   }
 
-  public toChild<Child = unknown>(): OwnLifetime<Child> {
-    return new StandardLifetime<Child>({ parent: this });
+  public toChild<Child = unknown>(): Result<OwnLifetime<Child>> {
+    return this.allocateResource(
+      () => Ok(new StandardLifetime<Child>({ parent: this })),
+      (child) => child
+    );
   }
 
   allocateResource<T>(
-    factory: (lifetime: AllocatableLifetime<Owner>) => T,
+    factory: (lifetime: AllocatableLifetime<Owner>) => Result<T>,
     disposer: (resource: T) => LifetimeDisposeHandle<Owner>
-  ): T {
+  ): Result<T> {
     if (this.isInDisposal()) {
-      throw new TypeError(
+      return ResultError.Result(
         'Resource was not initialized: Lifetime is in disposal. Use isInDisposal to check before using this method.'
       );
     }
     const resource = factory(this);
-    this.onDispose(disposer(resource));
+    if (isError(resource)) {
+      return resource;
+    }
+    this.onDispose(disposer(resource.ok));
     return resource;
   }
 
