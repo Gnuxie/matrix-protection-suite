@@ -7,12 +7,31 @@ import { Logger } from '../Logging/Logger';
 
 const log = new Logger('Lifetime');
 
-export type LifetimeDisposeHandle = OwnLifetime | (() => void | Promise<void>);
+export type LifetimeDisposeHandle<Owner = unknown> =
+  | OwnLifetime<Owner>
+  | (() => void | Promise<void>);
 
-export interface Lifetime {
+export interface Lifetime<Owner = unknown> {
   isInDisposal(): boolean;
-  toChild(): OwnLifetime;
-  forget(callback: LifetimeDisposeHandle): this;
+  toChild<Child = unknown>(): OwnLifetime<Child>;
+  forget(callback: LifetimeDisposeHandle<Owner>): this;
+}
+
+export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
+  /** Use isInDisposal to check whether the resource is in disposal before using this method. */
+  allocateResource<T>(
+    factory: (lifetime: AllocatableLifetime<Owner>) => T,
+    disposer: (resource: T) => LifetimeDisposeHandle<Owner>
+  ): T;
+
+  allocateResourceAsync<T>(
+    factory: (lifetime: AllocatableLifetime<Owner>) => Promise<Result<T>>,
+    disposer: (resource: T) => LifetimeDisposeHandle<Owner>
+  ): Promise<Result<T>>;
+
+  toAbortSignal(): AbortSignal;
+
+  onDispose(callback: LifetimeDisposeHandle<Owner>): this;
 }
 
 /**
@@ -37,35 +56,19 @@ export interface Lifetime {
  *   forget to dispose them.
  *
  */
-export interface OwnLifetime extends Lifetime {
+export interface OwnLifetime<Owner = unknown>
+  extends AllocatableLifetime<Owner> {
   /**
    * We specifically provide a contract that this method will only exit
    * when all resources have cleaned up. And it is not possible to allocate
    * new resources once disposal has started.
    */
   [Symbol.asyncDispose](): Promise<void>;
-
-  /** Use isInDisposal to check whether the resource is in disposal before using this method. */
-  allocateResource<T>(
-    factory: (lifetime: OwnLifetime) => T,
-    disposer: (resource: T) => LifetimeDisposeHandle
-  ): T;
-
-  allocateResourceAsync<T>(
-    factory: (lifetime: OwnLifetime) => Promise<Result<T>>,
-    disposer: (resource: T) => LifetimeDisposeHandle
-  ): Promise<Result<T>>;
-
-  toAbortSignal(): AbortSignal;
-
-  onDispose(callback: LifetimeDisposeHandle): this;
-
-  /** Presents this Lifetime to a client who doesn't own it but wants to use it. */
-  toLifetime(): Lifetime;
 }
 
 export type LifetimeOptions = {
-  readonly parent?: OwnLifetime;
+  // parent is always unknown, otherwise it is anti-modular.
+  readonly parent?: AllocatableLifetime;
 };
 
 async function callDisposeHandle(handle: LifetimeDisposeHandle): Promise<void> {
@@ -76,12 +79,12 @@ async function callDisposeHandle(handle: LifetimeDisposeHandle): Promise<void> {
   }
 }
 
-export class StandardLifetime implements OwnLifetime {
+export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
   private readonly controller = new AbortController();
-  private readonly callbacks = new Set<LifetimeDisposeHandle>();
+  private readonly callbacks = new Set<LifetimeDisposeHandle<Owner>>();
   private readonly disposedPromise: Promise<void>;
   private resolveDisposed: undefined | (() => void) = undefined;
-  private readonly parent: OwnLifetime | undefined;
+  private readonly parent: AllocatableLifetime | undefined;
 
   public constructor(options: LifetimeOptions = {}) {
     this.parent = options.parent;
@@ -95,7 +98,7 @@ export class StandardLifetime implements OwnLifetime {
     return this.controller.signal.aborted;
   }
 
-  public onDispose(callback: LifetimeDisposeHandle): this {
+  public onDispose(callback: LifetimeDisposeHandle<Owner>): this {
     if (this.isInDisposal()) {
       throw new TypeError(
         'You are registering a resource with the Lifetime non atomically. You must only register resources immediately and atomically with resource allocation. Use the allocateResource method.'
@@ -106,7 +109,7 @@ export class StandardLifetime implements OwnLifetime {
     }
   }
 
-  public forget(callback: LifetimeDisposeHandle): this {
+  public forget(callback: LifetimeDisposeHandle<Owner>): this {
     // we don't want to delete something we are in the process of disposing.
     if (this.isInDisposal()) {
       return this;
@@ -154,13 +157,13 @@ export class StandardLifetime implements OwnLifetime {
     this.resolveDisposed();
   }
 
-  public toChild(): OwnLifetime {
-    return new StandardLifetime({ parent: this });
+  public toChild<Child = unknown>(): OwnLifetime<Child> {
+    return new StandardLifetime<Child>({ parent: this });
   }
 
   allocateResource<T>(
-    factory: (lifetime: OwnLifetime) => T,
-    disposer: (resource: T) => LifetimeDisposeHandle
+    factory: (lifetime: AllocatableLifetime<Owner>) => T,
+    disposer: (resource: T) => LifetimeDisposeHandle<Owner>
   ): T {
     if (this.isInDisposal()) {
       throw new TypeError(
@@ -191,8 +194,8 @@ export class StandardLifetime implements OwnLifetime {
   }
 
   async allocateResourceAsync<T>(
-    factory: (lifetime: OwnLifetime) => Promise<Result<T>>,
-    disposer: (resource: T) => LifetimeDisposeHandle
+    factory: (lifetime: AllocatableLifetime<Owner>) => Promise<Result<T>>,
+    disposer: (resource: T) => LifetimeDisposeHandle<Owner>
   ): Promise<Result<T>> {
     return await this.withDisposalBlocked(async () => {
       const resource = await factory(this);
@@ -210,14 +213,4 @@ export class StandardLifetime implements OwnLifetime {
       }
     });
   }
-
-  public toLifetime(): Lifetime {
-    return this;
-  }
 }
-
-// We should also allow these to be branded by layer e.g. protections
-// can only register against that. And not accidentally the protection manager.
-
-// We then probably also need an interface specific for things allocating
-// e.g. AllocatableLifetime.
