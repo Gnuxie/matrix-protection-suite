@@ -77,6 +77,9 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
             handleCalled = true;
           }
         },
+        [Symbol.asyncDispose]() {
+          return Promise.resolve();
+        },
       });
     },
   };
