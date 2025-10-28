@@ -11,6 +11,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2025-10-28
+
+### Changed
+
+- `Lifetime` abstraction introduced for resource management. Is meant to replace
+  adhoc `unregisterListener` methods. https://github.com/the-draupnir-project/planning/issues/79. Protection
+  contructor API has been broken as a result as all protections now get a child
+  Lifetime from the `ProtectionManager` that they can atomically allocate resources
+  against.
+
 ## [4.1.0] - 2025-10-10
 
 ### Changed
