@@ -50,10 +50,6 @@ export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
  * - Resources MUST register with a Lifetime atomically as a part of resource
  *   allocation. Resources MUST fail to allocate if the Lifetime is already in disposal.
  *   Use allocateResource.
- * - Constructors should expect an owner to be passed to them that they can use
- *   to request a child rather than a child. This is specifically so that
- *   leaks are not created by constructors that don't handle the children and
- *   forget to dispose them.
  *
  */
 export interface OwnLifetime<Owner = unknown>
