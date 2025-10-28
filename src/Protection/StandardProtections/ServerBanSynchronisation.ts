@@ -29,6 +29,7 @@ import {
 import { UnknownConfig } from '../../Config/ConfigDescription';
 import '../Capability/StandardCapability/ServerConsequences';
 import '../Capability/StandardCapability/ServerACLConsequences';
+import { OwnLifetime } from '../../Interface/Lifetime';
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
@@ -40,10 +41,13 @@ export class ServerBanSynchronisationProtection
   private readonly serverConsequences: ServerConsequences;
   constructor(
     description: ProtectionDescription<unknown, UnknownConfig, Capabilities>,
+    lifetime: OwnLifetime<
+      Protection<ProtectionDescription<unknown, UnknownConfig, Capabilities>>
+    >,
     capabilities: Capabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
-    super(description, capabilities, protectedRoomsSet, {});
+    super(description, lifetime, capabilities, protectedRoomsSet, {});
     this.serverConsequences = capabilities.serverConsequences;
   }
 
@@ -114,10 +118,17 @@ describeProtection<Capabilities>({
   defaultCapabilities: {
     serverConsequences: 'ServerACLConsequences',
   },
-  factory: async (description, protectedRoomsSet, _settings, capabilities) =>
+  factory: async (
+    description,
+    lifetime,
+    protectedRoomsSet,
+    _settings,
+    capabilities
+  ) =>
     Ok(
       new ServerBanSynchronisationProtection(
         description,
+        lifetime,
         capabilities,
         protectedRoomsSet
       )

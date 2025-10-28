@@ -34,6 +34,7 @@ import {
   MemberPolicyMatches,
   SetMembershipPolicyRevision,
 } from '../../MembershipPolicies/MembershipPolicyRevision';
+import { OwnLifetime } from '../../Interface/Lifetime';
 
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision
@@ -59,10 +60,11 @@ export class MemberBanSynchronisationProtection
   private readonly userConsequences: UserConsequences;
   constructor(
     description: MemberBanSynchronisationProtectionDescription,
+    lifetime: OwnLifetime<Protection<MemberBanSynchronisationProtection>>,
     capabilities: MemberBanSynchronisationProtectionCapabilities,
     protectedRoomsSet: ProtectedRoomsSet
   ) {
-    super(description, capabilities, protectedRoomsSet, {});
+    super(description, lifetime, capabilities, protectedRoomsSet, {});
     this.userConsequences = capabilities.userConsequences;
   }
 
@@ -165,10 +167,17 @@ describeProtection<MemberBanSynchronisationProtectionCapabilities>({
   defaultCapabilities: {
     userConsequences: 'StandardUserConsequences',
   },
-  factory: async (decription, protectedRoomsSet, _settings, capabilitySet) =>
+  factory: async (
+    decription,
+    lifetime,
+    protectedRoomsSet,
+    _settings,
+    capabilitySet
+  ) =>
     Ok(
       new MemberBanSynchronisationProtection(
         decription,
+        lifetime,
         capabilitySet,
         protectedRoomsSet
       )

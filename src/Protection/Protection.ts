@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -53,6 +53,8 @@ import {
   SetMembershipPolicyRevision,
 } from '../MembershipPolicies/MembershipPolicyRevision';
 import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
+import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
+import { Ok, Result } from '@gnuxie/typescript-result';
 
 /**
  * @param description The description for the protection being constructed.
@@ -64,6 +66,7 @@ import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventM
  * Not necessary and use should be avoided.
  * @param settings The settings for this protection as fetched from a persistent store or
  * the description's default settings.
+ * @param ownerLifetime A lifetime from the owner of the protection.
  */
 export type ProtectionFactoryMethod<
   Context = unknown,
@@ -71,6 +74,9 @@ export type ProtectionFactoryMethod<
   TCapabilitySet extends CapabilitySet = CapabilitySet,
 > = (
   description: ProtectionDescription<Context, TConfigSchema, TCapabilitySet>,
+  lifetime: OwnLifetime<
+    Protection<ProtectionDescription<Context, TConfigSchema, TCapabilitySet>>
+  >,
   protectedRoomsSet: ProtectedRoomsSet,
   context: Context,
   capabilities: TCapabilitySet,
@@ -83,7 +89,7 @@ export type ProtectionFactoryMethod<
 
 /**
  * This is a description of a protection, which is used
- * to create protections in a facory method dynamically.
+ * to create protections in a factory method dynamically.
  */
 export interface ProtectionDescription<
   Context = unknown,
@@ -156,13 +162,6 @@ export interface Protection<TProtectionDescription> {
   handleEventReport?(report: EventReport): Promise<ActionResult<void>>;
 
   /**
-   * Called when the protection has been disabled.
-   * This means that it is also called when the protection settings have changed
-   * (since the protection will be disabled and re-enabled).
-   */
-  handleProtectionDisable?(): void;
-
-  /**
    * Called when the permission requirements of the protection have been met
    * within a protected room. This includes if the room is a newly protected room.
    */
@@ -194,6 +193,8 @@ export interface Protection<TProtectionDescription> {
     revision: SetMembershipPolicyRevision,
     delta: MembershipPolicyRevisionDelta
   ): void;
+
+  [Symbol.asyncDispose](): Promise<void>;
 }
 
 export class AbstractProtection<TProtectionDescription>
@@ -204,6 +205,9 @@ export class AbstractProtection<TProtectionDescription>
   private readonly clientStatePermissions: string[];
   protected constructor(
     public readonly description: TProtectionDescription,
+    protected readonly lifetime: OwnLifetime<
+      Protection<TProtectionDescription>
+    >,
     protected readonly capabilitySet: CapabilitySet,
     protected readonly protectedRoomsSet: ProtectedRoomsSet,
     permissions: {
@@ -236,6 +240,10 @@ export class AbstractProtection<TProtectionDescription>
       ...this.clientStatePermissions,
       ...capabilitySetStatePermissions(this.capabilitySet),
     ];
+  }
+
+  public async [Symbol.asyncDispose](): Promise<void> {
+    await this.lifetime[Symbol.asyncDispose]();
   }
 }
 
@@ -312,4 +320,18 @@ export function describeProtection<
 
 export function getAllProtections(): IterableIterator<ProtectionDescription> {
   return PROTECTIONS.values();
+}
+
+/**
+ * Simple compatibility helper to help the migration to lifetimes.
+ * @deprecated Use lifetimes directly.
+ */
+export function allocateProtection<T>(
+  lifetime: AllocatableLifetime,
+  protection: T & { handleProtectionDisable(): void }
+): Result<T> {
+  return lifetime.allocateResource(
+    () => Ok(protection),
+    (protection) => protection.handleProtectionDisable.bind(protection)
+  );
 }

@@ -24,6 +24,7 @@ import {
 } from './MemberBanSynchronisation';
 import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
 import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
+import { StandardLifetime } from '../../Interface/Lifetime';
 
 async function createMemberBanSynchronisationProtection(
   capabilities: MemberBanSynchronisationProtectionCapabilities,
@@ -37,6 +38,8 @@ async function createMemberBanSynchronisationProtection(
   }
   const protectionResult = await description.factory(
     description,
+    // TODO: replace this when protected rooms set gets a lifetime.
+    new StandardLifetime(),
     protectedRoomsSet,
     undefined,
     capabilities,

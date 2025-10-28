@@ -1,4 +1,4 @@
-// Copyright 2023 - 2024 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2023 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 2022 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -27,6 +27,8 @@ import { TObject } from '@sinclair/typebox';
 import { EDStatic } from '../../Interface/Static';
 import { UnknownConfig } from '../../Config/ConfigDescription';
 import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
+import { OwnLifetime, StandardLifetime } from '../../Interface/Lifetime';
+import { Task } from '../../Interface/Task';
 
 const log = new Logger('StandardProtectionsManager');
 
@@ -41,6 +43,8 @@ const log = new Logger('StandardProtectionsManager');
 export class StandardProtectionsManager<Context = unknown>
   implements ProtectionsManager<Context>
 {
+  private readonly lifetime: OwnLifetime<ProtectionsManager<Context>> =
+    new StandardLifetime();
   private readonly enabledProtections = new Map<
     /** protection name */ string,
     Protection<ProtectionDescription>
@@ -95,8 +99,15 @@ export class StandardProtectionsManager<Context = unknown>
       capabilityProviderSet,
       context
     );
+    const lifetimeResult = this.lifetime.toChild();
+    if (isError(lifetimeResult)) {
+      return lifetimeResult.elaborate(
+        'Unable to allocate lifetime for protection'
+      );
+    }
     const protectionResult = await protectionDescription.factory(
       protectionDescription,
+      lifetimeResult.ok,
       protectedRoomsSet,
       context,
       capabilities,
@@ -109,7 +120,7 @@ export class StandardProtectionsManager<Context = unknown>
       protectionDescription.name
     );
     if (enabledProtection !== undefined) {
-      this.removeProtectionWithoutStore(protectionDescription);
+      await this.removeProtectionWithoutStore(protectionDescription);
     }
     this.enabledProtections.set(
       protectionDescription.name,
@@ -137,14 +148,14 @@ export class StandardProtectionsManager<Context = unknown>
     );
     return storeResult;
   }
-  private removeProtectionWithoutStore(
+  private async removeProtectionWithoutStore(
     protectionDescription: ProtectionDescription
-  ): void {
+  ): Promise<void> {
     const protection = this.enabledProtections.get(protectionDescription.name);
     this.enabledProtections.delete(protectionDescription.name);
     if (protection !== undefined) {
       try {
-        protection.handleProtectionDisable?.();
+        await protection[Symbol.asyncDispose]();
       } catch (ex) {
         log.error(
           `Caught unhandled exception while disabling ${protectionDescription.name}:`,
@@ -162,7 +173,7 @@ export class StandardProtectionsManager<Context = unknown>
     if (isError(storeResult)) {
       return storeResult;
     }
-    this.removeProtectionWithoutStore(protection);
+    await this.removeProtectionWithoutStore(protection);
     return Ok(undefined);
   }
   public async loadProtections(
@@ -347,16 +358,14 @@ export class StandardProtectionsManager<Context = unknown>
   }
 
   unregisterListeners(): void {
-    for (const protection of this.allProtections) {
-      try {
-        protection.handleProtectionDisable?.();
-      } catch (ex) {
-        log.error(
-          `Caught unhandled exception while unregistering listeners for ${protection.description.name}:`,
-          ex
-        );
-      }
-    }
-    this.enabledProtections.clear();
+    // In future when the StandardProtectionsManager accepts a lifetime as a
+    // dependency itself, this will need to be deleted.
+    void Task(
+      (async () => {
+        await this.lifetime[Symbol.asyncDispose]();
+        this.enabledProtections.clear();
+      })(),
+      { log }
+    );
   }
 }
