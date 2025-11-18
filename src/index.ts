@@ -114,6 +114,9 @@ export * from './PolicyList/StandardPolicyRoomEditor';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
+export * from './Projection/Projection';
+export * from './Projection/ProjectionNode';
+
 export * from './Protection/Capability/StandardCapability/CapabilityMethodSchema';
 export * from './Protection/Capability/StandardCapability/EventConsequences';
 export * from './Protection/Capability/StandardCapability/RoomSetResult';
