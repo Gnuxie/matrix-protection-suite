@@ -3,28 +3,28 @@
 // SPDX-License-Identifier: AFL-3.0
 
 import { createMock } from 'ts-auto-mock';
-import { findProtection } from '../Protection';
+import { findProtection } from '../../Protection';
 import './MemberBanSynchronisation';
-import { isError, isOk } from '../../Interface/Action';
+import { isError, isOk } from '../../../Interface/Action';
 import {
   randomRoomID,
   randomUserID,
-} from '../../TestUtilities/EventGeneration';
-import { describeProtectedRoomsSet } from '../../StateTracking/DeclareRoomState';
+} from '../../../TestUtilities/EventGeneration';
+import { describeProtectedRoomsSet } from '../../../StateTracking/DeclareRoomState';
 import {
   Membership,
   MembershipChangeType,
-} from '../../Membership/MembershipChange';
+} from '../../../Membership/MembershipChange';
 import waitForExpect from 'wait-for-expect';
-import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
+import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import {
   MemberBanSynchronisationProtection,
   MemberBanSynchronisationProtectionCapabilities,
 } from './MemberBanSynchronisation';
-import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
+import { UserConsequences } from '../../Capability/StandardCapability/UserConsequences';
 import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
-import { StandardLifetime } from '../../Interface/Lifetime';
+import { StandardLifetime } from '../../../Interface/Lifetime';
 
 async function createMemberBanSynchronisationProtection(
   capabilities: MemberBanSynchronisationProtectionCapabilities,

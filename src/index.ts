@@ -163,8 +163,8 @@ export * from './Protection/ProtectionsManager/FakeProtectionsManager';
 export * from './Protection/ProtectionsManager/StandardProtectionsManager';
 export * from './Protection/ProtectionsManager/ProtectionsManager';
 
-export * from './Protection/StandardProtections/MemberBanSynchronisation';
-export * from './Protection/StandardProtections/ServerBanSynchronisation';
+export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisation';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';
 

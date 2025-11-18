@@ -8,33 +8,38 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
+import {
+  ActionError,
+  ActionResult,
+  Ok,
+  isError,
+} from '../../../Interface/Action';
 import {
   AbstractProtection,
   Protection,
   ProtectionDescription,
   describeProtection,
-} from '../Protection';
+} from '../../Protection';
 import {
   MembershipChange,
   MembershipChangeType,
-} from '../../Membership/MembershipChange';
-import { RoomMembershipRevision } from '../../Membership/MembershipRevision';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
-import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
-import { Recommendation } from '../../PolicyList/PolicyRule';
-import { MultipleErrors } from '../../Interface/MultipleErrors';
-import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
-import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
-import '../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
-import { Task } from '../../Interface/Task';
+} from '../../../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
+import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
+import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
+import { Recommendation } from '../../../PolicyList/PolicyRule';
+import { MultipleErrors } from '../../../Interface/MultipleErrors';
+import { UserConsequences } from '../../Capability/StandardCapability/UserConsequences';
+import '../../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
+import '../../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
+import { Task } from '../../../Interface/Task';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { UnknownConfig } from '../../Config/ConfigDescription';
+import { UnknownConfig } from '../../../Config/ConfigDescription';
 import {
   MemberPolicyMatches,
   SetMembershipPolicyRevision,
-} from '../../MembershipPolicies/MembershipPolicyRevision';
-import { OwnLifetime } from '../../Interface/Lifetime';
+} from '../../../MembershipPolicies/MembershipPolicyRevision';
+import { OwnLifetime } from '../../../Interface/Lifetime';
 
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision

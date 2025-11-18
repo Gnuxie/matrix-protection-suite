@@ -9,27 +9,27 @@
 // </text>
 
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { Task } from '../../Interface/Task';
-import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../../PolicyList/PolicyRuleChange';
+import { ActionResult, Ok, isError } from '../../../Interface/Action';
+import { Task } from '../../../Interface/Task';
+import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
+import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
+import { PolicyRuleChange } from '../../../PolicyList/PolicyRuleChange';
 import {
   RoomStateRevision,
   StateChange,
-} from '../../StateTracking/StateRevisionIssuer';
-import { ServerConsequences } from '../Capability/StandardCapability/ServerConsequences';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
+} from '../../../StateTracking/StateRevisionIssuer';
+import { ServerConsequences } from '../../Capability/StandardCapability/ServerConsequences';
+import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import {
   AbstractProtection,
   Protection,
   ProtectionDescription,
   describeProtection,
-} from '../Protection';
-import { UnknownConfig } from '../../Config/ConfigDescription';
+} from '../../Protection';
+import { UnknownConfig } from '../../../Config/ConfigDescription';
 import '../Capability/StandardCapability/ServerConsequences';
 import '../Capability/StandardCapability/ServerACLConsequences';
-import { OwnLifetime } from '../../Interface/Lifetime';
+import { OwnLifetime } from '../../../Interface/Lifetime';
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<

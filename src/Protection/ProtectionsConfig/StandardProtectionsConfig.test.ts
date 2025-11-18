@@ -12,7 +12,7 @@ import {
 import { MjolnirEnabledProtectionsEvent } from './MjolnirEnabledProtectionsEvent';
 import { MjolnirProtectionsConfig } from './StandardProtectionsConfig';
 import { Value } from '../../Interface/Value';
-import '../StandardProtections/MemberBanSynchronisation';
+import '../StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
 import '../StandardProtections/ServerBanSynchronisation';
 
 test('That the migration handler is applied appropriatley when disabling protections', async function () {
