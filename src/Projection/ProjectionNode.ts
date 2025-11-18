@@ -10,11 +10,14 @@ export type ExtractDeltaShape<TProjectionNode extends ProjectionNode> =
     ? TDeltaShape
     : never;
 
-export type ExtractInputDeltaShapes<TInputs extends readonly ProjectionNode[]> =
-  ExtractDeltaShape<TInputs[number]>;
+export type ExtractInputDeltaShapes<
+  TInputs extends ProjectionNode[] | unknown[],
+> = TInputs extends ProjectionNode[]
+  ? ExtractDeltaShape<TInputs[number]>
+  : unknown[];
 
 export interface ProjectionNode<
-  TInputs extends ProjectionNode[] = never[],
+  TInputs extends ProjectionNode[] | unknown[] = unknown[],
   TDeltaShape = unknown,
 > {
   readonly ulid: ULID;
