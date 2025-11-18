@@ -19,6 +19,6 @@ export interface ProjectionNode<
 > {
   readonly ulid: ULID;
   reduceInput(input: ExtractInputDeltaShapes<TInputs>): TDeltaShape;
-  reduceDelta(input: TDeltaShape): this;
+  reduceDelta(input: TDeltaShape): ProjectionNode<TInputs, TDeltaShape>;
   reduceRebuild(inputs: TInputs): TDeltaShape;
 }
