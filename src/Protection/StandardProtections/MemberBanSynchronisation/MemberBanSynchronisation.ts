@@ -40,6 +40,7 @@ import {
   SetMembershipPolicyRevision,
 } from '../../../MembershipPolicies/MembershipPolicyRevision';
 import { OwnLifetime } from '../../../Interface/Lifetime';
+import { MemberBanIntentProjection } from './MemberBanIntentProjection';
 
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision
@@ -63,7 +64,7 @@ export class MemberBanSynchronisationProtection
   implements
     Protection<
       MemberBanSynchronisationProtectionDescription,
-      SetMembershipPolicyRevision
+      MemberBanIntentProjection
     >
 {
   private readonly userConsequences: UserConsequences;
