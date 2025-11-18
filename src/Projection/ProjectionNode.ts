@@ -18,7 +18,15 @@ export interface ProjectionNode<
   TDeltaShape = unknown,
 > {
   readonly ulid: ULID;
+  // Whether the projection has no state at all.
+  isEmpty(): boolean;
   reduceInput(input: ExtractInputDeltaShapes<TInputs>): TDeltaShape;
   reduceDelta(input: TDeltaShape): ProjectionNode<TInputs, TDeltaShape>;
-  reduceRebuild(inputs: TInputs): TDeltaShape;
+  /**
+   * Produces the initial delta, can only be used when the revision is empty.
+   * Otherwise you must use reduceRebuild.
+   */
+  reduceInitialInputs(input: TInputs): TDeltaShape;
+  // only needed for persistent storage
+  reduceRebuild?(inputs: TInputs): TDeltaShape;
 }
