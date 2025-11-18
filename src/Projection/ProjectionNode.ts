@@ -9,11 +9,9 @@ export type ExtractDeltaShape<TProjectionNode extends ProjectionNode> =
   TProjectionNode extends ProjectionNode<infer _, infer TDeltaShape>
     ? TDeltaShape
     : never;
-type ExtractInputDeltaShapesTuple<TInputs extends ProjectionNode[]> = {
-  [K in keyof TInputs]: ExtractDeltaShape<TInputs[K]>;
-};
-export type ExtractInputDeltaShapes<TInputs extends ProjectionNode[]> =
-  ExtractInputDeltaShapesTuple<TInputs>[keyof ExtractInputDeltaShapesTuple<TInputs>];
+
+export type ExtractInputDeltaShapes<TInputs extends readonly ProjectionNode[]> =
+  ExtractDeltaShape<TInputs[number]>;
 
 export interface ProjectionNode<
   TInputs extends ProjectionNode[] = never[],
