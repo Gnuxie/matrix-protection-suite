@@ -55,6 +55,7 @@ import {
 import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
 import { Ok, Result } from '@gnuxie/typescript-result';
+import { Projection } from '../Projection/Projection';
 
 /**
  * @param description The description for the protection being constructed.
@@ -114,7 +115,10 @@ export interface ProtectionDescription<
  *
  * Protections are guaranteed to be run before redaction handlers.
  */
-export type Protection<TProtectionDescription, IntentRevision = undefined> = {
+export type Protection<
+  TProtectionDescription,
+  TIntentProjection extends Projection | undefined = undefined,
+> = {
   readonly description: TProtectionDescription;
   readonly requiredEventPermissions: string[];
   readonly requiredStatePermissions: string[];
@@ -195,17 +199,14 @@ export type Protection<TProtectionDescription, IntentRevision = undefined> = {
   ): void;
 
   [Symbol.asyncDispose](): Promise<void>;
-} & (IntentRevision extends undefined
-  ? // exposing intent isn't enough, since we want to see the delta when adding a new
-    // list.
-    // So we do need to generalise the intent revision issuer.
-    { readonly intentRevision?: unknown }
+} & (TIntentProjection extends undefined
+  ? { readonly intentProjection?: unknown }
   : {
       /**
        * Used to view the state that the protection intends to make effectual via
        * capabilities.
        */
-      readonly intentRevision: IntentRevision;
+      readonly intentProjection: TIntentProjection;
     });
 
 export class AbstractProtection<TProtectionDescription>
