@@ -55,9 +55,16 @@ export type MemberBanSynchronisationProtectionDescription =
 
 export class MemberBanSynchronisationProtection
   extends AbstractProtection<MemberBanSynchronisationProtectionDescription>
-  implements Protection<MemberBanSynchronisationProtectionDescription>
+  implements
+    Protection<
+      MemberBanSynchronisationProtectionDescription,
+      SetMembershipPolicyRevision
+    >
 {
   private readonly userConsequences: UserConsequences;
+  public get intentRevision() {
+    return this.protectedRoomsSet.setPoliciesMatchingMembership.currentRevision;
+  }
   constructor(
     description: MemberBanSynchronisationProtectionDescription,
     lifetime: OwnLifetime<Protection<MemberBanSynchronisationProtection>>,

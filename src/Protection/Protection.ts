@@ -114,7 +114,7 @@ export interface ProtectionDescription<
  *
  * Protections are guaranteed to be run before redaction handlers.
  */
-export interface Protection<TProtectionDescription> {
+export type Protection<TProtectionDescription, IntentRevision = undefined> = {
   readonly description: TProtectionDescription;
   readonly requiredEventPermissions: string[];
   readonly requiredStatePermissions: string[];
@@ -195,7 +195,18 @@ export interface Protection<TProtectionDescription> {
   ): void;
 
   [Symbol.asyncDispose](): Promise<void>;
-}
+} & (IntentRevision extends undefined
+  ? // exposing intent isn't enough, since we want to see the delta when adding a new
+    // list.
+    // So we do need to generalise the intent revision issuer.
+    { readonly intentRevision?: unknown }
+  : {
+      /**
+       * Used to view the state that the protection intends to make effectual via
+       * capabilities.
+       */
+      readonly intentRevision: IntentRevision;
+    });
 
 export class AbstractProtection<TProtectionDescription>
   implements Protection<TProtectionDescription>
