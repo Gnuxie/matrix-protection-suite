@@ -36,6 +36,19 @@ export interface Projection<
   removeNodeListener(listener: ProjectionNodeListener<TProjectionNode>): this;
 }
 
+// Technically an orchestration engine needs to do the job of running reducers
+// and applying input. Because in order for input to make sense, all of the dependencies
+// need to process updates first before we do.
+// I'd like to avoid orchestrating via a central engine and instead propagate ULIDs
+// recognised revisions for each input. This information needs to live on projections
+// for each input projection. And it can be accessed by downstream projections
+// and also each downstream projection with a common dependency will want to
+// be informed of when so they can do this dance themselves.
+// idk progress markers can cause storms, it only matters when there is a
+// fork in the tree and a convergence. It can probably be detected and handled
+// automatically by PRR. hmm i don't know about that. Are we sure there isn't
+// something unsafe about forks in the first place? there is.
+// Dependencies like this can only be viewed through other projections.
 export class ProjectionOutputHelper<
   TProjectionNode extends ProjectionNode = ProjectionNode,
 > {

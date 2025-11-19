@@ -40,7 +40,10 @@ import {
   SetMembershipPolicyRevision,
 } from '../../../MembershipPolicies/MembershipPolicyRevision';
 import { OwnLifetime } from '../../../Interface/Lifetime';
-import { MemberBanIntentProjection } from './MemberBanIntentProjection';
+import {
+  MemberBanIntentProjection,
+  StandardMemberBanIntentProjection,
+} from './MemberBanIntentProjection';
 
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision
@@ -68,9 +71,7 @@ export class MemberBanSynchronisationProtection
     >
 {
   private readonly userConsequences: UserConsequences;
-  public get intentRevision() {
-    return this.protectedRoomsSet.setPoliciesMatchingMembership.currentRevision;
-  }
+  public readonly intentProjection: MemberBanIntentProjection;
   constructor(
     description: MemberBanSynchronisationProtectionDescription,
     lifetime: OwnLifetime<Protection<MemberBanSynchronisationProtection>>,
@@ -79,6 +80,15 @@ export class MemberBanSynchronisationProtection
   ) {
     super(description, lifetime, capabilities, protectedRoomsSet, {});
     this.userConsequences = capabilities.userConsequences;
+    const projection = new StandardMemberBanIntentProjection(
+      this.protectedRoomsSet.setPoliciesMatchingMembership
+    );
+    this.intentProjection = projection;
+    // FIXME: Can'at we just have an allocateDisposable method?
+    this.lifetime.allocateResource(
+      () => Ok(projection),
+      (resource) => resource[Symbol.dispose]
+    );
   }
 
   public handleSetMembershipPolicyMatchesChange(
@@ -87,6 +97,10 @@ export class MemberBanSynchronisationProtection
     void Task(this.synchroniseWithRevision(revision));
   }
 
+  // FIXME:
+  // This is a legacy handle that needs to remain while we figure out how to
+  // put room membership into the the protection's intent projection.
+  // Which is a lot of work.
   public async handleMembershipChange(
     revision: RoomMembershipRevision,
     changes: MembershipChange[]
