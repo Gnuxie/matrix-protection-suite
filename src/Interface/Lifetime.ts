@@ -9,7 +9,8 @@ const log = new Logger('Lifetime');
 
 export type LifetimeDisposeHandle<Owner = unknown> =
   | OwnLifetime<Owner>
-  | (() => void | Promise<void>);
+  | (() => void | Promise<void>)
+  | Disposable;
 
 export interface Lifetime<Owner = unknown> {
   isInDisposal(): boolean;
@@ -18,16 +19,30 @@ export interface Lifetime<Owner = unknown> {
   forgetAndDispose(callback: LifetimeDisposeHandle<Owner>): Promise<void>;
 }
 
+export type Disposable =
+  | { [Symbol.dispose](): void }
+  | { [Symbol.asyncDispose](): Promise<void> };
+
 export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
   allocateResource<T>(
     factory: (lifetime: AllocatableLifetime<Owner>) => Result<T>,
     disposer: (resource: T) => LifetimeDisposeHandle<Owner>
   ): Result<T>;
 
+  allocateDisposable<TDisposable extends Disposable>(
+    factory: (lifetime: AllocatableLifetime<Owner>) => Result<TDisposable>
+  ): Result<TDisposable>;
+
   allocateResourceAsync<T>(
     factory: (lifetime: AllocatableLifetime<Owner>) => Promise<Result<T>>,
     disposer: (resource: T) => LifetimeDisposeHandle<Owner>
   ): Promise<Result<T>>;
+
+  allocateDisposableAsync<TDisposable extends Disposable>(
+    factory: (
+      lifetime: AllocatableLifetime<Owner>
+    ) => Promise<Result<TDisposable>>
+  ): Promise<Result<TDisposable>>;
 
   toAbortSignal(): AbortSignal;
 
@@ -70,6 +85,8 @@ export type LifetimeOptions = {
 async function callDisposeHandle(handle: LifetimeDisposeHandle): Promise<void> {
   if (typeof handle === 'function') {
     await handle();
+  } else if (Symbol.dispose in handle) {
+    handle[Symbol.dispose]();
   } else {
     await handle[Symbol.asyncDispose]();
   }
@@ -188,6 +205,12 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
     return resource;
   }
 
+  allocateDisposable<TDisposable extends Disposable>(
+    factory: (lifetime: AllocatableLifetime<Owner>) => Result<TDisposable>
+  ): Result<TDisposable> {
+    return this.allocateResource(factory, (resource) => resource);
+  }
+
   async withDisposalBlocked<T>(
     cb: () => Promise<Result<T>>
   ): Promise<Result<T>> {
@@ -225,5 +248,13 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
         return resource;
       }
     });
+  }
+
+  async allocateDisposableAsync<TDisposable extends Disposable>(
+    factory: (
+      lifetime: AllocatableLifetime<Owner>
+    ) => Promise<Result<TDisposable>>
+  ): Promise<Result<TDisposable>> {
+    return await this.allocateResourceAsync(factory, (resource) => resource);
   }
 }
