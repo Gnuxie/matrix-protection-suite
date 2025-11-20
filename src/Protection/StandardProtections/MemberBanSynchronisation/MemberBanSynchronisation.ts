@@ -71,24 +71,15 @@ export class MemberBanSynchronisationProtection
     >
 {
   private readonly userConsequences: UserConsequences;
-  public readonly intentProjection: MemberBanIntentProjection;
   constructor(
     description: MemberBanSynchronisationProtectionDescription,
     lifetime: OwnLifetime<Protection<MemberBanSynchronisationProtection>>,
     capabilities: MemberBanSynchronisationProtectionCapabilities,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    public readonly intentProjection: MemberBanIntentProjection
   ) {
     super(description, lifetime, capabilities, protectedRoomsSet, {});
     this.userConsequences = capabilities.userConsequences;
-    const projection = new StandardMemberBanIntentProjection(
-      this.protectedRoomsSet.setPoliciesMatchingMembership
-    );
-    this.intentProjection = projection;
-    // FIXME: Can'at we just have an allocateDisposable method?
-    this.lifetime.allocateResource(
-      () => Ok(projection),
-      (resource) => resource[Symbol.dispose]
-    );
   }
 
   public handleSetMembershipPolicyMatchesChange(
@@ -200,13 +191,25 @@ describeProtection<MemberBanSynchronisationProtectionCapabilities>({
     protectedRoomsSet,
     _settings,
     capabilitySet
-  ) =>
-    Ok(
+  ) => {
+    const intentProjection = lifetime.allocateDisposable(() =>
+      Ok(
+        new StandardMemberBanIntentProjection(
+          protectedRoomsSet.setPoliciesMatchingMembership
+        )
+      )
+    );
+    if (isError(intentProjection)) {
+      return intentProjection.elaborate('Unable to allocate intent projection');
+    }
+    return Ok(
       new MemberBanSynchronisationProtection(
         decription,
         lifetime,
         capabilitySet,
-        protectedRoomsSet
+        protectedRoomsSet,
+        intentProjection.ok
       )
-    ),
+    );
+  },
 });
