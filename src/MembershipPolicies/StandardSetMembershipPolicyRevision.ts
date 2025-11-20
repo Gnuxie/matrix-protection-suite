@@ -17,6 +17,8 @@ import {
   Recommendation,
   PolicyRule,
   PolicyRuleMatchType,
+  LiteralPolicyRule,
+  GlobPolicyRule,
 } from '../PolicyList/PolicyRule';
 import {
   PolicyRuleChange,
@@ -40,6 +42,7 @@ import { Revision } from '../PolicyList/Revision';
 // optimized. But it's a little silly that way since we would probably
 // have to then make a temporary revision from glob rules just to make it
 // easier.
+// Whatever is chosen would need to allow the data to be partitioned
 
 // TODO: Don't forget that when this is consumed by the user consequences capability
 // that you need to do a check afterwards that the user didn't join more rooms
@@ -59,6 +62,10 @@ import { Revision } from '../PolicyList/Revision';
 // to avoid that by keeping a small set of roomMembershipRevisionID's and successful
 // room bans in a little list and simply compare and pop them off when we get
 // the bans.
+// To do this at the protection level we'd need to be aware of the difference
+// between policies being recalled due to banning vs recalled because of removed
+// policies. And that would need to happen in this revision. (Recalled vs no policies
+// left and became absent)
 
 export class StandardSetMembershipPolicyRevision
   implements SetMembershipPolicyRevision
@@ -67,7 +74,7 @@ export class StandardSetMembershipPolicyRevision
   private constructor(
     private readonly memberPolicies: PerisstentMap<
       StringUserID,
-      List<PolicyRule>
+      List<LiteralPolicyRule | GlobPolicyRule>
     >,
     private readonly policyMembers: PerisstentMap<
       PolicyRule,
@@ -109,7 +116,7 @@ export class StandardSetMembershipPolicyRevision
           for (const rule of matchingRules) {
             addedMatches.push({
               userID: change.userID,
-              policy: rule,
+              policy: rule as LiteralPolicyRule | GlobPolicyRule,
             });
           }
         }
@@ -194,7 +201,7 @@ export class StandardSetMembershipPolicyRevision
         for (const rule of matchingRules) {
           addedMatches.push({
             userID: member,
-            policy: rule,
+            policy: rule as LiteralPolicyRule | GlobPolicyRule,
           });
         }
       }
@@ -224,7 +231,7 @@ export class StandardSetMembershipPolicyRevision
         for (const rule of matchingRules) {
           addedMatches.push({
             userID: member,
-            policy: rule,
+            policy: rule as LiteralPolicyRule | GlobPolicyRule,
           });
         }
       }
@@ -246,7 +253,10 @@ export class StandardSetMembershipPolicyRevision
     let memberPolicies = this.memberPolicies;
     let policyMembers = this.policyMembers;
     for (const match of delta.addedMemberMatches) {
-      const existing = memberPolicies.get(match.userID, List<PolicyRule>());
+      const existing = memberPolicies.get(
+        match.userID,
+        List<LiteralPolicyRule | GlobPolicyRule>()
+      );
       memberPolicies = memberPolicies.set(
         match.userID,
         existing.push(match.policy)
@@ -263,7 +273,7 @@ export class StandardSetMembershipPolicyRevision
     for (const match of delta.removedMemberMatches) {
       const existingPolicies = memberPolicies.get(
         match.userID,
-        List<PolicyRule>()
+        List<LiteralPolicyRule | GlobPolicyRule>()
       );
       const nextPolicies = existingPolicies.filter(
         (rule) => rule !== match.policy

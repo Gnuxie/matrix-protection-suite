@@ -20,7 +20,11 @@ import {
 } from '../../../MembershipPolicies/MembershipPolicyRevision';
 import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 import { List, Map as PersistentMap } from 'immutable';
-import { PolicyRule, Recommendation } from '../../../PolicyList/PolicyRule';
+import {
+  GlobPolicyRule,
+  LiteralPolicyRule,
+  Recommendation,
+} from '../../../PolicyList/PolicyRule';
 
 /**
  * This is just a stand in while we wait to convert the upstream MembershipPolicyRevision
@@ -40,7 +44,7 @@ export interface MemberBanIntentProjectionDelta {
   remove: MemberPolicyMatch[];
 }
 
-function isPolicyRelevant(policy: PolicyRule): boolean {
+function isPolicyRelevant(policy: LiteralPolicyRule | GlobPolicyRule): boolean {
   return (
     policy.recommendation === Recommendation.Ban ||
     policy.recommendation === Recommendation.Takedown
@@ -52,7 +56,9 @@ export type MemberBanIntentProjectionNode = ProjectionNode<
   MemberBanIntentProjectionDelta,
   {
     allMembersWithRules(): MemberPolicyMatches[];
-    allRulesMatchingMember(member: StringUserID): PolicyRule[];
+    allRulesMatchingMember(
+      member: StringUserID
+    ): (LiteralPolicyRule | GlobPolicyRule)[];
   }
 >;
 
@@ -64,7 +70,10 @@ export class StandardMemberBanIntentProjectionNode
   public readonly ulid: ULID;
   constructor(
     private readonly ulidFactory: ULIDFactory,
-    private readonly intents: PersistentMap<StringUserID, List<PolicyRule>>
+    private readonly intents: PersistentMap<
+      StringUserID,
+      List<LiteralPolicyRule | GlobPolicyRule>
+    >
   ) {
     this.ulid = ulidFactory();
   }
@@ -124,13 +133,16 @@ export class StandardMemberBanIntentProjectionNode
       if (existingPolicies) {
         nextIntents.set(match.userID, existingPolicies.push(match.policy));
       } else {
-        nextIntents.set(match.userID, List<PolicyRule>().push(match.policy));
+        nextIntents.set(
+          match.userID,
+          List<LiteralPolicyRule | GlobPolicyRule>().push(match.policy)
+        );
       }
     }
     for (const match of input.remove) {
       const existingPolicies = nextIntents.get(
         match.userID,
-        List<PolicyRule>()
+        List<LiteralPolicyRule | GlobPolicyRule>()
       );
       const nextPolicies = existingPolicies.filter(
         (rule) => rule !== match.policy
@@ -179,7 +191,11 @@ export class StandardMemberBanIntentProjectionNode
     );
   }
 
-  allRulesMatchingMember(member: StringUserID): PolicyRule[] {
-    return this.intents.get(member, List<PolicyRule>()).toArray();
+  allRulesMatchingMember(
+    member: StringUserID
+  ): (LiteralPolicyRule | GlobPolicyRule)[] {
+    return this.intents
+      .get(member, List<LiteralPolicyRule | GlobPolicyRule>())
+      .toArray();
   }
 }
