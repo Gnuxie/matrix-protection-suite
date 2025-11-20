@@ -30,13 +30,20 @@ import { UnknownConfig } from '../../../Config/ConfigDescription';
 import '../Capability/StandardCapability/ServerConsequences';
 import '../Capability/StandardCapability/ServerACLConsequences';
 import { OwnLifetime } from '../../../Interface/Lifetime';
+import {
+  ServerBanIntentProjection,
+  StandardServerBanIntentProjection,
+} from './ServerBanIntentProjection';
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
     ProtectionDescription<unknown, UnknownConfig, Capabilities>
   >
   implements
-    Protection<ProtectionDescription<unknown, UnknownConfig, Capabilities>>
+    Protection<
+      ProtectionDescription<unknown, UnknownConfig, Capabilities>,
+      ServerBanIntentProjection
+    >
 {
   private readonly serverConsequences: ServerConsequences;
   constructor(
@@ -45,7 +52,8 @@ export class ServerBanSynchronisationProtection
       Protection<ProtectionDescription<unknown, UnknownConfig, Capabilities>>
     >,
     capabilities: Capabilities,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    public readonly intentProjection: ServerBanIntentProjection
   ) {
     super(description, lifetime, capabilities, protectedRoomsSet, {});
     this.serverConsequences = capabilities.serverConsequences;
@@ -124,13 +132,25 @@ describeProtection<Capabilities>({
     protectedRoomsSet,
     _settings,
     capabilities
-  ) =>
-    Ok(
+  ) => {
+    const intentProjection = lifetime.allocateDisposable(() =>
+      Ok(
+        new StandardServerBanIntentProjection(
+          protectedRoomsSet.watchedPolicyRooms.revisionIssuer
+        )
+      )
+    );
+    if (isError(intentProjection)) {
+      return intentProjection.elaborate('Unable to allocate intent projection');
+    }
+    return Ok(
       new ServerBanSynchronisationProtection(
         description,
         lifetime,
         capabilities,
-        protectedRoomsSet
+        protectedRoomsSet,
+        intentProjection.ok
       )
-    ),
+    );
+  },
 });
