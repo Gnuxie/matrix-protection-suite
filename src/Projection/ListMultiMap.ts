@@ -50,6 +50,52 @@ export const ListMultiMap = Object.freeze({
     return next;
   },
 
+  deriveIntents<Key, Value>(
+    map: ListMultiMap<Key, Value>,
+    add: Value[],
+    remove: Value[],
+    getKeyFromValue: GetKeyFromValue<Key, Value>
+  ): {
+    intend: Key[];
+    recall: Key[];
+  } {
+    const output: { intend: Key[]; recall: Key[] } = { intend: [], recall: [] };
+    type Change = { valueCount: number; introduced?: boolean };
+    const projectedChanges = new Map<Key, Change>();
+    const accessChanges = (key: Key): Change =>
+      projectedChanges.get(key) ??
+      ((existing) => ({
+        valueCount: existing ?? 0,
+        introduced: existing === undefined,
+      }))(map.get(key)?.size);
+    for (const value of add) {
+      projectedChanges.set(
+        getKeyFromValue(value),
+        ((change) => ((change.valueCount += 1), change))(
+          accessChanges(getKeyFromValue(value))
+        )
+      );
+    }
+    for (const value of remove) {
+      projectedChanges.set(
+        getKeyFromValue(value),
+        ((change) => ((change.valueCount -= 1), change))(
+          accessChanges(getKeyFromValue(value))
+        )
+      );
+    }
+    for (const [key, change] of projectedChanges) {
+      if (change.introduced && change.valueCount > 0) {
+        output.intend.push(key);
+      } else if (change.valueCount === 0) {
+        output.recall.push(key);
+      } else if (change.valueCount < 0) {
+        throw new TypeError('Things are super wrong');
+      }
+    }
+    return output;
+  },
+
   empty<Key, Value>(): ListMultiMap<Key, Value> {
     return PersistentMap<Key, List<Value>>();
   },

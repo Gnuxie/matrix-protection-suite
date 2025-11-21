@@ -18,7 +18,6 @@ import { ULID, ULIDFactory } from 'ulidx';
 import {
   GlobPolicyRule,
   LiteralPolicyRule,
-  PolicyRule,
   PolicyRuleMatchType,
   Recommendation,
 } from '../../../PolicyList/PolicyRule';
@@ -83,47 +82,22 @@ export const ServerBanIntentProjectionHelper = Object.freeze({
 
   reduceIntentDelta(
     input: Pick<ServerBanIntentProjectionDelta, 'add' | 'remove'>,
-    policies: PersistentMap<StringServerName, List<PolicyRule>>
+    policies: PersistentMap<
+      StringServerName,
+      List<GlobPolicyRule | LiteralPolicyRule>
+    >
   ): ServerBanIntentProjectionDelta {
-    const output: ServerBanIntentProjectionDelta = {
+    const intents = ListMultiMap.deriveIntents(
+      policies,
+      input.add,
+      input.remove,
+      (rule) => rule.entity as StringServerName
+    );
+    return {
       ...input,
-      denied: [],
-      recalled: [],
+      denied: intents.intend,
+      recalled: intents.recall,
     };
-    type Change = { policyCount: number; introduced?: boolean };
-    const projectedChanges = new Map<StringServerName, Change>();
-    const accessChanges = (server: StringServerName): Change =>
-      projectedChanges.get(server) ??
-      ((existing) => ({
-        policyCount: existing ?? 0,
-        introduced: existing === undefined,
-      }))(policies.get(server)?.size);
-    for (const rule of input.add) {
-      projectedChanges.set(
-        rule.entity as StringServerName,
-        ((change) => ((change.policyCount += 1), change))(
-          accessChanges(rule.entity as StringServerName)
-        )
-      );
-    }
-    for (const rule of input.remove) {
-      projectedChanges.set(
-        rule.entity as StringServerName,
-        ((change) => ((change.policyCount -= 1), change))(
-          accessChanges(rule.entity as StringServerName)
-        )
-      );
-    }
-    for (const [serverName, policyChangeDelta] of projectedChanges) {
-      if (policyChangeDelta.introduced && policyChangeDelta.policyCount > 0) {
-        output.denied.push(serverName);
-      } else if (policyChangeDelta.policyCount === 0) {
-        output.recalled.push(serverName);
-      } else if (policyChangeDelta.policyCount < 0) {
-        throw new TypeError('Things are super wrong vronut');
-      }
-    }
-    return output;
   },
 });
 
