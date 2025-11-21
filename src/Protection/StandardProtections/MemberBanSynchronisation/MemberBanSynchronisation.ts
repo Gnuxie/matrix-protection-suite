@@ -8,33 +8,42 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionError, ActionResult, Ok, isError } from '../../Interface/Action';
+import {
+  ActionError,
+  ActionResult,
+  Ok,
+  isError,
+} from '../../../Interface/Action';
 import {
   AbstractProtection,
   Protection,
   ProtectionDescription,
   describeProtection,
-} from '../Protection';
+} from '../../Protection';
 import {
   MembershipChange,
   MembershipChangeType,
-} from '../../Membership/MembershipChange';
-import { RoomMembershipRevision } from '../../Membership/MembershipRevision';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
-import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
-import { Recommendation } from '../../PolicyList/PolicyRule';
-import { MultipleErrors } from '../../Interface/MultipleErrors';
-import { UserConsequences } from '../Capability/StandardCapability/UserConsequences';
-import '../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
-import '../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
-import { Task } from '../../Interface/Task';
+} from '../../../Membership/MembershipChange';
+import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
+import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
+import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
+import { Recommendation } from '../../../PolicyList/PolicyRule';
+import { MultipleErrors } from '../../../Interface/MultipleErrors';
+import { UserConsequences } from '../../Capability/StandardCapability/UserConsequences';
+import '../../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
+import '../../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
+import { Task } from '../../../Interface/Task';
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { UnknownConfig } from '../../Config/ConfigDescription';
+import { UnknownConfig } from '../../../Config/ConfigDescription';
 import {
   MemberPolicyMatches,
   SetMembershipPolicyRevision,
-} from '../../MembershipPolicies/MembershipPolicyRevision';
-import { OwnLifetime } from '../../Interface/Lifetime';
+} from '../../../MembershipPolicies/MembershipPolicyRevision';
+import { OwnLifetime } from '../../../Interface/Lifetime';
+import {
+  MemberBanIntentProjection,
+  StandardMemberBanIntentProjection,
+} from './MemberBanIntentProjection';
 
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision
@@ -55,14 +64,19 @@ export type MemberBanSynchronisationProtectionDescription =
 
 export class MemberBanSynchronisationProtection
   extends AbstractProtection<MemberBanSynchronisationProtectionDescription>
-  implements Protection<MemberBanSynchronisationProtectionDescription>
+  implements
+    Protection<
+      MemberBanSynchronisationProtectionDescription,
+      MemberBanIntentProjection
+    >
 {
   private readonly userConsequences: UserConsequences;
   constructor(
     description: MemberBanSynchronisationProtectionDescription,
     lifetime: OwnLifetime<Protection<MemberBanSynchronisationProtection>>,
     capabilities: MemberBanSynchronisationProtectionCapabilities,
-    protectedRoomsSet: ProtectedRoomsSet
+    protectedRoomsSet: ProtectedRoomsSet,
+    public readonly intentProjection: MemberBanIntentProjection
   ) {
     super(description, lifetime, capabilities, protectedRoomsSet, {});
     this.userConsequences = capabilities.userConsequences;
@@ -74,6 +88,10 @@ export class MemberBanSynchronisationProtection
     void Task(this.synchroniseWithRevision(revision));
   }
 
+  // FIXME:
+  // This is a legacy handle that needs to remain while we figure out how to
+  // put room membership into the the protection's intent projection.
+  // Which is a lot of work.
   public async handleMembershipChange(
     revision: RoomMembershipRevision,
     changes: MembershipChange[]
@@ -173,13 +191,25 @@ describeProtection<MemberBanSynchronisationProtectionCapabilities>({
     protectedRoomsSet,
     _settings,
     capabilitySet
-  ) =>
-    Ok(
+  ) => {
+    const intentProjection = lifetime.allocateDisposable(() =>
+      Ok(
+        new StandardMemberBanIntentProjection(
+          protectedRoomsSet.setPoliciesMatchingMembership
+        )
+      )
+    );
+    if (isError(intentProjection)) {
+      return intentProjection.elaborate('Unable to allocate intent projection');
+    }
+    return Ok(
       new MemberBanSynchronisationProtection(
         decription,
         lifetime,
         capabilitySet,
-        protectedRoomsSet
+        protectedRoomsSet,
+        intentProjection.ok
       )
-    ),
+    );
+  },
 });

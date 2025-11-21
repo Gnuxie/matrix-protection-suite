@@ -114,6 +114,9 @@ export * from './PolicyList/StandardPolicyRoomEditor';
 export * from './PolicyList/StandardPolicyRoomRevision';
 export * from './PolicyList/StandardPolicyRoomRevisionIssuer';
 
+export * from './Projection/Projection';
+export * from './Projection/ProjectionNode';
+
 export * from './Protection/Capability/StandardCapability/CapabilityMethodSchema';
 export * from './Protection/Capability/StandardCapability/EventConsequences';
 export * from './Protection/Capability/StandardCapability/RoomSetResult';
@@ -160,8 +163,13 @@ export * from './Protection/ProtectionsManager/FakeProtectionsManager';
 export * from './Protection/ProtectionsManager/StandardProtectionsManager';
 export * from './Protection/ProtectionsManager/ProtectionsManager';
 
-export * from './Protection/StandardProtections/MemberBanSynchronisation';
-export * from './Protection/StandardProtections/ServerBanSynchronisation';
+export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjection';
+export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjectionNode';
+export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
+
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjection';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjectionNode';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisation';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';
 

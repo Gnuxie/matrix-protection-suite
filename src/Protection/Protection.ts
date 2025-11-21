@@ -55,6 +55,7 @@ import {
 import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
 import { Ok, Result } from '@gnuxie/typescript-result';
+import { Projection } from '../Projection/Projection';
 
 /**
  * @param description The description for the protection being constructed.
@@ -114,7 +115,10 @@ export interface ProtectionDescription<
  *
  * Protections are guaranteed to be run before redaction handlers.
  */
-export interface Protection<TProtectionDescription> {
+export type Protection<
+  TProtectionDescription,
+  TIntentProjection extends Projection | undefined = undefined,
+> = {
   readonly description: TProtectionDescription;
   readonly requiredEventPermissions: string[];
   readonly requiredStatePermissions: string[];
@@ -195,7 +199,15 @@ export interface Protection<TProtectionDescription> {
   ): void;
 
   [Symbol.asyncDispose](): Promise<void>;
-}
+} & (TIntentProjection extends undefined
+  ? { readonly intentProjection?: unknown }
+  : {
+      /**
+       * Used to view the state that the protection intends to make effectual via
+       * capabilities.
+       */
+      readonly intentProjection: TIntentProjection;
+    });
 
 export class AbstractProtection<TProtectionDescription>
   implements Protection<TProtectionDescription>
