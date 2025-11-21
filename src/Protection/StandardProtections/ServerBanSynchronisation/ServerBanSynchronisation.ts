@@ -27,8 +27,8 @@ import {
   describeProtection,
 } from '../../Protection';
 import { UnknownConfig } from '../../../Config/ConfigDescription';
-import '../Capability/StandardCapability/ServerConsequences';
-import '../Capability/StandardCapability/ServerACLConsequences';
+import '../../Capability/StandardCapability/ServerConsequences';
+import '../../Capability/StandardCapability/ServerACLConsequences';
 import { OwnLifetime } from '../../../Interface/Lifetime';
 import {
   ServerBanIntentProjection,
