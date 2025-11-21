@@ -26,8 +26,8 @@ import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
 import { ListMultiMap } from '../../../Projection/ListMultiMap';
 
 export type ServerBanIntentProjectionDelta = {
-  denied: StringServerName[];
-  recalled: StringServerName[];
+  deny: StringServerName[];
+  recall: StringServerName[];
   add: (LiteralPolicyRule | GlobPolicyRule)[];
   remove: (LiteralPolicyRule | GlobPolicyRule)[];
 };
@@ -39,7 +39,7 @@ export type ServerBanIntentProjectionNode = ProjectionNode<
   [PolicyListBridgeProjectionNode],
   ServerBanIntentProjectionDelta,
   {
-    denied: StringServerName[];
+    deny: StringServerName[];
   }
 >;
 
@@ -95,8 +95,8 @@ export const ServerBanIntentProjectionHelper = Object.freeze({
     );
     return {
       ...input,
-      denied: intents.intend,
-      recalled: intents.recall,
+      deny: intents.intend,
+      recall: intents.recall,
     };
   },
 });
@@ -149,9 +149,9 @@ export class StandardServerBanIntentProjectionNode
     const names = new Set(serverPolicies.map((policy) => policy.entity));
     return {
       add: serverPolicies,
-      denied: [...names] as StringServerName[],
+      deny: [...names] as StringServerName[],
       remove: [],
-      recalled: [],
+      recall: [],
     };
   }
 
@@ -179,7 +179,7 @@ export class StandardServerBanIntentProjectionNode
     );
   }
 
-  get denied(): StringServerName[] {
+  get deny(): StringServerName[] {
     return [...this.policies.keys()];
   }
 }
