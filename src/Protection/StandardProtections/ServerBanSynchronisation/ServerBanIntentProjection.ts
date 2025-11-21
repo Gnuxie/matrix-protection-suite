@@ -1,3 +1,12 @@
+// SPDX-FileCopyrightText: 2025 Gnuxie <Gnuxie@protonmail.com>
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+// SPDX-FileAttributionText: <text>
+// This modified file incorporates work from matrix-protection-suite
+// https://github.com/Gnuxie/matrix-protection-suite
+// </text>
+
 import { monotonicFactory } from 'ulidx';
 import {
   PolicyListRevisionIssuer,
