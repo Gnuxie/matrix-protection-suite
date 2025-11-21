@@ -25,6 +25,7 @@ import {
   LiteralPolicyRule,
   Recommendation,
 } from '../../../PolicyList/PolicyRule';
+import { ListMultiMap } from '../../../Projection/ListMultiMap';
 
 /**
  * This is just a stand in while we wait to convert the upstream MembershipPolicyRevision
@@ -42,6 +43,8 @@ export type MemberBanInputProjectionNode = ProjectionNode<
 export interface MemberBanIntentProjectionDelta {
   add: MemberPolicyMatch[];
   remove: MemberPolicyMatch[];
+  ban: StringUserID[];
+  recall: StringUserID[];
 }
 
 function isPolicyRelevant(policy: LiteralPolicyRule | GlobPolicyRule): boolean {
@@ -61,6 +64,47 @@ export type MemberBanIntentProjectionNode = ProjectionNode<
     ): (LiteralPolicyRule | GlobPolicyRule)[];
   }
 >;
+
+export const MemberBanIntentProjectionNodeHelper = Object.freeze({
+  reduceMembershipPolicyDelta(
+    input: MembershipPolicyRevisionDelta
+  ): Pick<MemberBanIntentProjectionDelta, 'add' | 'remove'> {
+    const output: Pick<MemberBanIntentProjectionDelta, 'add' | 'remove'> = {
+      add: [],
+      remove: [],
+    };
+    for (const added of input.addedMemberMatches) {
+      if (isPolicyRelevant(added.policy)) {
+        output.add.push(added);
+      }
+    }
+    for (const removed of input.removedMemberMatches) {
+      if (isPolicyRelevant(removed.policy)) {
+        output.remove.push(removed);
+      }
+    }
+    return output;
+  },
+  reduceIntentDelta(
+    input: Pick<MemberBanIntentProjectionDelta, 'add' | 'remove'>,
+    policies: PersistentMap<
+      StringUserID,
+      List<LiteralPolicyRule | GlobPolicyRule>
+    >
+  ): MemberBanIntentProjectionDelta {
+    const intents = ListMultiMap.deriveIntents(
+      policies,
+      input.add.map((match) => match.policy),
+      input.remove.map((match) => match.policy),
+      (rule) => rule.entity as StringUserID
+    );
+    return {
+      ...input,
+      ban: intents.intend,
+      recall: intents.recall,
+    };
+  },
+});
 
 // Upstream inputs are not yet converted to projections, so have to be never[]
 // for now.
@@ -91,68 +135,29 @@ export class StandardMemberBanIntentProjectionNode
     return this.intents.isEmpty();
   }
 
-  private reduceMembershipPolicyRevisionDelta(
-    inputDelta: MembershipPolicyRevisionDelta
-  ): MemberBanIntentProjectionDelta {
-    const output: MemberBanIntentProjectionDelta = {
-      add: [],
-      remove: [],
-    };
-    // hmm but now what if a policy's recommendation is modified from ban
-    // to something irrelevant. How do we know if the policy has been removed?
-    // our revision system is quite stupid in that it for some reason allows
-    // policies to be modified rather than reissued as something else which
-    // is distinct?
-    // Good news, the upstream revision issuer splits these into added and removed
-    // so it does make them distinct policies, yay.
-    for (const added of inputDelta.addedMemberMatches) {
-      if (isPolicyRelevant(added.policy)) {
-        output.add.push(added);
-      }
-    }
-    for (const removed of inputDelta.removedMemberMatches) {
-      if (isPolicyRelevant(removed.policy)) {
-        output.remove.push(removed);
-      }
-    }
-    return output;
-  }
-
   reduceInput(
     input: ExtractInputDeltaShapes<[MemberBanInputProjectionNode]>
   ): MemberBanIntentProjectionDelta {
-    return this.reduceMembershipPolicyRevisionDelta(input);
+    return MemberBanIntentProjectionNodeHelper.reduceIntentDelta(
+      MemberBanIntentProjectionNodeHelper.reduceMembershipPolicyDelta(input),
+      this.intents
+    );
   }
 
   reduceDelta(
     input: MemberBanIntentProjectionDelta
   ): StandardMemberBanIntentProjectionNode {
-    const nextIntents = this.intents;
-    for (const match of input.add) {
-      const existingPolicies = nextIntents.get(match.userID);
-      if (existingPolicies) {
-        nextIntents.set(match.userID, existingPolicies.push(match.policy));
-      } else {
-        nextIntents.set(
-          match.userID,
-          List<LiteralPolicyRule | GlobPolicyRule>().push(match.policy)
-        );
-      }
-    }
-    for (const match of input.remove) {
-      const existingPolicies = nextIntents.get(
-        match.userID,
-        List<LiteralPolicyRule | GlobPolicyRule>()
-      );
-      const nextPolicies = existingPolicies.filter(
-        (rule) => rule !== match.policy
-      );
-      if (nextPolicies.size === 0) {
-        nextIntents.delete(match.userID);
-      } else {
-        nextIntents.set(match.userID, nextPolicies);
-      }
-    }
+    let nextIntents = this.intents;
+    nextIntents = ListMultiMap.addValues(
+      nextIntents,
+      input.add.map((match) => match.policy),
+      (rule) => rule.entity as StringUserID
+    );
+    nextIntents = ListMultiMap.removeValues(
+      nextIntents,
+      input.remove.map((match) => match.policy),
+      (rule) => rule.entity as StringUserID
+    );
     return new StandardMemberBanIntentProjectionNode(
       this.ulidFactory,
       nextIntents
@@ -167,14 +172,17 @@ export class StandardMemberBanIntentProjectionNode
         'This can only be called on an empty projection node'
       );
     }
+    const matches = membershipPolicyRevision
+      .allMembersWithRules()
+      .map((member) =>
+        member.policies.map((policy) => ({ userID: member.userID, policy }))
+      )
+      .flat();
     return {
-      add: membershipPolicyRevision
-        .allMembersWithRules()
-        .map((member) =>
-          member.policies.map((policy) => ({ userID: member.userID, policy }))
-        )
-        .flat(),
+      add: matches,
+      ban: matches.map((match) => match.userID),
       remove: [],
+      recall: [],
     };
   }
 
