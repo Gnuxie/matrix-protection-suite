@@ -11,6 +11,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2025-11-21
+
+### Added
+
+- Generalised the various variations of the revision issuer abstraction into a `Projection` interface.
+
+- Added _Intent projections_ for the `MemberBanSynchronisation` and `ServerBanSynchronisation` standard
+  protections. These show what the protections _intend_ to effect with capabilities before
+  capabilities attempt to realise that intent. Think of them as the effect and the capabilities
+  as the effect handler.
+
+- All protections can make use of _intent projections_ but obviously migrating the logic
+  will take some time. Especially as the upstream revision issuers have not been migrated
+  to projections and may be missing detail that is normally fetched from protection's
+  arbitrary hooks. It's important to note that the intent projections are deterministic.
+  Whereas protections typically have non-determinism mixed within them. To work around
+  these instances you will have to make input projections to act as sources of non
+  determinism. And this keeps all non determinism at the sources or sinks of the dataflow
+  within MPS.
+
+- _Lifetimes_ now have ease of use methods for allocating implementations of the
+  ``Symbol.dispose`/`Symbol.asyncDispose` methods.
+
 ## [5.0.0] - 2025-10-28
 
 ### Changed
