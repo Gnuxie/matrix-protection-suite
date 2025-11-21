@@ -133,7 +133,7 @@ export class StandardServerBanIntentProjectionNode
   reduceInitialInputs([policyListRevision]: [
     PolicyListBridgeProjectionNode,
   ]): ServerBanIntentProjectionDelta {
-    if (this.isEmpty()) {
+    if (!this.isEmpty()) {
       throw new TypeError('Cannot reduce initial inputs when inialised');
     }
     const serverPolicies = [
