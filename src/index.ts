@@ -163,7 +163,12 @@ export * from './Protection/ProtectionsManager/FakeProtectionsManager';
 export * from './Protection/ProtectionsManager/StandardProtectionsManager';
 export * from './Protection/ProtectionsManager/ProtectionsManager';
 
+export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjection';
+export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjectionNode';
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
+
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjection';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjectionNode';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisation';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';
