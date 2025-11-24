@@ -12,18 +12,9 @@ import {
   StringUserID,
   userServerName,
 } from '@the-draupnir-project/matrix-basic-types';
-import { Logger } from '../Logging/Logger';
 import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { ServerACLBuilder } from '../MatrixTypes/ServerACLBuilder';
 import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import {
-  PolicyRule,
-  PolicyRuleMatchType,
-  Recommendation,
-} from '../PolicyList/PolicyRule';
-
-// FIXME: Not sure the logger in this file is really enough to inform users with.
-const log = new Logger('AccessControl');
+import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
 
 export enum Access {
   /// The entity was explicitly banned by a policy list.
@@ -136,60 +127,5 @@ export class AccessControl {
     }
     // If they got to this point, they're allowed!!
     return { outcome: Access.Allowed };
-  }
-
-  /**
-   * Create a ServerAcl instance from the rules contained in this unit.
-   * @param serverName The name of the server that you are operating from, used to ensure you cannot brick yourself.
-   * @returns A new `ServerAcl` instance with deny and allow entries created from the rules in this unit.
-   */
-  public static compileServerACL(
-    serverName: string,
-    revision: PolicyListRevision
-  ): ServerACLBuilder {
-    const builder = new ServerACLBuilder(serverName).denyIpAddresses();
-    const allowedServers = revision.allRulesOfType(
-      PolicyRuleType.Server,
-      Recommendation.Allow
-    );
-    // Allowed servers (allow).
-    if (allowedServers.length === 0) {
-      builder.allowServer('*');
-    } else {
-      for (const rule of allowedServers) {
-        if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
-          builder.allowServer(rule.entity);
-        }
-      }
-      if (
-        AccessControl.getAccessForServer(revision, serverName).outcome ===
-        Access.NotAllowed
-      ) {
-        builder.allowServer(serverName);
-        log.warn(
-          'AccessControl',
-          `The server ${serverName} we are operating from was not on the allowed when constructing the server ACL, so it will be injected it into the server acl. Please check the ACL lists.`
-        );
-      }
-    }
-    // Banned servers (deny).
-    const bannedServers = revision.allRulesOfType(
-      PolicyRuleType.Server,
-      Recommendation.Ban
-    );
-    for (const rule of bannedServers) {
-      if (rule.matchType === PolicyRuleMatchType.HashedLiteral) {
-        continue;
-      }
-      if (rule.isMatch(serverName)) {
-        log.warn(
-          'AccessControlUnit',
-          `The server ${serverName} we are operating from was found to be banned by ${rule.entity} by a rule from the event: ${rule.sourceEvent.event_id}, while constructing a server acl. Ignoring the rule. Please check the ACL lists.`
-        );
-      } else {
-        builder.denyServer(rule.entity);
-      }
-    }
-    return builder;
   }
 }

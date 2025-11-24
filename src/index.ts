@@ -120,10 +120,7 @@ export * from './Projection/ProjectionNode';
 export * from './Protection/Capability/StandardCapability/CapabilityMethodSchema';
 export * from './Protection/Capability/StandardCapability/EventConsequences';
 export * from './Protection/Capability/StandardCapability/RoomSetResult';
-export * from './Protection/Capability/StandardCapability/ServerACLConsequences';
-export * from './Protection/Capability/StandardCapability/ServerConsequences';
 export * from './Protection/Capability/StandardCapability/SimulatedEventConsequences';
-export * from './Protection/Capability/StandardCapability/SimulatedServerConsequences';
 export * from './Protection/Capability/StandardCapability/SimulatedUserConsequences';
 export * from './Protection/Capability/StandardCapability/StandardEventConsequences';
 export * from './Protection/Capability/StandardCapability/StandardUserConsequences';
@@ -167,9 +164,12 @@ export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberB
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjectionNode';
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
 
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerACLSynchronisationCapability';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjection';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjectionNode';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisation';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisationCapability';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/SimulatedServerBanSynchronisationCapability';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';
 

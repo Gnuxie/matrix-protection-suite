@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 2022 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -18,7 +18,6 @@ import {
   RoomStateRevision,
   StateChange,
 } from '../../../StateTracking/StateRevisionIssuer';
-import { ServerConsequences } from '../../Capability/StandardCapability/ServerConsequences';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import {
   AbstractProtection,
@@ -27,13 +26,14 @@ import {
   describeProtection,
 } from '../../Protection';
 import { UnknownConfig } from '../../../Config/ConfigDescription';
-import '../../Capability/StandardCapability/ServerConsequences';
-import '../../Capability/StandardCapability/ServerACLConsequences';
+import './ServerBanSynchronisationCapability';
+import './ServerACLSynchronisationCapability';
 import { OwnLifetime } from '../../../Interface/Lifetime';
 import {
   ServerBanIntentProjection,
   StandardServerBanIntentProjection,
 } from './ServerBanIntentProjection';
+import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
@@ -45,7 +45,7 @@ export class ServerBanSynchronisationProtection
       ServerBanIntentProjection
     >
 {
-  private readonly serverConsequences: ServerConsequences;
+  private readonly capability: ServerBanSynchronisationCapability;
   constructor(
     description: ProtectionDescription<unknown, UnknownConfig, Capabilities>,
     lifetime: OwnLifetime<
@@ -56,7 +56,7 @@ export class ServerBanSynchronisationProtection
     public readonly intentProjection: ServerBanIntentProjection
   ) {
     super(description, lifetime, capabilities, protectedRoomsSet, {});
-    this.serverConsequences = capabilities.serverConsequences;
+    this.capability = capabilities.serverConsequences;
   }
 
   public async handleStateChange(
@@ -74,9 +74,9 @@ export class ServerBanSynchronisationProtection
         `How is it possible for there to be more than one server_acl event change in the same revision?`
       );
     }
-    return (await this.serverConsequences.consequenceForServersInRoom(
+    return (await this.capability.outcomeFromIntentInRoom(
       revision.room.toRoomIDOrAlias(),
-      this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer
+      this.intentProjection
     )) as ActionResult<void>;
   }
 
@@ -90,8 +90,8 @@ export class ServerBanSynchronisationProtection
     if (serverPolicyChanges.length === 0) {
       return Ok(undefined);
     }
-    const result = await this.serverConsequences.consequenceForServersInRoomSet(
-      this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer
+    const result = await this.capability.outcomeFromIntentInRoomSet(
+      this.intentProjection
     );
     if (isError(result)) {
       return result;
@@ -103,9 +103,9 @@ export class ServerBanSynchronisationProtection
   public handlePermissionRequirementsMet(room: MatrixRoomID): void {
     void Task(
       (async () => {
-        await this.serverConsequences.consequenceForServersInRoom(
+        await this.capability.outcomeFromIntentInRoom(
           room.toRoomIDOrAlias(),
-          this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer
+          this.intentProjection
         );
       })()
     );
@@ -113,7 +113,7 @@ export class ServerBanSynchronisationProtection
 }
 
 type Capabilities = {
-  serverConsequences: ServerConsequences;
+  serverConsequences: ServerBanSynchronisationCapability;
 };
 
 describeProtection<Capabilities>({
@@ -121,10 +121,10 @@ describeProtection<Capabilities>({
   description:
     'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
   capabilityInterfaces: {
-    serverConsequences: 'ServerConsequences',
+    serverConsequences: 'ServerBanSynchronisationCapability',
   },
   defaultCapabilities: {
-    serverConsequences: 'ServerACLConsequences',
+    serverConsequences: 'ServerACLSynchronisationCapability',
   },
   factory: async (
     description,
