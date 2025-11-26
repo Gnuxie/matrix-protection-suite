@@ -11,9 +11,6 @@
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult, Ok, isError } from '../../../Interface/Action';
 import { Task } from '../../../Interface/Task';
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../../../PolicyList/PolicyRuleChange';
 import {
   RoomStateRevision,
   StateChange,
@@ -34,6 +31,12 @@ import {
   StandardServerBanIntentProjection,
 } from './ServerBanIntentProjection';
 import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
+import { Logger } from '../../../Logging/Logger';
+
+const log = new Logger('ServerBanSynchronisationProtection');
+
+// FIXME: We need a linear gate around the server ACL consequence for the entire
+// room set.
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
@@ -80,24 +83,11 @@ export class ServerBanSynchronisationProtection
     )) as ActionResult<void>;
   }
 
-  public async handlePolicyChange(
-    _revision: PolicyListRevision,
-    changes: PolicyRuleChange[]
-  ): Promise<ActionResult<void>> {
-    const serverPolicyChanges = changes.filter(
-      (change) => change.rule.kind === PolicyRuleType.Server
+  public handleIntentProjectionNode(): void {
+    void Task(
+      this.capability.outcomeFromIntentInRoomSet(this.intentProjection),
+      { log }
     );
-    if (serverPolicyChanges.length === 0) {
-      return Ok(undefined);
-    }
-    const result = await this.capability.outcomeFromIntentInRoomSet(
-      this.intentProjection
-    );
-    if (isError(result)) {
-      return result;
-    } else {
-      return Ok(undefined);
-    }
   }
 
   public handlePermissionRequirementsMet(room: MatrixRoomID): void {
