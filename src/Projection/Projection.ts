@@ -36,6 +36,11 @@ export interface Projection<
   removeNodeListener(listener: ProjectionNodeListener<TProjectionNode>): this;
 }
 
+export type ExtractProjectionNode<TProjection> =
+  TProjection extends Projection<infer TProjectionNode>
+    ? TProjectionNode
+    : never;
+
 // Technically an orchestration engine needs to do the job of running reducers
 // and applying input. Because in order for input to make sense, all of the dependencies
 // need to process updates first before we do.
