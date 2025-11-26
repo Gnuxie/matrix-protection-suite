@@ -9,7 +9,7 @@ import {
 } from '@the-draupnir-project/matrix-basic-types';
 import { RoomStateEventSender } from '../../../Client/RoomStateEventSender';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
-import './ServerConsequences'; // we need this so the interface is loaded.
+import './ServerBanSynchronisationCapability'; // we need this so the interface is loaded AND yes we are going to move to description objects instead at some point FML.
 import { isError, Ok, Result } from '@gnuxie/typescript-result';
 import {
   ActionException,

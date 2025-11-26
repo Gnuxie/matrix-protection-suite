@@ -254,6 +254,7 @@ export class AbstractProtection<TProtectionDescription>
     // hooks.
     // And this registry should take the objects not listener fn's so that it can
     // call the method directly without doing a weird closure/bind dance.
+    // uggh we will just have to hand craft this on the protections manager.
     if (this.handleIntentProjectionNodeListener && 'intentProjection' in this) {
       (this.intentProjection as Projection).addNodeListener(
         this.handleIntentProjectionNodeListener

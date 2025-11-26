@@ -164,11 +164,11 @@ export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberB
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjectionNode';
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
 
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisationCapability';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerACLSynchronisationCapability';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjection';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjectionNode';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisation';
-export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisationCapability';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/SimulatedServerBanSynchronisationCapability';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';

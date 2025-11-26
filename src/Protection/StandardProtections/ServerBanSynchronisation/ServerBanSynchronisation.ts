@@ -62,6 +62,9 @@ export class ServerBanSynchronisationProtection
     this.capability = capabilities.serverConsequences;
   }
 
+  // TODO: We really need a loop detection thing here, we can borrow the infringement
+  // count utility from draupinr protections to see if we can unprotect the room
+  // if this handle keeps being effectual.
   public async handleStateChange(
     revision: RoomStateRevision,
     changes: StateChange[]
