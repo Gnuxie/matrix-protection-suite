@@ -102,6 +102,8 @@ class ServerACLQueue {
   ): Promise<Result<boolean>> {
     try {
       await activeCheck;
+      // Give some time between ACL updates to not spam rooms.
+      await new Promise((resolve) => setTimeout(resolve, 15_000));
     } finally {
       this.pendingRoomChecks.delete(roomID);
     }
