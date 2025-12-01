@@ -144,7 +144,7 @@ test('Membership changes that should result in a ban when matching an existing p
     revisionEntry[1]
   );
   expect(isOk(protectionHandlerResult)).toBeTruthy();
-  expect(consequenceSpy).toBeCalledTimes(usersToTest.length);
+  expect(consequenceSpy).toHaveBeenCalledTimes(usersToTest.length);
 });
 
 // handlePolicyRevision
