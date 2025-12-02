@@ -60,6 +60,13 @@ export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
  * to be used directly with APIs that support AbortSignal instead. Note:
  * AbortSignal does not support awaiting for cleanup to finish.
  *
+ * The lifetime is used to make it impossible to forget to handle dispose methods.
+ * Anything that has a dispose method should be allocated against a lifetime.
+ * When constructors or factories ask for a lifetime, they will allocate their
+ * own resources against this lifetime. However, if the object being constructed
+ * also has a dispose method. You will still need to allocate the object created
+ * by the factory against a parent lifetime.
+ *
  * Lifecycle:
  * - [Symbol.asyncDispose] must be called to dispose the object.
  * - Resources MUST register with a Lifetime atomically as a part of resource
