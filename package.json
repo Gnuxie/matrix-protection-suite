@@ -43,7 +43,6 @@
     "lint-staged": "^15.2.7",
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
-    "ts-auto-mock": "3.7.3",
     "ts-jest": "^29.4.5",
     "ts-patch": "^3.2.1",
     "tslib": "^2.6.3",

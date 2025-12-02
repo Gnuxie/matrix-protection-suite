@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { createMock } from 'ts-auto-mock';
 import { findProtection } from '../../Protection';
 import './MemberBanSynchronisation';
 import { isError, isOk } from '../../../Interface/Action';
@@ -22,9 +21,9 @@ import {
   MemberBanSynchronisationProtection,
   MemberBanSynchronisationProtectionCapabilities,
 } from './MemberBanSynchronisation';
-import { UserConsequences } from '../../Capability/StandardCapability/UserConsequences';
 import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
 import { StandardLifetime } from '../../../Interface/Lifetime';
+import { SimulatedUserConsequences } from '../../Capability/StandardCapability/SimulatedUserConsequences';
 
 async function createMemberBanSynchronisationProtection(
   capabilities: MemberBanSynchronisationProtectionCapabilities,
@@ -94,7 +93,9 @@ test('Membership changes that should result in a ban when matching an existing p
         },
       ],
     });
-  const userConsequences = createMock<UserConsequences>();
+  const userConsequences = new SimulatedUserConsequences(
+    protectedRoomsSet.setRoomMembership
+  );
   const consequenceSpy = jest.spyOn(
     userConsequences,
     'consequenceForUserInRoom'
@@ -171,7 +172,9 @@ test('A policy change banning a user on a directly watched list will call the co
       ],
     });
 
-  const userConsequences = createMock<UserConsequences>();
+  const userConsequences = new SimulatedUserConsequences(
+    protectedRoomsSet.setRoomMembership
+  );
   const consequenceSpy = jest.spyOn(
     userConsequences,
     'consequenceForUsersInRoomSet'
