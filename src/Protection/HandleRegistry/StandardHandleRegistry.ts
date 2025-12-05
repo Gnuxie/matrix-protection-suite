@@ -14,20 +14,18 @@ import { HandleRegistry } from './HandleRegistry';
 import { isError, Ok, Result } from '@gnuxie/typescript-result';
 
 export class StandardHandleRegistry<
-  TPluginContext extends Record<string, unknown> = Record<string, unknown>,
-  THandles extends HandleDescription<
-    string,
-    TPluginContext,
-    (...args: unknown[]) => void
-  > = AnyHandleDescription,
-> implements HandleRegistry<THandles>
+  TPluginContext = Record<string, unknown>,
+  THandles extends AnyHandleDescription = never,
+> implements HandleRegistry<TPluginContext, THandles>
 {
   private readonly handleDescriptions = new Map<string, AnyHandleDescription>();
   private readonly plugins = new Set<PluginWithHandle<THandles>>();
 
   public constructor(
     private readonly context: TPluginContext,
-    private readonly lifetime: OwnLifetime<HandleRegistry<THandles>>
+    private readonly lifetime: OwnLifetime<
+      HandleRegistry<TPluginContext, THandles>
+    >
   ) {
     // nothing to do.
   }
@@ -35,7 +33,10 @@ export class StandardHandleRegistry<
   private getHandleDescription<THandleName extends string>(
     name: THandleName
   ): HandleDescription<THandleName, TPluginContext> | undefined {
-    return this.handleDescriptions.get(name) as HandleDescription<THandleName>;
+    return this.handleDescriptions.get(name) as HandleDescription<
+      THandleName,
+      TPluginContext
+    >;
   }
 
   private readonly forwardHandleFromContext = (
@@ -56,7 +57,7 @@ export class StandardHandleRegistry<
 
   registerHandleDescription<THandleDescription extends AnyHandleDescription>(
     description: THandleDescription
-  ): Result<HandleRegistry<THandles | THandleDescription>> {
+  ): Result<HandleRegistry<TPluginContext, THandles | THandleDescription>> {
     const establishResult =
       description.dataSourceType === HandleDataSourceType.Context
         ? description.establish(
@@ -74,7 +75,10 @@ export class StandardHandleRegistry<
   registerPluginHandles(
     plugin: PluginWithHandle<THandles>,
     pluginLifetime: AllocatableLifetime<typeof plugin>
-  ): Result<HandleRegistry<THandles>> {
+  ): Result<HandleRegistry<TPluginContext, THandles>> {
+    if (this.plugins.has(plugin)) {
+      return Ok(this);
+    }
     for (const handle of this.handleDescriptions.values()) {
       if (handle.handleName in plugin) {
         if (handle.dataSourceType === HandleDataSourceType.Plugin) {

@@ -60,7 +60,10 @@ import {
   Projection,
   ProjectionNodeListener,
 } from '../Projection/Projection';
-import { ExtractDeltaShape } from '../Projection/ProjectionNode';
+import {
+  AnyProjectionNode,
+  ExtractDeltaShape,
+} from '../Projection/ProjectionNode';
 
 /**
  * @param description The description for the protection being constructed.
@@ -205,7 +208,7 @@ export type Protection<
 
   [Symbol.asyncDispose](): Promise<void>;
 } & (TIntentProjection extends undefined
-  ? { readonly intentProjection?: unknown }
+  ? { readonly intentProjection?: Projection }
   : {
       /**
        * Used to view the state that the protection intends to make effectual via
@@ -214,7 +217,12 @@ export type Protection<
       readonly intentProjection: TIntentProjection;
     }) &
   (TIntentProjection extends undefined
-    ? { readonly handleIntentProjectionNode?: unknown }
+    ? {
+        handleIntentProjectionNode?(
+          node: AnyProjectionNode,
+          delta: unknown
+        ): void;
+      }
     : {
         handleIntentProjectionNode?(
           node: ExtractProjectionNode<TIntentProjection>,

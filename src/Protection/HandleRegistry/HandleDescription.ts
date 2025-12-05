@@ -6,6 +6,10 @@ import { Result } from '@gnuxie/typescript-result';
 import { AllocatableLifetime } from '../../Interface/Lifetime';
 import { HandleRegistry } from './HandleRegistry';
 
+export type BivariantHandler<T extends (...args: never[]) => void> = (
+  ...args: Parameters<T>
+) => ReturnType<T>;
+
 export enum HandleDataSourceType {
   /**
    * These are handles that use a plugin to derive the source data stream for
@@ -23,8 +27,8 @@ export enum HandleDataSourceType {
 
 export type HandleDescription<
   THandleName extends string = string,
-  TPluginContext extends Record<string, unknown> = Record<string, unknown>,
-  THandleShape extends (...args: unknown[]) => void = (
+  TPluginContext = Record<string, unknown>,
+  THandleShape extends (...args: never[]) => void = (
     ...args: unknown[]
   ) => void,
 > = Readonly<{
@@ -32,7 +36,7 @@ export type HandleDescription<
   // This just gives typescript a property to destructure the shape from once
   // the handle description gets placed into a union type. Where a type parameter
   // would no longer help.
-  handleShape?: THandleShape;
+  handleShape?: BivariantHandler<THandleShape>;
 }> &
   /**
    * Establish is about establishing the input to the registry which can then
@@ -62,9 +66,21 @@ export type HandleDescription<
 
 export type AnyHandleDescription = HandleDescription<
   string,
-  Record<string, unknown>,
+  unknown,
   (...args: unknown[]) => void
 >;
+
+export function describeHandle<
+  THandleName extends string = string,
+  TPluginContext = Record<string, unknown>,
+  THandleShape extends (...args: never[]) => void = (
+    ...args: unknown[]
+  ) => void,
+>(
+  description: HandleDescription<THandleName, TPluginContext, THandleShape>
+): HandleDescription<THandleName, TPluginContext, THandleShape> {
+  return description;
+}
 
 export type ExtractHandleName<THandleDescription extends HandleDescription> =
   THandleDescription extends HandleDescription<infer THandleName>

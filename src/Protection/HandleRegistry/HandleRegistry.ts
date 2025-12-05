@@ -14,27 +14,36 @@ import {
   HandleDescription,
   PluginWithHandle,
 } from './HandleDescription';
+import { HandleRegistryDescription } from './HandleRegistryDescription';
 
-export interface HandleRegistry<THandles extends AnyHandleDescription = never> {
-  registerHandleDescription<THandleDescription extends AnyHandleDescription>(
-    description: THandleDescription
-  ): Result<HandleRegistry<THandles | THandleDescription>>;
+/**
+ * HandleRegistry is concerned with establishing plugin handles against a context
+ * instance. It uses a HandleRegistryDescription to figure out which handles
+ * should be established for a given type of context.
+ */
+export interface HandleRegistry<
+  TPluginContext = Record<string, unknown>,
+  THandles extends AnyHandleDescription = never,
+> {
   registerPluginHandles(
     plugin: PluginWithHandle<THandles>,
     pluginLifetime: AllocatableLifetime<typeof plugin>
-  ): Result<HandleRegistry<THandles>>;
+  ): Result<HandleRegistry<TPluginContext, THandles>>;
   removePluginHandles(plugin: PluginWithHandle<THandles>): void;
   [Symbol.asyncDispose](): Promise<void>;
 }
 
-export const HandleRegistrySemantics = SemanticType<HandleRegistry>(
+export const HandleRegistrySemantics = SemanticType<HandleRegistryDescription>(
   'HandleRegistry'
 ).Law({
   establishHandles: {
-    what: 'When registerHandles is called, plugins will later receive calls for their handles',
+    what: 'When registerPluginHandles is called, plugins will later receive calls for their handles',
     why: 'Provides the hook point for plugins to register with handles',
     law: 'For plugin P and handle H, registering plugin will result in handle H being called on plugin when invoked',
     async check(makeSubject) {
+      const description = (await makeSubject()).expect(
+        'Should be able to make the subject'
+      );
       type EstablishHandlesDescription = HandleDescription<
         'testHandle',
         Record<string, unknown>,
@@ -52,16 +61,19 @@ export const HandleRegistrySemantics = SemanticType<HandleRegistry>(
           return Ok(undefined);
         },
       };
+      const descriptionWithHandle = description.registerHandleDescription(
+        testHandleDescription
+      );
+      await using registryLifetime = new StandardLifetime<HandleRegistry>();
       const testPlugin = {
         testHandle() {
           handleInvocations += 1;
         },
       };
-      const lifetime = new StandardLifetime<typeof testPlugin>();
-      (await makeSubject())
+      await using lifetime = new StandardLifetime<typeof testPlugin>();
+      descriptionWithHandle
+        .registryForContext(registryLifetime, {})
         .expect('registry creation failed')
-        .registerHandleDescription(testHandleDescription)
-        .expect('Should be able to establish the handle description')
         .registerPluginHandles(testPlugin, lifetime);
       if (publishHandleCallback === undefined) {
         throw new TypeError(
@@ -74,98 +86,108 @@ export const HandleRegistrySemantics = SemanticType<HandleRegistry>(
       }
     },
   },
+  pluginRemoval: {
+    what: 'Handles will no longer be called on plugins that are unregistered',
+    why: 'Make sure that plugins can be cleanly removed from the system',
+    law: 'For plugin P and handle H, after unregistering P, H will no longer be called on P',
+    async check(makeSubject) {
+      const description = (await makeSubject()).expect(
+        'Should be able to make the subject'
+      );
+      type RemovalHandleDescription = HandleDescription<
+        'handle',
+        Record<string, unknown>,
+        () => void
+      >;
+      let publishHandleCallback: ((handleName: 'handle') => void) | undefined;
+      let handleInvocations = 0;
+      const handle: RemovalHandleDescription = {
+        handleName: 'handle',
+        dataSourceType: HandleDataSourceType.Context,
+        establish(_context, publish) {
+          publishHandleCallback = publish;
+          return Ok(undefined);
+        },
+      };
+      const descriptionWithHandle =
+        description.registerHandleDescription(handle);
+      await using registryLifetime = new StandardLifetime<HandleRegistry>();
+      await using registry = descriptionWithHandle
+        .registryForContext(registryLifetime, {})
+        .expect('Should be able to construct registry for context');
+      const plugin = {
+        handle() {
+          handleInvocations += 1;
+        },
+      };
+      await using pluginLifetime = new StandardLifetime<typeof plugin>();
+      registry
+        .registerPluginHandles(plugin, pluginLifetime)
+        .expect('Should be able to register plugin handles');
+      if (publishHandleCallback === undefined) {
+        throw new TypeError(
+          'Handle establishment did not provide a publish callback'
+        );
+      }
+      publishHandleCallback('handle');
+      registry.removePluginHandles(plugin);
+      publishHandleCallback('handle');
+      if (handleInvocations !== 1) {
+        throw new TypeError(
+          'Handle was invoked after plugin removal. It should not be.'
+        );
+      }
+    },
+  },
   unaryHandleRegistration: {
     what: 'Plugin registration is unary, handles will not be called multiple times as a result of multiple registration',
     why: 'Prevents bugs from multiple registration',
     law: 'For a plugin P, and handle H, calling registerHandles(P) twice will result in H of P being called exactly once only',
     async check(makeSubject) {
-      type UnaryHandlesDescription = HandleDescription<
-        'testHandle',
+      const description = (await makeSubject()).expect(
+        'Should be able to make the subject'
+      );
+      type UnaryHandleDescription = HandleDescription<
+        'handle',
         Record<string, unknown>,
         () => void
       >;
-      let publishHandleCallback:
-        | ((handleName: 'testHandle') => void)
-        | undefined;
-      let handleInvocations = 0;
-      const testHandleDescription: UnaryHandlesDescription = {
-        handleName: 'testHandle',
-        dataSourceType: HandleDataSourceType.Context,
-        establish(_context, callback) {
-          publishHandleCallback = callback;
+      let establishCount = 0;
+      const handle: UnaryHandleDescription = {
+        handleName: 'handle',
+        dataSourceType: HandleDataSourceType.Plugin,
+        establish: () => {
+          establishCount += 1;
           return Ok(undefined);
         },
       };
-      const testPlugin = {
-        testHandle() {
+      const descriptionWithHandle =
+        description.registerHandleDescription(handle);
+      await using registryLifetime = new StandardLifetime<HandleRegistry>();
+      await using registry = descriptionWithHandle
+        .registryForContext(registryLifetime, {})
+        .expect('Should be able to construct registry for context');
+      let handleInvocations = 0;
+      const plugin = {
+        handle() {
           handleInvocations += 1;
         },
       };
-      const lifetime = new StandardLifetime<typeof testPlugin>();
-      (await makeSubject())
-        .expect('registry creation failed')
-        .registerHandleDescription(testHandleDescription)
-        .expect('Should be able to establish the handle description')
-        .registerPluginHandles(testPlugin, lifetime)
-        .expect('should be able to register handles')
-        .registerPluginHandles(testPlugin, lifetime)
-        .expect('should be able to register handles');
-      if (publishHandleCallback === undefined) {
+      await using pluginLifetime = new StandardLifetime<typeof plugin>();
+      registry
+        .registerPluginHandles(plugin, pluginLifetime)
+        .expect('Should be able to register plugin handles');
+      registry
+        .registerPluginHandles(plugin, pluginLifetime)
+        .expect('Should be able to re-register plugin handles');
+      if (establishCount !== 1) {
         throw new TypeError(
-          'Handle establishment did not provide a publish callback'
+          'Plugin handle establish should only have been called once'
         );
       }
-      publishHandleCallback('testHandle');
+      plugin.handle();
       if (handleInvocations !== 1) {
-        throw new TypeError(
-          'Registered handle was invoked more than once after duplicate registrations'
-        );
-      }
-    },
-  },
-  pluginUnRegistration: {
-    what: 'Handles will no longer be called on plugins that are unregistered',
-    why: 'Make sure that plugins can be cleanly removed from the system',
-    law: 'For plugin P and handle H, after unregistering P, H will no longer be called on P',
-    async check(makeSubject) {
-      type UnregisterDescription = HandleDescription<
-        'testHandle',
-        Record<string, unknown>,
-        () => void
-      >;
-      let publishHandleCallback:
-        | ((handleName: 'testHandle') => void)
-        | undefined;
-      let handleInvocations = 0;
-      const testHandleDescription: UnregisterDescription = {
-        handleName: 'testHandle',
-        dataSourceType: HandleDataSourceType.Context,
-        establish(_context, callback) {
-          publishHandleCallback = callback;
-          return Ok(undefined);
-        },
-      };
-      const testPlugin = {
-        testHandle() {
-          handleInvocations += 1;
-        },
-      };
-      const lifetime = new StandardLifetime<typeof testPlugin>();
-      const registry = (await makeSubject())
-        .expect('registry creation failed')
-        .registerHandleDescription(testHandleDescription)
-        .expect('Should be able to establish the handle description')
-        .registerPluginHandles(testPlugin, lifetime)
-        .expect('should be able to register handles');
-      registry.removePluginHandles(testPlugin);
-      if (publishHandleCallback === undefined) {
-        throw new TypeError(
-          'Handle establishment did not provide a publish callback'
-        );
-      }
-      publishHandleCallback('testHandle');
-      if (handleInvocations !== 0) {
-        throw new TypeError('Handle was invoked after plugin was unregistered');
+        throw new TypeError('Plugin handle should have been called once');
       }
     },
   },
@@ -174,48 +196,56 @@ export const HandleRegistrySemantics = SemanticType<HandleRegistry>(
     why: 'Prevents resource leaks from HandleRegistry instances',
     law: 'For plugin P and handle H, after disposing the HandleRegistry, H will no longer be called on P',
     async check(makeSubject) {
-      type DisposableDescription = HandleDescription<
-        'testHandle',
+      const description = (await makeSubject()).expect(
+        'Should be able to make the subject'
+      );
+      type DisposableHandleDescription = HandleDescription<
+        'handle',
         Record<string, unknown>,
         () => void
       >;
-      let publishHandleCallback:
-        | ((handleName: 'testHandle') => void)
-        | undefined;
+      let publishHandleCallback: ((handleName: 'handle') => void) | undefined;
       let handleInvocations = 0;
-      const testHandleDescription: DisposableDescription = {
-        handleName: 'testHandle',
+      const handle: DisposableHandleDescription = {
+        handleName: 'handle',
         dataSourceType: HandleDataSourceType.Context,
-        establish(_context, callback) {
-          publishHandleCallback = callback;
+        establish(_context, publish) {
+          publishHandleCallback = publish;
           return Ok(undefined);
         },
       };
-      const testPlugin = {
-        testHandle() {
-          handleInvocations += 1;
-        },
-      };
-      const lifetime = new StandardLifetime<typeof testPlugin>();
-      const registry = (await makeSubject())
-        .expect('registry creation failed')
-        .registerHandleDescription(testHandleDescription)
-        .expect('Should be able to establish the handle description')
-        .registerPluginHandles(testPlugin, lifetime)
-        .expect('should be able to register handles');
-      await registry[Symbol.asyncDispose]();
-      if (publishHandleCallback === undefined) {
-        throw new TypeError(
-          'Handle establishment did not provide a publish callback'
-        );
+      const descriptionWithHandle =
+        description.registerHandleDescription(handle);
+      {
+        await using registryLifetime = new StandardLifetime<HandleRegistry>();
+        await using registry = descriptionWithHandle
+          .registryForContext(registryLifetime, {})
+          .expect('Should be able to construct registry for context');
+        const plugin = {
+          handle() {
+            handleInvocations += 1;
+          },
+        };
+        await using pluginLifetime = new StandardLifetime<typeof plugin>();
+        registry
+          .registerPluginHandles(plugin, pluginLifetime)
+          .expect('Should be able to register plugin handles');
+        if (publishHandleCallback === undefined) {
+          throw new TypeError(
+            'Handle establishment did not provide a publish callback'
+          );
+        }
+        publishHandleCallback('handle');
       }
       try {
-        publishHandleCallback('testHandle');
-      } catch (e) {
-        // Swallow errors from invoking after disposal.
+        publishHandleCallback('handle');
+      } catch {
+        // catch errors from invoking after disposal
       }
-      if (handleInvocations !== 0) {
-        throw new TypeError('Handle was invoked after HandleRegistry disposal');
+      if (handleInvocations !== 1) {
+        throw new TypeError(
+          'Handle was invoked after registry disposal. It should not be.'
+        );
       }
     },
   },

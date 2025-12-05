@@ -3,13 +3,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Ok } from '@gnuxie/typescript-result';
-import { StandardLifetime } from '../../Interface/Lifetime';
-import { HandleRegistry, HandleRegistrySemantics } from './HandleRegistry';
-import { StandardHandleRegistry } from './StandardHandleRegistry';
+import { HandleRegistrySemantics } from './HandleRegistry';
+import { StandardHandleRegistryDescription } from './StandardHandleRegistryDescription';
+import { HandleRegistryDescriptionSemantics } from './HandleRegistryDescription';
 
 it('HandleRegistrySemantics are implemented for the standard instance', async () => {
-  await using lifetime = new StandardLifetime<HandleRegistry>();
   await HandleRegistrySemantics.check(async () => {
-    return Ok(new StandardHandleRegistry({}, lifetime));
+    return Ok(new StandardHandleRegistryDescription());
+  });
+});
+
+it('HandleRegistryDescription semantics are implemented on the standard instance', async () => {
+  await HandleRegistryDescriptionSemantics.check(async () => {
+    return Ok(new StandardHandleRegistryDescription());
   });
 });
