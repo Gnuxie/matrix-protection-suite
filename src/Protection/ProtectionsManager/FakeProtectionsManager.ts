@@ -8,6 +8,7 @@ import { StandardProtectionCapabilityProviderSetConfig } from '../ProtectionsCon
 import { MjolnirProtectionSettingsConfig } from '../ProtectionsConfig/ProtectionSettingsConfig/MjolnirProtectionSettingsConfig';
 import { StandardProtectionsManager } from './StandardProtectionsManager';
 import { FakePersistentConfigBackend } from '../../Interface/FakePersistentMatrixData';
+import { ProtectionHandleRegistryDescription } from '../ProtectionHandles';
 
 export class FakeProtectionsManager extends StandardProtectionsManager {
   constructor() {
@@ -18,7 +19,8 @@ export class FakeProtectionsManager extends StandardProtectionsManager {
       }),
       new MjolnirProtectionSettingsConfig(function () {
         return Ok(new FakePersistentConfigBackend({}));
-      })
+      }),
+      ProtectionHandleRegistryDescription as never
     );
   }
 }
