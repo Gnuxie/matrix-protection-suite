@@ -132,6 +132,12 @@ export * from './Protection/Capability/CapabilityProvider';
 export * from './Protection/Capability/CapabilityRenderer';
 export * from './Protection/Capability/CapabilitySet';
 
+export * from './Protection/HandleRegistry/HandleDescription';
+export * from './Protection/HandleRegistry/HandleRegistry';
+export * from './Protection/HandleRegistry/StandardHandleRegistryDescription';
+export * from './Protection/HandleRegistry/StandardHandleRegistry';
+export * from './Protection/HandleRegistry/StandardHandleRegistryDescription';
+
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
 export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
 export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsDescription';
@@ -182,6 +188,7 @@ export * from './Protection/DescriptionMeta';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/ProtectedRoomsSet';
 export * from './Protection/Protection';
+export * from './Protection/ProtectionHandles';
 
 export * from './Reporting/EventReport';
 
