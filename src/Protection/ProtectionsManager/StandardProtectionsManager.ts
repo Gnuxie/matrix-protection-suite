@@ -31,6 +31,7 @@ import { OwnLifetime, StandardLifetime } from '../../Interface/Lifetime';
 import { Task } from '../../Interface/Task';
 import { HandleRegistry } from '../HandleRegistry/HandleRegistry';
 import { HandleRegistryDescription } from '../HandleRegistry/HandleRegistryDescription';
+import { AnyHandleDescription } from '../HandleRegistry/HandleDescription';
 
 const log = new Logger('StandardProtectionsManager');
 
@@ -80,7 +81,10 @@ export class StandardProtectionsManager<Context = unknown>
     private readonly enabledProtectionsConfig: ProtectionsConfig,
     private readonly capabilityProviderSetConfig: ProtectionCapabilityProviderSetConfig,
     private readonly settingsConfig: ProtectionSettingsConfig,
-    private readonly handleRegistryDescription: HandleRegistryDescription<Context>
+    private readonly handleRegistryDescription: HandleRegistryDescription<
+      Context,
+      AnyHandleDescription
+    >
   ) {
     // nothing to do.
   }
