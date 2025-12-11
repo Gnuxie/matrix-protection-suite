@@ -55,11 +55,7 @@ import {
 import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
 import { Ok, Result } from '@gnuxie/typescript-result';
-import {
-  ExtractProjectionNode,
-  Projection,
-  ProjectionNodeListener,
-} from '../Projection/Projection';
+import { ExtractProjectionNode, Projection } from '../Projection/Projection';
 import {
   AnyProjectionNode,
   ExtractDeltaShape,
@@ -236,12 +232,6 @@ export class AbstractProtection<TProtectionDescription>
   private readonly clientEventPermissions: string[];
   private readonly clientPermissions: PowerLevelPermission[];
   private readonly clientStatePermissions: string[];
-  private readonly handleIntentProjectionNodeListener =
-    'handleIntentProjectionNode' in this &&
-    this.handleIntentProjectionNode !== undefined &&
-    typeof this.handleIntentProjectionNode === 'function'
-      ? (this.handleIntentProjectionNode.bind(this) as ProjectionNodeListener)
-      : undefined;
   protected constructor(
     public readonly description: TProtectionDescription,
     protected readonly lifetime: OwnLifetime<
@@ -258,16 +248,6 @@ export class AbstractProtection<TProtectionDescription>
     this.clientEventPermissions = permissions.requiredEventPermissions ?? [];
     this.clientPermissions = permissions.requiredPermissions ?? [];
     this.clientStatePermissions = permissions.requiredStatePermissions ?? [];
-    // This should really be handled by a generic hook registry for all protection
-    // hooks.
-    // And this registry should take the objects not listener fn's so that it can
-    // call the method directly without doing a weird closure/bind dance.
-    // uggh we will just have to hand craft this on the protections manager.
-    if (this.handleIntentProjectionNodeListener && 'intentProjection' in this) {
-      (this.intentProjection as Projection).addNodeListener(
-        this.handleIntentProjectionNodeListener
-      );
-    }
   }
 
   public get requiredEventPermissions(): string[] {
@@ -292,11 +272,6 @@ export class AbstractProtection<TProtectionDescription>
   }
 
   public async [Symbol.asyncDispose](): Promise<void> {
-    if (this.handleIntentProjectionNodeListener && 'intentProjection' in this) {
-      (this.intentProjection as Projection).removeNodeListener(
-        this.handleIntentProjectionNodeListener
-      );
-    }
     await this.lifetime[Symbol.asyncDispose]();
   }
 }
