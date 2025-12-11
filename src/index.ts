@@ -58,6 +58,7 @@ export * from './Interface/MultipleErrors';
 export * from './Interface/PersistentMatrixData';
 export * from './Interface/RoomUpdateError';
 export * from './Interface/SchemedMatrixData';
+export * from './Interface/SemanticType';
 export * from './Interface/SimpleChangeType';
 export * from './Interface/Static';
 export * from './Interface/Task';
