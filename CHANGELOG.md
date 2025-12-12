@@ -11,6 +11,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2025-12-12
+
+### Changed
+
+- `ServerConsequences` is no longer a generic capability provider and is now specific
+  to the `ServerBanSynchronisationProtection` (as it should have been all along).
+  The capability providers associated with the interface have now been renamed
+  which is a breaking change.
+
+- The `ServerBanSynchronisationProtection` now depends on its own intent projection
+  for producing ACL updates.
+
+### Added
+
+- `SemanticType` abstraction in attempt to get the benefits of TDD without creating
+  meaningless tests. I don't mean to imply that TDD leads to meaningless tests, but
+  this abstraction helps ensure that all tests are created in relation to an interface
+  type and their reason to exist is documented. As well as focussing on checking the
+  behavioural contracts that are normally implicit to interfaces. So it's an interesting feature.
+
+- `HandleRegistry` abstraction to help modularise the "glue code" that sticks
+  protection handles up to their data sources. This is particularly important
+  because this glue code normally involves resource management (because listeners
+  are resources). And it's bad if resource management code exists in an ad-hoc way.
+  Handles are described with a `HandleDescription`, which are then placed into
+  a `HandleRegistryDescription` which describes the handles available for a specific
+  context type. And then a `HandleRegistry` which helps bind the handles for
+  a specific context and for specific plugins.
+
 ## [5.1.0] - 2025-11-21
 
 ### Added
