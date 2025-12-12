@@ -8,24 +8,26 @@ import {
   userServerName,
 } from '@the-draupnir-project/matrix-basic-types';
 import { RoomStateEventSender } from '../../../Client/RoomStateEventSender';
-import {
-  ActionError,
-  ActionResult,
-  Ok,
-  isError,
-} from '../../../Interface/Action';
-import { Access, AccessControl } from '../../AccessControl';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
-import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
-import { RoomSetResult, RoomSetResultBuilder } from './RoomSetResult';
-import { ServerConsequences } from './ServerConsequences';
-import './ServerConsequences'; // we need this so the interface is loaded.
-import { Result } from '@gnuxie/typescript-result';
-import { PolicyListRevisionIssuer } from '../../../PolicyList/PolicyListRevisionIssuer';
+import './ServerBanSynchronisationCapability'; // we need this so the interface is loaded AND yes we are going to move to description objects instead at some point FML.
+import { isError, Ok, Result } from '@gnuxie/typescript-result';
 import {
   ActionException,
   ActionExceptionKind,
 } from '../../../Interface/ActionException';
+import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
+import {
+  Capability,
+  describeCapabilityProvider,
+} from '../../Capability/CapabilityProvider';
+import {
+  RoomSetResult,
+  RoomSetResultBuilder,
+} from '../../Capability/StandardCapability/RoomSetResult';
+import { ServerBanIntentProjection } from './ServerBanIntentProjection';
+import { ServerBanIntentProjectionNode } from './ServerBanIntentProjectionNode';
+import { ServerACLBuilder } from '../../../MatrixTypes/ServerACLBuilder';
+
 class ServerACLQueue {
   private readonly pendingRoomChecks = new Map<
     StringRoomID,
@@ -47,12 +49,9 @@ class ServerACLQueue {
 
   private async applyPolicyRevisionToRoom(
     roomID: StringRoomID,
-    issuer: PolicyListRevisionIssuer
-  ): Promise<ActionResult<boolean>> {
-    const ACL = AccessControl.compileServerACL(
-      this.serverName,
-      issuer.currentRevision
-    );
+    projection: ServerBanIntentProjection
+  ): Promise<Result<boolean>> {
+    const ACL = compileServerACL(this.serverName, projection.currentNode);
     const stateRevision =
       this.protectedRoomsSet.setRoomState.getRevision(roomID);
     if (stateRevision === undefined) {
@@ -76,6 +75,8 @@ class ServerACLQueue {
       '',
       ACL.safeAclContent()
     );
+    // Give some time between ACL updates to not spam rooms.
+    await new Promise((resolve) => setTimeout(resolve, 15_000));
     if (isError(result)) {
       return result;
     } else {
@@ -85,13 +86,10 @@ class ServerACLQueue {
 
   private async doActiveCheck(
     roomID: StringRoomID,
-    revisionIssuer: PolicyListRevisionIssuer
+    projection: ServerBanIntentProjection
   ): Promise<Result<boolean>> {
     try {
-      const activeCheck = this.applyPolicyRevisionToRoom(
-        roomID,
-        revisionIssuer
-      );
+      const activeCheck = this.applyPolicyRevisionToRoom(roomID, projection);
       this.activeRoomChecks.set(roomID, activeCheck);
       return await activeCheck;
     } finally {
@@ -101,7 +99,7 @@ class ServerACLQueue {
 
   private async enqueueCheck(
     roomID: StringRoomID,
-    revisionIssuer: PolicyListRevisionIssuer,
+    projection: ServerBanIntentProjection,
     activeCheck: Promise<Result<boolean>>
   ): Promise<Result<boolean>> {
     try {
@@ -109,12 +107,12 @@ class ServerACLQueue {
     } finally {
       this.pendingRoomChecks.delete(roomID);
     }
-    return await this.doActiveCheck(roomID, revisionIssuer);
+    return await this.doActiveCheck(roomID, projection);
   }
 
   public async enqueueRoomCheck(
     roomID: StringRoomID,
-    revisionIssuer: PolicyListRevisionIssuer
+    projection: ServerBanIntentProjection
   ): Promise<Result<boolean>> {
     const pendingCheck = this.pendingRoomChecks.get(roomID);
     if (pendingCheck) {
@@ -122,20 +120,30 @@ class ServerACLQueue {
     }
     const activeCheck = this.activeRoomChecks.get(roomID);
     if (activeCheck) {
-      const pendingCheck = this.enqueueCheck(
-        roomID,
-        revisionIssuer,
-        activeCheck
-      );
+      const pendingCheck = this.enqueueCheck(roomID, projection, activeCheck);
       this.pendingRoomChecks.set(roomID, pendingCheck);
       return await pendingCheck;
     } else {
-      return await this.doActiveCheck(roomID, revisionIssuer);
+      return await this.doActiveCheck(roomID, projection);
     }
   }
 }
 
-export class ServerACLConequences implements ServerConsequences, Capability {
+export function compileServerACL(
+  ourServerName: StringServerName,
+  projectionNode: ServerBanIntentProjectionNode
+): ServerACLBuilder {
+  const builder = new ServerACLBuilder(ourServerName).denyIpAddresses();
+  builder.allowServer('*');
+  for (const serverName of projectionNode.deny) {
+    builder.denyServer(serverName);
+  }
+  return builder;
+}
+
+export class ServerACLSynchronisationCapability
+  implements ServerBanSynchronisationCapability, Capability
+{
   public readonly requiredPermissions = [];
   public readonly requiredEventPermissions = [];
   public readonly requiredStatePermissions = ['m.room.server_acl'];
@@ -152,15 +160,15 @@ export class ServerACLConequences implements ServerConsequences, Capability {
     );
   }
 
-  private async applyPolicyRevisionToSet(
-    revisionIssuer: PolicyListRevisionIssuer
-  ): Promise<ActionResult<RoomSetResult>> {
+  private async applyIntentToSet(
+    intentProjection: ServerBanIntentProjection
+  ): Promise<Result<RoomSetResult>> {
     const resultBuilder = new RoomSetResultBuilder();
     try {
       await Promise.all(
         this.protectedRoomsSet.allProtectedRooms.map((room) =>
           this.queue
-            .enqueueRoomCheck(room.toRoomIDOrAlias(), revisionIssuer)
+            .enqueueRoomCheck(room.toRoomIDOrAlias(), intentProjection)
             .then((result) => {
               resultBuilder.addResult(
                 room.toRoomIDOrAlias(),
@@ -183,49 +191,34 @@ export class ServerACLConequences implements ServerConsequences, Capability {
 
     return Ok(resultBuilder.getResult());
   }
-  public async consequenceForServersInRoom(
+  public async outcomeFromIntentInRoom(
     roomID: StringRoomID,
-    revisionIssuer: PolicyListRevisionIssuer
-  ): Promise<ActionResult<boolean>> {
-    return await this.queue.enqueueRoomCheck(roomID, revisionIssuer);
+    projection: ServerBanIntentProjection
+  ): Promise<Result<boolean>> {
+    return await this.queue.enqueueRoomCheck(roomID, projection);
   }
-  public async consequenceForServersInRoomSet(
-    revisionIssuer: PolicyListRevisionIssuer
-  ): Promise<ActionResult<RoomSetResult>> {
-    return await this.applyPolicyRevisionToSet(revisionIssuer);
-  }
-  public async unbanServerFromRoomSet(
-    serverName: string,
-    _reason: string
-  ): Promise<ActionResult<RoomSetResult>> {
-    const revisionIssuer =
-      this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer;
-    const revision = revisionIssuer.currentRevision;
-    // this method is for applying the ACL, not removing policies.
-    const access = AccessControl.getAccessForServer(revision, serverName);
-    if (access.outcome !== Access.Allowed) {
-      return ActionError.Result(
-        `The server ${serverName} has policies that are denying it access to protected rooms with the reason: ${
-          access.rule?.reason ?? 'undefined'
-        }`
-      );
-    }
-    return await this.applyPolicyRevisionToSet(revisionIssuer);
+  public async outcomeFromIntentInRoomSet(
+    projection: ServerBanIntentProjection
+  ): Promise<Result<RoomSetResult>> {
+    return await this.applyIntentToSet(projection);
   }
 }
 
-export type ServerACLConsequencesContext = {
+export type ServerACLSynchronisationCapabilityContext = {
   stateEventSender: RoomStateEventSender;
   protectedRoomsSet: ProtectedRoomsSet;
 };
 
 describeCapabilityProvider({
-  name: 'ServerACLConsequences',
+  name: 'ServerACLSynchronisationCapability',
   description:
     'An implementation of ServerConsequences that uses m.room.server_acl to change access to rooms for servers.',
-  interface: 'ServerConsequences',
-  factory(_protectionDescription, context: ServerACLConsequencesContext) {
-    return new ServerACLConequences(
+  interface: 'ServerBanSynchronisationCapability',
+  factory(
+    _protectionDescription,
+    context: ServerACLSynchronisationCapabilityContext
+  ) {
+    return new ServerACLSynchronisationCapability(
       context.stateEventSender,
       context.protectedRoomsSet
     );

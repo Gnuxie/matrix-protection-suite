@@ -58,6 +58,7 @@ export * from './Interface/MultipleErrors';
 export * from './Interface/PersistentMatrixData';
 export * from './Interface/RoomUpdateError';
 export * from './Interface/SchemedMatrixData';
+export * from './Interface/SemanticType';
 export * from './Interface/SimpleChangeType';
 export * from './Interface/Static';
 export * from './Interface/Task';
@@ -120,10 +121,7 @@ export * from './Projection/ProjectionNode';
 export * from './Protection/Capability/StandardCapability/CapabilityMethodSchema';
 export * from './Protection/Capability/StandardCapability/EventConsequences';
 export * from './Protection/Capability/StandardCapability/RoomSetResult';
-export * from './Protection/Capability/StandardCapability/ServerACLConsequences';
-export * from './Protection/Capability/StandardCapability/ServerConsequences';
 export * from './Protection/Capability/StandardCapability/SimulatedEventConsequences';
-export * from './Protection/Capability/StandardCapability/SimulatedServerConsequences';
 export * from './Protection/Capability/StandardCapability/SimulatedUserConsequences';
 export * from './Protection/Capability/StandardCapability/StandardEventConsequences';
 export * from './Protection/Capability/StandardCapability/StandardUserConsequences';
@@ -134,6 +132,12 @@ export * from './Protection/Capability/CapabilityInterface';
 export * from './Protection/Capability/CapabilityProvider';
 export * from './Protection/Capability/CapabilityRenderer';
 export * from './Protection/Capability/CapabilitySet';
+
+export * from './Protection/HandleRegistry/HandleDescription';
+export * from './Protection/HandleRegistry/HandleRegistry';
+export * from './Protection/HandleRegistry/StandardHandleRegistryDescription';
+export * from './Protection/HandleRegistry/StandardHandleRegistry';
+export * from './Protection/HandleRegistry/StandardHandleRegistryDescription';
 
 export * from './Protection/PolicyListConfig/MjolnirWatchedListsEvent';
 export * from './Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
@@ -167,9 +171,12 @@ export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberB
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanIntentProjectionNode';
 export * from './Protection/StandardProtections/MemberBanSynchronisation/MemberBanSynchronisation';
 
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisationCapability';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerACLSynchronisationCapability';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjection';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanIntentProjectionNode';
 export * from './Protection/StandardProtections/ServerBanSynchronisation/ServerBanSynchronisation';
+export * from './Protection/StandardProtections/ServerBanSynchronisation/SimulatedServerBanSynchronisationCapability';
 
 export * from './Protection/WatchedPolicyRooms/HashReverser/SHA256HashReverser';
 
@@ -182,6 +189,7 @@ export * from './Protection/DescriptionMeta';
 export * from './Protection/DirectPropagationPolicyListRevisionIssuer';
 export * from './Protection/ProtectedRoomsSet';
 export * from './Protection/Protection';
+export * from './Protection/ProtectionHandles';
 
 export * from './Reporting/EventReport';
 

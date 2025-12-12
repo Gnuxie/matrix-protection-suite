@@ -79,14 +79,6 @@ export class ServerACLBuilder {
     return this;
   }
 
-  public literalAclContent(): ServerACLContent {
-    return {
-      allow: [...this.allowedServers],
-      deny: [...this.deniedServers],
-      allow_ip_literals: this.allowIps,
-    };
-  }
-
   public safeAclContent(): ServerACLContent {
     return {
       allow: this.safeAllowedServers(),

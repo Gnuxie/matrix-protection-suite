@@ -1,4 +1,4 @@
-// Copyright 2022 - 2023 Gnuxie <Gnuxie@protonmail.com>
+// Copyright 2022 - 2025 Gnuxie <Gnuxie@protonmail.com>
 // Copyright 2019 2022 The Matrix.org Foundation C.I.C.
 //
 // SPDX-License-Identifier: AFL-3.0 AND Apache-2.0
@@ -11,14 +11,10 @@
 import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
 import { ActionResult, Ok, isError } from '../../../Interface/Action';
 import { Task } from '../../../Interface/Task';
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../../../PolicyList/PolicyRuleChange';
 import {
   RoomStateRevision,
   StateChange,
 } from '../../../StateTracking/StateRevisionIssuer';
-import { ServerConsequences } from '../../Capability/StandardCapability/ServerConsequences';
 import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
 import {
   AbstractProtection,
@@ -27,13 +23,20 @@ import {
   describeProtection,
 } from '../../Protection';
 import { UnknownConfig } from '../../../Config/ConfigDescription';
-import '../../Capability/StandardCapability/ServerConsequences';
-import '../../Capability/StandardCapability/ServerACLConsequences';
+import './ServerBanSynchronisationCapability';
+import './ServerACLSynchronisationCapability';
 import { OwnLifetime } from '../../../Interface/Lifetime';
 import {
   ServerBanIntentProjection,
   StandardServerBanIntentProjection,
 } from './ServerBanIntentProjection';
+import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
+import { Logger } from '../../../Logging/Logger';
+
+const log = new Logger('ServerBanSynchronisationProtection');
+
+// FIXME: We need a linear gate around the server ACL consequence for the entire
+// room set.
 
 export class ServerBanSynchronisationProtection
   extends AbstractProtection<
@@ -45,7 +48,7 @@ export class ServerBanSynchronisationProtection
       ServerBanIntentProjection
     >
 {
-  private readonly serverConsequences: ServerConsequences;
+  private readonly capability: ServerBanSynchronisationCapability;
   constructor(
     description: ProtectionDescription<unknown, UnknownConfig, Capabilities>,
     lifetime: OwnLifetime<
@@ -56,9 +59,12 @@ export class ServerBanSynchronisationProtection
     public readonly intentProjection: ServerBanIntentProjection
   ) {
     super(description, lifetime, capabilities, protectedRoomsSet, {});
-    this.serverConsequences = capabilities.serverConsequences;
+    this.capability = capabilities.serverConsequences;
   }
 
+  // TODO: We really need a loop detection thing here, we can borrow the infringement
+  // count utility from draupinr protections to see if we can unprotect the room
+  // if this handle keeps being effectual.
   public async handleStateChange(
     revision: RoomStateRevision,
     changes: StateChange[]
@@ -74,38 +80,25 @@ export class ServerBanSynchronisationProtection
         `How is it possible for there to be more than one server_acl event change in the same revision?`
       );
     }
-    return (await this.serverConsequences.consequenceForServersInRoom(
+    return (await this.capability.outcomeFromIntentInRoom(
       revision.room.toRoomIDOrAlias(),
-      this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer
+      this.intentProjection
     )) as ActionResult<void>;
   }
 
-  public async handlePolicyChange(
-    _revision: PolicyListRevision,
-    changes: PolicyRuleChange[]
-  ): Promise<ActionResult<void>> {
-    const serverPolicyChanges = changes.filter(
-      (change) => change.rule.kind === PolicyRuleType.Server
+  public handleIntentProjectionNode(): void {
+    void Task(
+      this.capability.outcomeFromIntentInRoomSet(this.intentProjection),
+      { log }
     );
-    if (serverPolicyChanges.length === 0) {
-      return Ok(undefined);
-    }
-    const result = await this.serverConsequences.consequenceForServersInRoomSet(
-      this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer
-    );
-    if (isError(result)) {
-      return result;
-    } else {
-      return Ok(undefined);
-    }
   }
 
   public handlePermissionRequirementsMet(room: MatrixRoomID): void {
     void Task(
       (async () => {
-        await this.serverConsequences.consequenceForServersInRoom(
+        await this.capability.outcomeFromIntentInRoom(
           room.toRoomIDOrAlias(),
-          this.protectedRoomsSet.watchedPolicyRooms.revisionIssuer
+          this.intentProjection
         );
       })()
     );
@@ -113,7 +106,7 @@ export class ServerBanSynchronisationProtection
 }
 
 type Capabilities = {
-  serverConsequences: ServerConsequences;
+  serverConsequences: ServerBanSynchronisationCapability;
 };
 
 describeProtection<Capabilities>({
@@ -121,10 +114,10 @@ describeProtection<Capabilities>({
   description:
     'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
   capabilityInterfaces: {
-    serverConsequences: 'ServerConsequences',
+    serverConsequences: 'ServerBanSynchronisationCapability',
   },
   defaultCapabilities: {
-    serverConsequences: 'ServerACLConsequences',
+    serverConsequences: 'ServerACLSynchronisationCapability',
   },
   factory: async (
     description,

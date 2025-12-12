@@ -29,6 +29,9 @@ import { UnknownConfig } from '../../Config/ConfigDescription';
 import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
 import { OwnLifetime, StandardLifetime } from '../../Interface/Lifetime';
 import { Task } from '../../Interface/Task';
+import { HandleRegistry } from '../HandleRegistry/HandleRegistry';
+import { HandleRegistryDescription } from '../HandleRegistry/HandleRegistryDescription';
+import { AnyHandleDescription } from '../HandleRegistry/HandleDescription';
 
 const log = new Logger('StandardProtectionsManager');
 
@@ -49,12 +52,41 @@ export class StandardProtectionsManager<Context = unknown>
     /** protection name */ string,
     Protection<ProtectionDescription>
   >();
+
+  private handleRegistry: HandleRegistry<Context> | null = null;
+
+  public getHandleRegistry(context: Context): Result<HandleRegistry<Context>> {
+    if (this.handleRegistry !== null) {
+      return Ok(this.handleRegistry);
+    }
+    const lifetimeResult = this.lifetime.toChild();
+    if (isError(lifetimeResult)) {
+      return lifetimeResult.elaborate(
+        'Unable to allocate lifetime for handle registry'
+      );
+    }
+    const registryResult = this.handleRegistryDescription.registryForContext(
+      lifetimeResult.ok,
+      context
+    );
+    if (isError(registryResult)) {
+      void lifetimeResult.ok[Symbol.asyncDispose]();
+      return registryResult;
+    }
+    this.handleRegistry = registryResult.ok;
+    return Ok(this.handleRegistry);
+  }
+
   public constructor(
     private readonly enabledProtectionsConfig: ProtectionsConfig,
     private readonly capabilityProviderSetConfig: ProtectionCapabilityProviderSetConfig,
-    private readonly settingsConfig: ProtectionSettingsConfig
+    private readonly settingsConfig: ProtectionSettingsConfig,
+    private readonly handleRegistryDescription: HandleRegistryDescription<
+      Context,
+      AnyHandleDescription
+    >
   ) {
-    // nothing to do mare.
+    // nothing to do.
   }
 
   public get allProtections() {
@@ -99,6 +131,12 @@ export class StandardProtectionsManager<Context = unknown>
       capabilityProviderSet,
       context
     );
+    const handleRegistryResult = this.getHandleRegistry(context);
+    if (isError(handleRegistryResult)) {
+      return handleRegistryResult.elaborate(
+        `Unable to establish handles for ${protectionDescription.name}`
+      );
+    }
     const lifetimeResult = this.lifetime.toChild();
     if (isError(lifetimeResult)) {
       return lifetimeResult.elaborate(
@@ -115,6 +153,24 @@ export class StandardProtectionsManager<Context = unknown>
     );
     if (isError(protectionResult)) {
       return protectionResult;
+    }
+    const handleRegistrationResult =
+      handleRegistryResult.ok.registerPluginHandles(
+        protectionResult.ok,
+        lifetimeResult.ok
+      );
+    if (isError(handleRegistrationResult)) {
+      try {
+        await protectionResult.ok[Symbol.asyncDispose]();
+      } catch (e) {
+        log.error(
+          `Caught unhandled exception while disposing failed protection ${protectionDescription.name}:`,
+          e
+        );
+      }
+      return handleRegistrationResult.elaborate(
+        `Unable to register handles for ${protectionDescription.name}`
+      );
     }
     const enabledProtection = this.enabledProtections.get(
       protectionDescription.name
@@ -154,6 +210,8 @@ export class StandardProtectionsManager<Context = unknown>
     const protection = this.enabledProtections.get(protectionDescription.name);
     this.enabledProtections.delete(protectionDescription.name);
     if (protection !== undefined) {
+      const registry = this.handleRegistry;
+      registry?.removePluginHandles(protection);
       try {
         await protection[Symbol.asyncDispose]();
       } catch (ex) {

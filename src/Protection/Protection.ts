@@ -55,7 +55,11 @@ import {
 import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
 import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
 import { Ok, Result } from '@gnuxie/typescript-result';
-import { Projection } from '../Projection/Projection';
+import { ExtractProjectionNode, Projection } from '../Projection/Projection';
+import {
+  AnyProjectionNode,
+  ExtractDeltaShape,
+} from '../Projection/ProjectionNode';
 
 /**
  * @param description The description for the protection being constructed.
@@ -200,14 +204,27 @@ export type Protection<
 
   [Symbol.asyncDispose](): Promise<void>;
 } & (TIntentProjection extends undefined
-  ? { readonly intentProjection?: unknown }
+  ? { readonly intentProjection?: Projection }
   : {
       /**
        * Used to view the state that the protection intends to make effectual via
        * capabilities.
        */
       readonly intentProjection: TIntentProjection;
-    });
+    }) &
+  (TIntentProjection extends undefined
+    ? {
+        handleIntentProjectionNode?(
+          node: AnyProjectionNode,
+          delta: unknown
+        ): void;
+      }
+    : {
+        handleIntentProjectionNode?(
+          node: ExtractProjectionNode<TIntentProjection>,
+          delta: ExtractDeltaShape<ExtractProjectionNode<TIntentProjection>>
+        ): void;
+      });
 
 export class AbstractProtection<TProtectionDescription>
   implements Protection<TProtectionDescription>
