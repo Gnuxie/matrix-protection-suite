@@ -48,11 +48,15 @@ import {
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision
 ): MemberPolicyMatches[] {
-  return revision
-    .allMembersWithRules()
-    .filter((match) =>
-      match.policies.some((policy) => policy.kind === PolicyRuleType.User)
-    );
+  return revision.allMembersWithRules().filter((match) =>
+    match.policies.some((policy) => {
+      return (
+        policy.kind === PolicyRuleType.User &&
+        policy.recommendation !== Recommendation.Unknown &&
+        policy.recommendation !== Recommendation.Allow
+      );
+    })
+  );
 }
 
 export type MemberBanSynchronisationProtectionDescription =
