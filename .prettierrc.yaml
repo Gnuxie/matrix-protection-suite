@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
+#
+# SPDX-License-Identifier: 0BSD
+
+tabWidth: 2
+useTabs: false
+semi: true
+trailingComma: "es5"
+proseWrap: always
