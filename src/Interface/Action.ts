@@ -15,4 +15,4 @@ export {
   Result as ActionResult,
   isError,
   Err as ResultError,
-} from '@gnuxie/typescript-result';
+} from "@gnuxie/typescript-result";

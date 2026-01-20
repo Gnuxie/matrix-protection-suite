@@ -2,19 +2,18 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { isError, Ok, Result } from '@gnuxie/typescript-result';
-import { MatrixPaginator } from './MatrixPaginator';
+import { isError, Ok, Result } from "@gnuxie/typescript-result";
+import { MatrixPaginator } from "./MatrixPaginator";
 import {
   PaginationIterator,
   PaginationIteratorOptions,
-} from './PaginationIteration';
-import { PaginationOptions } from './PaginationOptions';
+} from "./PaginationIteration";
+import { PaginationOptions } from "./PaginationOptions";
 
 export class StandardPaginationIterator<
   ChunkItem,
   TOptions extends PaginationOptions = PaginationOptions,
-> implements PaginationIterator<ChunkItem>
-{
+> implements PaginationIterator<ChunkItem> {
   public constructor(
     private readonly startingOptions: TOptions,
     private readonly paginator: MatrixPaginator<ChunkItem, TOptions>
@@ -31,7 +30,7 @@ export class StandardPaginationIterator<
     const startingPage = await this.paginator.fetchPage(this.startingOptions);
     if (isError(startingPage)) {
       return startingPage.elaborate(
-        'Failed to fetch first page when paginating'
+        "Failed to fetch first page when paginating"
       );
     }
     let currentPage = startingPage.ok;
@@ -58,7 +57,7 @@ export class StandardPaginationIterator<
       };
       const nextPageResult = await this.paginator.fetchPage(nextPageOptions);
       if (isError(nextPageResult)) {
-        return nextPageResult.elaborate('Failed to fetch next page');
+        return nextPageResult.elaborate("Failed to fetch next page");
       } else {
         currentPage = nextPageResult.ok;
       }

@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionError, ActionResult, Ok, isError } from './Action';
+import { ActionError, ActionResult, Ok, isError } from "./Action";
 
 export const DRAUPNIR_SCHEMA_VERSION_KEY =
-  'ge.applied-langua.ge.draupnir.schema_version';
+  "ge.applied-langua.ge.draupnir.schema_version";
 
 export type SchemedData<
   VersionKey extends string = typeof DRAUPNIR_SCHEMA_VERSION_KEY,

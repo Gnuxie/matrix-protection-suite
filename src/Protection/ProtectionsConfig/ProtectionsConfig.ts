@@ -8,9 +8,9 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionResult } from '../../Interface/Action';
-import { LoggableConfig } from '../../Interface/LoggableConfig';
-import { ProtectionDescription } from '../Protection';
+import { ActionResult } from "../../Interface/Action";
+import { LoggableConfig } from "../../Interface/LoggableConfig";
+import { ProtectionDescription } from "../Protection";
 
 export type ProtectionsInfo = {
   knownEnabledProtections: ProtectionDescription[];

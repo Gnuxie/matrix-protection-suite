@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { PowerLevelPermission } from '../../Client/PowerLevelsMirror';
-import { DescriptionMeta } from '../DescriptionMeta';
-import { CapabilityInterfaceDescription } from './CapabilityInterface';
+import { PowerLevelPermission } from "../../Client/PowerLevelsMirror";
+import { DescriptionMeta } from "../DescriptionMeta";
+import { CapabilityInterfaceDescription } from "./CapabilityInterface";
 import {
   Capability,
   CapabilityProviderDescription,
-} from './CapabilityProvider';
-import { wrapCapabilityProviderInRenderer } from './CapabilityRenderer';
+} from "./CapabilityProvider";
+import { wrapCapabilityProviderInRenderer } from "./CapabilityRenderer";
 
 export type CapabilityInterfaceSet<
   TCapabilitySet extends CapabilitySet = CapabilitySet,

@@ -8,23 +8,23 @@
 // https://github.com/matrix-org/synapse
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
+import { StaticDecode, Type } from "@sinclair/typebox";
 import {
   StringEventIDSchema,
   StringRoomIDSchema,
   StringUserIDSchema,
-} from './StringlyTypedMatrix';
+} from "./StringlyTypedMatrix";
 
 export type SynapseReport = StaticDecode<typeof SynapseReport>;
 export const SynapseReport = Type.Object({
   id: Type.Integer({
-    description: 'ID of event report.',
+    description: "ID of event report.",
   }),
   room_id: StringRoomIDSchema,
   name: Type.Union([
     Type.String({
       description:
-        'The ID of the room in which the event being reported is located.',
+        "The ID of the room in which the event being reported is located.",
     }),
     Type.Null(),
   ]),
@@ -34,7 +34,7 @@ export const SynapseReport = Type.Object({
   reason: Type.Optional(
     Type.Union([Type.Null(), Type.String()], {
       description:
-        'Comment made by the user_id in this report. May be blank or null.',
+        "Comment made by the user_id in this report. May be blank or null.",
     })
   ),
 });

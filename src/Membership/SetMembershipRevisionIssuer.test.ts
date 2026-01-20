@@ -16,12 +16,12 @@
 import {
   describeProtectedRoomsSet,
   describeRoom,
-} from '../StateTracking/DeclareRoomState';
-import { randomUserID } from '../TestUtilities/EventGeneration';
-import { Membership } from './MembershipChange';
-import { StandardSetMembershipRevisionIssuer } from './SetMembershipRevisionIssuer';
+} from "../StateTracking/DeclareRoomState";
+import { randomUserID } from "../TestUtilities/EventGeneration";
+import { Membership } from "./MembershipChange";
+import { StandardSetMembershipRevisionIssuer } from "./SetMembershipRevisionIssuer";
 
-test('That when the SetMembershipRevisionIssuer is created, the existing room memberships are accounted for.', async function () {
+test("That when the SetMembershipRevisionIssuer is created, the existing room memberships are accounted for.", async function () {
   const { protectedRoomsSet } = await describeProtectedRoomsSet({
     rooms: [
       {
@@ -32,10 +32,10 @@ test('That when the SetMembershipRevisionIssuer is created, the existing room me
         stateDescriptions: [
           {
             sender: randomUserID(),
-            type: 'm.room.create',
-            state_key: '',
+            type: "m.room.create",
+            state_key: "",
             content: {
-              room_version: '11',
+              room_version: "11",
             },
           },
         ],
@@ -54,7 +54,7 @@ test('That when the SetMembershipRevisionIssuer is created, the existing room me
   ).toBe(10);
 });
 
-test('That adding and removing rooms will update the SetMembershipRevisionIssuer.', async function () {
+test("That adding and removing rooms will update the SetMembershipRevisionIssuer.", async function () {
   const { protectedRoomsSet, roomStateManager, roomMembershipManager } =
     await describeProtectedRoomsSet({
       rooms: [
@@ -68,10 +68,10 @@ test('That adding and removing rooms will update the SetMembershipRevisionIssuer
           stateDescriptions: [
             {
               sender: randomUserID(),
-              type: 'm.room.create',
-              state_key: '',
+              type: "m.room.create",
+              state_key: "",
               content: {
-                room_version: '11',
+                room_version: "11",
               },
             },
           ],
@@ -91,10 +91,10 @@ test('That adding and removing rooms will update the SetMembershipRevisionIssuer
     stateDescriptions: [
       {
         sender: randomUserID(),
-        type: 'm.room.create',
-        state_key: '',
+        type: "m.room.create",
+        state_key: "",
         content: {
-          room_version: '11',
+          room_version: "11",
         },
       },
     ],
@@ -105,7 +105,7 @@ test('That adding and removing rooms will update the SetMembershipRevisionIssuer
     await protectedRoomsSet.protectedRoomsManager.addRoom(
       newRoom.stateRevisionIssuer.room
     )
-  ).expect('Should be able to add the new room to the protected rooms set');
+  ).expect("Should be able to add the new room to the protected rooms set");
   expect(
     [...protectedRoomsSet.setMembership.currentRevision.presentMembers()].length
   ).toBe(2);
@@ -115,7 +115,7 @@ test('That adding and removing rooms will update the SetMembershipRevisionIssuer
       newRoom.stateRevisionIssuer.room
     )
   ).expect(
-    'Should be able to remove the new room from the protected rooms set'
+    "Should be able to remove the new room from the protected rooms set"
   );
   expect(
     [...protectedRoomsSet.setMembership.currentRevision.presentMembers()].length

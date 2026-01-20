@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ResultError } from '@gnuxie/typescript-result';
-import { Logger } from '../Logging/Logger';
-import { ActionError } from './Action';
-import { ActionException, ActionExceptionKind } from './ActionException';
+import { ResultError } from "@gnuxie/typescript-result";
+import { Logger } from "../Logging/Logger";
+import { ActionError } from "./Action";
+import { ActionException, ActionExceptionKind } from "./ActionException";
 
-const log = new Logger('Task');
+const log = new Logger("Task");
 
 // FIXME: Maybe we could get the logger here too?
 type TaskErrorOptions = { description?: string; log?: Logger } | undefined;
@@ -55,9 +55,9 @@ export async function Task(
   try {
     const result = await task;
     if (
-      typeof result === 'object' &&
+      typeof result === "object" &&
       result !== null &&
-      'error' in result &&
+      "error" in result &&
       result.error instanceof ResultError
     ) {
       globalTaskReporter(result.error, options);
@@ -68,7 +68,7 @@ export async function Task(
     const actionException = new ActionException(
       ActionExceptionKind.Unknown,
       exception,
-      'A Task failed with an unknown exception'
+      "A Task failed with an unknown exception"
     );
     globalTaskReporter(actionException, options);
   }

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringPaginationToken } from './PaginationToken';
+import { StringPaginationToken } from "./PaginationToken";
 
 export interface PaginationChunk<ChunkItem> {
   readonly chunk: readonly ChunkItem[];

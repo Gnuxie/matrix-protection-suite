@@ -5,18 +5,18 @@
 import {
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionError, ActionResult, Ok } from '../Interface/Action';
-import { StateEvent } from '../MatrixTypes/Events';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionError, ActionResult, Ok } from "../Interface/Action";
+import { StateEvent } from "../MatrixTypes/Events";
 import {
   DescribeRoomOptions,
   describeRoomStateEvents,
-} from './DeclareRoomState';
-import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
+} from "./DeclareRoomState";
+import { FakeRoomStateRevisionIssuer } from "./FakeRoomStateRevisionIssuer";
 import {
   RoomStateManager,
   RoomStateRevisionIssuer,
-} from './StateRevisionIssuer';
+} from "./StateRevisionIssuer";
 
 export class FakeRoomStateManager implements RoomStateManager {
   private readonly roomStateRevisionIssuers = new Map<
@@ -55,7 +55,7 @@ export class FakeRoomStateManager implements RoomStateManager {
     membershipDescriptions = [],
     policyDescriptions = [],
     room,
-  }: Omit<DescribeRoomOptions, 'room'> & { room: MatrixRoomID }): void {
+  }: Omit<DescribeRoomOptions, "room"> & { room: MatrixRoomID }): void {
     const { stateEvents } = describeRoomStateEvents({
       room,
       stateDescriptions,

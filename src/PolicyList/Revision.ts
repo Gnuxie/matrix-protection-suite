@@ -8,7 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { decodeTime, monotonicFactory } from 'ulidx';
+import { decodeTime, monotonicFactory } from "ulidx";
 
 /**
  * Represents a specific version of the state contained in `PolicyListRevision`.

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, Ok, isOk } from './Action';
+import { ActionResult, Ok, isOk } from "./Action";
 
 export type CreateInstanceFromKey<
   K,

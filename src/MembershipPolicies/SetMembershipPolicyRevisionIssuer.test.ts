@@ -9,26 +9,26 @@
 // 3. Adding and removing watched lists will update the matches
 // 4. Edge cases for membership and policy changes.
 
-import { SHA256 } from 'crypto-js';
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { Membership } from '../Membership/MembershipChange';
+import { SHA256 } from "crypto-js";
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { Membership } from "../Membership/MembershipChange";
 import {
   HashedLiteralPolicyRule,
   makeReversedHashedPolicy,
   Recommendation,
-} from '../PolicyList/PolicyRule';
+} from "../PolicyList/PolicyRule";
 import {
   describeProtectedRoomsSet,
   describeRoom,
-} from '../StateTracking/DeclareRoomState';
+} from "../StateTracking/DeclareRoomState";
 import {
   randomEventID,
   randomRoomID,
   randomUserID,
-} from '../TestUtilities/EventGeneration';
-import Base64 from 'crypto-js/enc-base64';
+} from "../TestUtilities/EventGeneration";
+import Base64 from "crypto-js/enc-base64";
 
-test('That when the SetMembershipPolicyRevisionIssuer is created, the existing room memberships and policies are accounted for.', async function () {
+test("That when the SetMembershipPolicyRevisionIssuer is created, the existing room memberships and policies are accounted for.", async function () {
   const targetUser = randomUserID();
   const { protectedRoomsSet } = await describeProtectedRoomsSet({
     rooms: [
@@ -48,7 +48,7 @@ test('That when the SetMembershipPolicyRevisionIssuer is created, the existing r
             entity: targetUser,
             recommendation: Recommendation.Ban,
             type: PolicyRuleType.User,
-            reason: 'spam',
+            reason: "spam",
           },
         ],
       },
@@ -64,7 +64,7 @@ test('That when the SetMembershipPolicyRevisionIssuer is created, the existing r
   ).toBe(1);
 });
 
-test('When adding and removing rooms with members will update the matches', async function () {
+test("When adding and removing rooms with members will update the matches", async function () {
   const targetUser = randomUserID();
   const { protectedRoomsSet, roomMembershipManager, roomStateManager } =
     await describeProtectedRoomsSet({
@@ -75,7 +75,7 @@ test('When adding and removing rooms with members will update the matches', asyn
               entity: targetUser,
               recommendation: Recommendation.Ban,
               type: PolicyRuleType.User,
-              reason: 'spam',
+              reason: "spam",
             },
           ],
         },
@@ -96,10 +96,10 @@ test('When adding and removing rooms with members will update the matches', asyn
     stateDescriptions: [
       {
         sender: randomUserID(),
-        type: 'm.room.create',
-        state_key: '',
+        type: "m.room.create",
+        state_key: "",
         content: {
-          room_version: '11',
+          room_version: "11",
         },
       },
     ],
@@ -110,7 +110,7 @@ test('When adding and removing rooms with members will update the matches', asyn
     await protectedRoomsSet.protectedRoomsManager.addRoom(
       stateRevisionIssuer.room
     )
-  ).expect('Should be able to add the room');
+  ).expect("Should be able to add the room");
   expect(
     [
       ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
@@ -120,7 +120,7 @@ test('When adding and removing rooms with members will update the matches', asyn
     await protectedRoomsSet.protectedRoomsManager.removeRoom(
       stateRevisionIssuer.room
     )
-  ).expect('Should be able to remove the room');
+  ).expect("Should be able to remove the room");
   expect(
     [
       ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
@@ -128,7 +128,7 @@ test('When adding and removing rooms with members will update the matches', asyn
   ).toBe(0);
 });
 
-test('When adding and removing policy rooms will update the matches.', async function () {
+test("When adding and removing policy rooms will update the matches.", async function () {
   const targetUser = randomUserID();
   const { protectedRoomsSet, roomStateManager, policyRoomManager } =
     await describeProtectedRoomsSet({
@@ -157,7 +157,7 @@ test('When adding and removing policy rooms will update the matches.', async fun
         entity: targetUser,
         recommendation: Recommendation.Ban,
         type: PolicyRuleType.User,
-        reason: 'spam',
+        reason: "spam",
       },
     ],
   });
@@ -167,7 +167,7 @@ test('When adding and removing policy rooms will update the matches.', async fun
     await protectedRoomsSet.watchedPolicyRooms.watchPolicyRoomDirectly(
       policyRoom.stateRevisionIssuer.room
     )
-  ).expect('Should be able to watch the list');
+  ).expect("Should be able to watch the list");
   expect(
     [
       ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
@@ -177,7 +177,7 @@ test('When adding and removing policy rooms will update the matches.', async fun
     await protectedRoomsSet.watchedPolicyRooms.unwatchPolicyRoom(
       policyRoom.stateRevisionIssuer.room
     )
-  ).expect('Should be able to unwatch the list');
+  ).expect("Should be able to unwatch the list");
   expect(
     [
       ...protectedRoomsSet.setPoliciesMatchingMembership.currentRevision.allMembersWithRules(),
@@ -185,7 +185,7 @@ test('When adding and removing policy rooms will update the matches.', async fun
   ).toBe(0);
 });
 
-test('Banning a matching member incrementally will not cause spurious revisions to be issued', async function () {
+test("Banning a matching member incrementally will not cause spurious revisions to be issued", async function () {
   const targetUser = randomUserID();
   const { protectedRoomsSet, roomStateManager } =
     await describeProtectedRoomsSet({
@@ -204,7 +204,7 @@ test('Banning a matching member incrementally will not cause spurious revisions 
               entity: targetUser,
               recommendation: Recommendation.Ban,
               type: PolicyRuleType.User,
-              reason: 'spam',
+              reason: "spam",
             },
           ],
           membershipDescriptions: [
@@ -263,7 +263,7 @@ test('Banning a matching member incrementally will not cause spurious revisions 
   }
 });
 
-test('Test Banning a member with a hashed rule will work, including modification of the rule, and removal', async function () {
+test("Test Banning a member with a hashed rule will work, including modification of the rule, and removal", async function () {
   const targetUser = randomUserID();
   const policyRoom = randomRoomID([]);
   const { protectedRoomsSet, roomStateManager, policyRoomManager } =
@@ -286,7 +286,7 @@ test('Test Banning a member with a hashed rule will work, including modification
               },
               recommendation: Recommendation.Ban,
               type: PolicyRuleType.User,
-              reason: 'spam',
+              reason: "spam",
               room_id: policyRoom.toRoomIDOrAlias(),
             },
           ],
@@ -311,11 +311,11 @@ test('Test Banning a member with a hashed rule will work, including modification
   const initialHashedRule =
     protectedRoomsSet.watchedPolicyRooms.currentRevision.allRules()[0];
   if (initialHashedRule === undefined) {
-    throw new TypeError('We should be able to find our initial rule');
+    throw new TypeError("We should be able to find our initial rule");
   }
   const policyRoomRevisionIssuer = (
     await policyRoomManager.getPolicyRoomRevisionIssuer(policyRoom)
-  ).expect('Should be able to get the policy room revision');
+  ).expect("Should be able to get the policy room revision");
   policyRoomRevisionIssuer.updateForRevealedPolicies([
     makeReversedHashedPolicy(
       targetUser,
@@ -330,13 +330,13 @@ test('Test Banning a member with a hashed rule will work, including modification
   // Modify the existing rule at the room level, and expect the hashed literal to be removed
   const roomStateRevisionIssuer = (
     await roomStateManager.getRoomStateRevisionIssuer(policyRoom)
-  ).expect('Should be able to get the room state revision issuer');
+  ).expect("Should be able to get the room state revision issuer");
   const modifiedRuleEvent = {
     ...initialHashedRule.sourceEvent,
     event_id: randomEventID(),
     content: {
       ...initialHashedRule.sourceEvent.content,
-      reason: 'we change the reason or something idk',
+      reason: "we change the reason or something idk",
     },
   };
   // FIXME: We need to have the room state manager factory in MPS with faked IO
@@ -352,7 +352,7 @@ test('Test Banning a member with a hashed rule will work, including modification
     modifiedRuleEvent.event_id
   );
   if (modifiedRule === undefined) {
-    throw new TypeError('We should be able to find this rule');
+    throw new TypeError("We should be able to find this rule");
   }
   // Re-reveal the literal
   policyRoomRevisionIssuer.updateForRevealedPolicies([

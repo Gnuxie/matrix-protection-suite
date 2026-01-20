@@ -11,9 +11,9 @@ import {
   ErroneousEventMixin,
   EventMixinDescription,
   OkEventMixin,
-} from '../EventMixinExtraction/EventMixinDescription';
-import { ErroneousMixin } from '../EventMixinExtraction/StandardMixinExtractor';
-import { hasOwn } from '../hasOwn';
+} from "../EventMixinExtraction/EventMixinDescription";
+import { ErroneousMixin } from "../EventMixinExtraction/StandardMixinExtractor";
+import { hasOwn } from "../hasOwn";
 
 // I've decided that even though Element web uses this method
 // to extract mixins.
@@ -25,21 +25,21 @@ import { hasOwn } from '../hasOwn';
 export type RoomMessagebodyMixin = OkEventMixin & { body: string };
 
 export const RoomMessageBodyMixinDescription = Object.freeze({
-  name: 'm.room.message body mixin',
+  name: "m.room.message body mixin",
   description:
-    'Extracts the body property from content that looks like a m.room.message',
-  properties: ['body'],
+    "Extracts the body property from content that looks like a m.room.message",
+  properties: ["body"],
   parser(content) {
-    if (!hasOwn(content, 'body')) {
+    if (!hasOwn(content, "body")) {
       return undefined;
     }
-    if (typeof content.body === 'string') {
+    if (typeof content.body === "string") {
       return {
         description: this,
         isErroneous: false,
         body: content.body,
       };
     }
-    return ErroneousMixin(this, 'The body property is not a string.');
+    return ErroneousMixin(this, "The body property is not a string.");
   },
 } satisfies EventMixinDescription<RoomMessagebodyMixin, ErroneousEventMixin>);

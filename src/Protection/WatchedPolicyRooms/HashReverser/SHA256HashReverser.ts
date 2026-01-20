@@ -12,30 +12,30 @@ import {
   StringRoomID,
   StringServerName,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   HashedLiteralPolicyRule,
   LiteralPolicyRule,
   PolicyRuleMatchType,
-} from '../../../PolicyList/PolicyRule';
+} from "../../../PolicyList/PolicyRule";
 import {
   PolicyRoomRevisionIssuer,
   RevisionListener,
-} from '../../../PolicyList/PolicyListRevisionIssuer';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
+} from "../../../PolicyList/PolicyListRevisionIssuer";
+import { PolicyListRevision } from "../../../PolicyList/PolicyListRevision";
 import {
   PolicyRuleChange,
   PolicyRuleChangeType,
-} from '../../../PolicyList/PolicyRuleChange';
-import EventEmitter from 'events';
-import { isError, Result } from '@gnuxie/typescript-result';
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { Logger } from '../../../Logging/Logger';
-import { Task } from '../../../Interface/Task';
-import { reversePoliciesOfType } from './Reversal';
-import { StandardDirectPropagationPolicyListRevisionIssuer } from '../../DirectPropagationPolicyListRevisionIssuer';
+} from "../../../PolicyList/PolicyRuleChange";
+import EventEmitter from "events";
+import { isError, Result } from "@gnuxie/typescript-result";
+import { PolicyRuleType } from "../../../MatrixTypes/PolicyEvents";
+import { Logger } from "../../../Logging/Logger";
+import { Task } from "../../../Interface/Task";
+import { reversePoliciesOfType } from "./Reversal";
+import { StandardDirectPropagationPolicyListRevisionIssuer } from "../../DirectPropagationPolicyListRevisionIssuer";
 
-const log = new Logger('SHA256HashReverser');
+const log = new Logger("SHA256HashReverser");
 
 export type RoomBasicDetails = {
   creator?: StringUserID | undefined;
@@ -78,10 +78,10 @@ export type HashedRoomDetails = {
 export type SHA256Base64FromEntity = (entity: string) => string;
 
 export interface SHA256HashStore {
-  on(event: 'ReversedHashes', listener: SHA256RerversedHashListener): this;
-  off(event: 'ReversedHashes', listener: SHA256RerversedHashListener): this;
+  on(event: "ReversedHashes", listener: SHA256RerversedHashListener): this;
+  off(event: "ReversedHashes", listener: SHA256RerversedHashListener): this;
   emit(
-    event: 'ReversedHashes',
+    event: "ReversedHashes",
     ...args: Parameters<SHA256RerversedHashListener>
   ): void;
   findUserHash(hash: string): Promise<Result<StringUserID | undefined>>;
@@ -145,9 +145,9 @@ export class StandardSHA256HashReverser
   private readonly issuers = new Map<StringRoomID, PolicyRoomRevisionIssuer>();
   public constructor(private readonly store: SHA256HashStore) {
     super();
-    this.store.on('ReversedHashes', this.handleDiscoveredHashes);
+    this.store.on("ReversedHashes", this.handleDiscoveredHashes);
     this.hashedPoliciesRevisionIssuer.on(
-      'revision',
+      "revision",
       this.handlePolicyRoomRevision
     );
   }
@@ -181,7 +181,7 @@ export class StandardSHA256HashReverser
     for (const [roomID, policies] of policiesByPolicyRoom) {
       const issuer = this.issuers.get(roomID);
       if (issuer === undefined) {
-        throw new TypeError('Somehow this revision issuer is out of sync');
+        throw new TypeError("Somehow this revision issuer is out of sync");
       }
       issuer.updateForRevealedPolicies(policies);
     }
@@ -245,16 +245,16 @@ export class StandardSHA256HashReverser
     const newlyReversedPolicies =
       await this.store.reverseHashedPolicies(policies);
     if (isError(newlyReversedPolicies)) {
-      log.error('Unable to reverse new policies', newlyReversedPolicies.error);
+      log.error("Unable to reverse new policies", newlyReversedPolicies.error);
       return;
     }
     this.updateUpstreamWithRevealedPolicies(newlyReversedPolicies.ok);
   }
 
   unregisterListeners(): void {
-    this.store.off('ReversedHashes', this.handleDiscoveredHashes);
+    this.store.off("ReversedHashes", this.handleDiscoveredHashes);
     this.hashedPoliciesRevisionIssuer.off(
-      'revision',
+      "revision",
       this.handlePolicyRoomRevision
     );
     this.hashedPoliciesRevisionIssuer.unregisterListeners();

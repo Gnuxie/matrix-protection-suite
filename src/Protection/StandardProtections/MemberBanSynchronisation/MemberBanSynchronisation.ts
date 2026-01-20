@@ -13,37 +13,37 @@ import {
   ActionResult,
   Ok,
   isError,
-} from '../../../Interface/Action';
+} from "../../../Interface/Action";
 import {
   AbstractProtection,
   Protection,
   ProtectionDescription,
   describeProtection,
-} from '../../Protection';
+} from "../../Protection";
 import {
   MembershipChange,
   MembershipChangeType,
-} from '../../../Membership/MembershipChange';
-import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
-import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { Recommendation } from '../../../PolicyList/PolicyRule';
-import { MultipleErrors } from '../../../Interface/MultipleErrors';
-import { UserConsequences } from '../../Capability/StandardCapability/UserConsequences';
-import '../../Capability/StandardCapability/UserConsequences'; // need this to load the interface.
-import '../../Capability/StandardCapability/StandardUserConsequences'; // need this to load the providers.
-import { Task } from '../../../Interface/Task';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { UnknownConfig } from '../../../Config/ConfigDescription';
+} from "../../../Membership/MembershipChange";
+import { RoomMembershipRevision } from "../../../Membership/MembershipRevision";
+import { ProtectedRoomsSet } from "../../ProtectedRoomsSet";
+import { PolicyRuleType } from "../../../MatrixTypes/PolicyEvents";
+import { Recommendation } from "../../../PolicyList/PolicyRule";
+import { MultipleErrors } from "../../../Interface/MultipleErrors";
+import { UserConsequences } from "../../Capability/StandardCapability/UserConsequences";
+import "../../Capability/StandardCapability/UserConsequences"; // need this to load the interface.
+import "../../Capability/StandardCapability/StandardUserConsequences"; // need this to load the providers.
+import { Task } from "../../../Interface/Task";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { UnknownConfig } from "../../../Config/ConfigDescription";
 import {
   MemberPolicyMatches,
   SetMembershipPolicyRevision,
-} from '../../../MembershipPolicies/MembershipPolicyRevision';
-import { OwnLifetime } from '../../../Interface/Lifetime';
+} from "../../../MembershipPolicies/MembershipPolicyRevision";
+import { OwnLifetime } from "../../../Interface/Lifetime";
 import {
   MemberBanIntentProjection,
   StandardMemberBanIntentProjection,
-} from './MemberBanIntentProjection';
+} from "./MemberBanIntentProjection";
 
 function revisionMatchesWithUserRules(
   revision: SetMembershipPolicyRevision
@@ -126,8 +126,8 @@ export class MemberBanSynchronisationProtection
           revision.room.toRoomIDOrAlias(),
           change.userID,
           firstRule.recommendation === Recommendation.Takedown
-            ? 'takedown'
-            : firstRule.reason ?? '<no reason provided>'
+            ? "takedown"
+            : (firstRule.reason ?? "<no reason provided>")
         );
         if (isError(result)) {
           errors.push(result.error);
@@ -176,14 +176,14 @@ export type MemberBanSynchronisationProtectionCapabilities = {
 };
 
 describeProtection<MemberBanSynchronisationProtectionCapabilities>({
-  name: 'MemberBanSynchronisationProtection',
+  name: "MemberBanSynchronisationProtection",
   description:
-    'Synchronises `m.ban` events from watch policy lists with room level bans.',
+    "Synchronises `m.ban` events from watch policy lists with room level bans.",
   capabilityInterfaces: {
-    userConsequences: 'UserConsequences',
+    userConsequences: "UserConsequences",
   },
   defaultCapabilities: {
-    userConsequences: 'StandardUserConsequences',
+    userConsequences: "StandardUserConsequences",
   },
   factory: async (
     decription,
@@ -200,7 +200,7 @@ describeProtection<MemberBanSynchronisationProtectionCapabilities>({
       )
     );
     if (isError(intentProjection)) {
-      return intentProjection.elaborate('Unable to allocate intent projection');
+      return intentProjection.elaborate("Unable to allocate intent projection");
     }
     return Ok(
       new MemberBanSynchronisationProtection(

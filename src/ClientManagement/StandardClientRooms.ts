@@ -2,26 +2,26 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, Ok, isError } from '../Interface/Action';
-import { Value } from '../Interface/Value';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { RoomPauser, StandardRoomPauser } from './RoomPauser';
+import { ActionResult, Ok, isError } from "../Interface/Action";
+import { Value } from "../Interface/Value";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { RoomPauser, StandardRoomPauser } from "./RoomPauser";
 import {
   AbstractClientRooms,
   ClientRooms,
   ClientRoomsChange,
-} from './ClientRooms';
-import AwaitLock from 'await-lock';
-import { Logger } from '../Logging/Logger';
-import { StandardJoinedRoomsRevision } from './JoinedRoomsRevision';
+} from "./ClientRooms";
+import AwaitLock from "await-lock";
+import { Logger } from "../Logging/Logger";
+import { StandardJoinedRoomsRevision } from "./JoinedRoomsRevision";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { Membership } from '../Membership/MembershipChange';
+} from "@the-draupnir-project/matrix-basic-types";
+import { Membership } from "../Membership/MembershipChange";
 
-const log = new Logger('StandardClientRooms');
+const log = new Logger("StandardClientRooms");
 
 export type JoinedRoomsSafe = () => Promise<ActionResult<StringRoomID[]>>;
 
@@ -85,7 +85,7 @@ export class StandardClientRooms
       parted: [],
     };
     this.emit(
-      'revision',
+      "revision",
       this.joinedRoomsRevision,
       changes,
       this.joinedRoomsRevision
@@ -102,11 +102,11 @@ export class StandardClientRooms
           // You might be wondering if we should show invitations some other way
           // but this is how appservices also get their invitations, so it makes
           // sense to do it this way for our clients too.
-          this.emit('timeline', roomID, event);
+          this.emit("timeline", roomID, event);
           break;
         case Membership.Join:
           if (this.isJoinedRoom(roomID)) {
-            this.emit('timeline', roomID, event);
+            this.emit("timeline", roomID, event);
           } else {
             this.handleRoomJoin(roomID, event);
           }
@@ -115,13 +115,13 @@ export class StandardClientRooms
           if (this.isJoinedRoom(roomID)) {
             this.handleRoomLeave(roomID, event);
           } else {
-            this.emit('timeline', roomID, event);
+            this.emit("timeline", roomID, event);
           }
           break;
       }
       return;
     } else if (this.isJoinedRoom(roomID)) {
-      this.emit('timeline', roomID, event);
+      this.emit("timeline", roomID, event);
     }
   }
 
@@ -183,7 +183,7 @@ export class StandardClientRooms
       };
       // we have to emit before we preload room state so that the ClientsInRoomsMap can be updated.
       this.emit(
-        'revision',
+        "revision",
         this.joinedRoomsRevision,
         changes,
         previousRevision

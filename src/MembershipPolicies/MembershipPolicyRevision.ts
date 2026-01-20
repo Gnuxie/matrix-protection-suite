@@ -2,21 +2,21 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
+import { StringUserID } from "@the-draupnir-project/matrix-basic-types";
 import {
   GlobPolicyRule,
   LiteralPolicyRule,
   PolicyRule,
   Recommendation,
-} from '../PolicyList/PolicyRule';
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
+} from "../PolicyList/PolicyRule";
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { PolicyRuleChange } from "../PolicyList/PolicyRuleChange";
 import {
   SetMembershipDelta,
   SetMembershipRevision,
-} from '../Membership/SetMembershipRevision';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { Revision } from '../PolicyList/Revision';
+} from "../Membership/SetMembershipRevision";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
+import { Revision } from "../PolicyList/Revision";
 
 export type MemberPolicyMatches = {
   userID: StringUserID;

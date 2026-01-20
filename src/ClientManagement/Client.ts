@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { RoomEvent } from '../MatrixTypes/Events';
-import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
-import { EventReport } from '../Reporting/EventReport';
-import { RoomMembershipManager } from '../Membership/RoomMembershipManager';
-import { RoomStateManager } from '../StateTracking/StateRevisionIssuer';
+import { RoomEvent } from "../MatrixTypes/Events";
+import { PolicyRoomManager } from "../PolicyList/PolicyRoomManger";
+import { EventReport } from "../Reporting/EventReport";
+import { RoomMembershipManager } from "../Membership/RoomMembershipManager";
+import { RoomStateManager } from "../StateTracking/StateRevisionIssuer";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 // TODO: if ever `Client` needs access to `ClientRooms` please note
 // that `ClientRooms` has to inform `Client`'s `handleTimelineEvent` method.

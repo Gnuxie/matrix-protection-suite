@@ -14,12 +14,12 @@
 import {
   StringEventID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
-import { StateEvent } from '../MatrixTypes/Events';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { StateChangeType } from './StateChangeType';
-import { Revision } from '../PolicyList/Revision';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
+import { StateEvent } from "../MatrixTypes/Events";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { StateChangeType } from "./StateChangeType";
+import { Revision } from "../PolicyList/Revision";
 
 export interface StateRevision {
   readonly allState: StateEvent[];
@@ -40,7 +40,7 @@ export interface RoomStateRevision extends StateRevision {
 
 export interface StateChange<EventSchema extends StateEvent = StateEvent> {
   readonly changeType: StateChangeType;
-  readonly eventType: EventSchema['type'];
+  readonly eventType: EventSchema["type"];
   readonly state: EventSchema;
   /**
    * The previous state that has been changed. Only (and always) provided when there was a state type-key
@@ -60,9 +60,9 @@ export type StateRevisionListener<
 
 export declare interface StateRevisionIssuer {
   readonly currentRevision: StateRevision;
-  on(event: 'revision', listener: StateRevisionListener): this;
-  off(...args: Parameters<StateRevisionIssuer['on']>): this;
-  emit(event: 'revision', ...args: Parameters<StateRevisionListener>): boolean;
+  on(event: "revision", listener: StateRevisionListener): this;
+  off(...args: Parameters<StateRevisionIssuer["on"]>): this;
+  emit(event: "revision", ...args: Parameters<StateRevisionListener>): boolean;
   unregisterListeners(): void;
 }
 
@@ -80,12 +80,12 @@ export declare interface RoomStateRevisionIssuer extends StateRevisionIssuer {
    */
   updateForRedaction(event: Redaction): void;
   on(
-    event: 'revision',
+    event: "revision",
     listener: StateRevisionListener<RoomStateRevision>
   ): this;
-  off(...args: Parameters<RoomStateRevisionIssuer['on']>): this;
+  off(...args: Parameters<RoomStateRevisionIssuer["on"]>): this;
   emit(
-    event: 'revision',
+    event: "revision",
     ...args: Parameters<StateRevisionListener<RoomStateRevision>>
   ): boolean;
 }

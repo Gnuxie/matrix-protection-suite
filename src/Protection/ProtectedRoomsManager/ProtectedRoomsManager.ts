@@ -5,15 +5,15 @@
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../../Interface/Action';
-import { SetRoomMembership } from '../../Membership/SetRoomMembership';
-import { SetRoomState } from '../../StateTracking/SetRoomState';
-import { SetMembershipRevisionIssuer } from '../../Membership/SetMembershipRevisionIssuer';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../../Interface/Action";
+import { SetRoomMembership } from "../../Membership/SetRoomMembership";
+import { SetRoomState } from "../../StateTracking/SetRoomState";
+import { SetMembershipRevisionIssuer } from "../../Membership/SetMembershipRevisionIssuer";
 
 export enum ProtectedRoomChangeType {
-  Added = 'added',
-  Removed = 'removed',
+  Added = "added",
+  Removed = "removed",
 }
 
 export type ProtectedRoomsChangeListener = (
@@ -30,10 +30,10 @@ export interface ProtectedRoomsManager {
   getProtectedRoom(roomID: StringRoomID): MatrixRoomID | undefined;
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
   removeRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
-  on(event: 'change', listener: ProtectedRoomsChangeListener): this;
-  off(event: 'change', listener: ProtectedRoomsChangeListener): this;
+  on(event: "change", listener: ProtectedRoomsChangeListener): this;
+  off(event: "change", listener: ProtectedRoomsChangeListener): this;
   emit(
-    event: 'change',
+    event: "change",
     ...args: Parameters<ProtectedRoomsChangeListener>
   ): void;
   unregisterListeners(): void;

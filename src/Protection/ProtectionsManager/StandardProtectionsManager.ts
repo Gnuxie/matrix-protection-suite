@@ -8,32 +8,32 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { Ok, Result, ResultError, isError } from '@gnuxie/typescript-result';
+import { Ok, Result, ResultError, isError } from "@gnuxie/typescript-result";
 import {
   CapabilityProviderSet,
   initializeCapabilitySet,
-} from '../Capability/CapabilitySet';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
-import { Protection, ProtectionDescription } from '../Protection';
+} from "../Capability/CapabilitySet";
+import { ProtectedRoomsSet } from "../ProtectedRoomsSet";
+import { Protection, ProtectionDescription } from "../Protection";
 import {
   ProtectionFailedToStartCB,
   ProtectionsManager,
-} from './ProtectionsManager';
-import { ProtectionSettingsConfig } from '../ProtectionsConfig/ProtectionSettingsConfig/ProtectionSettingsConfig';
-import { ProtectionCapabilityProviderSetConfig } from '../ProtectionsConfig/ProtectionCapabilityProviderSetConfig/ProtectionCapabilityProviderSetConfig';
-import { ProtectionsConfig } from '../ProtectionsConfig/ProtectionsConfig';
-import { Logger } from '../../Logging/Logger';
-import { TObject } from '@sinclair/typebox';
-import { EDStatic } from '../../Interface/Static';
-import { UnknownConfig } from '../../Config/ConfigDescription';
-import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
-import { OwnLifetime, StandardLifetime } from '../../Interface/Lifetime';
-import { Task } from '../../Interface/Task';
-import { HandleRegistry } from '../HandleRegistry/HandleRegistry';
-import { HandleRegistryDescription } from '../HandleRegistry/HandleRegistryDescription';
-import { AnyHandleDescription } from '../HandleRegistry/HandleDescription';
+} from "./ProtectionsManager";
+import { ProtectionSettingsConfig } from "../ProtectionsConfig/ProtectionSettingsConfig/ProtectionSettingsConfig";
+import { ProtectionCapabilityProviderSetConfig } from "../ProtectionsConfig/ProtectionCapabilityProviderSetConfig/ProtectionCapabilityProviderSetConfig";
+import { ProtectionsConfig } from "../ProtectionsConfig/ProtectionsConfig";
+import { Logger } from "../../Logging/Logger";
+import { TObject } from "@sinclair/typebox";
+import { EDStatic } from "../../Interface/Static";
+import { UnknownConfig } from "../../Config/ConfigDescription";
+import { CapabilityProviderDescription } from "../Capability/CapabilityProvider";
+import { OwnLifetime, StandardLifetime } from "../../Interface/Lifetime";
+import { Task } from "../../Interface/Task";
+import { HandleRegistry } from "../HandleRegistry/HandleRegistry";
+import { HandleRegistryDescription } from "../HandleRegistry/HandleRegistryDescription";
+import { AnyHandleDescription } from "../HandleRegistry/HandleDescription";
 
-const log = new Logger('StandardProtectionsManager');
+const log = new Logger("StandardProtectionsManager");
 
 // FIXME: Dialemma, if we want to be able to change protection settings
 // or dry run protections with dummy capabilities, we need to know whether
@@ -43,9 +43,9 @@ const log = new Logger('StandardProtectionsManager');
 // the listeners for a webserver and we need to warn protections about this
 // in the documentation.
 
-export class StandardProtectionsManager<Context = unknown>
-  implements ProtectionsManager<Context>
-{
+export class StandardProtectionsManager<
+  Context = unknown,
+> implements ProtectionsManager<Context> {
   private readonly lifetime: OwnLifetime<ProtectionsManager<Context>> =
     new StandardLifetime();
   private readonly enabledProtections = new Map<
@@ -62,7 +62,7 @@ export class StandardProtectionsManager<Context = unknown>
     const lifetimeResult = this.lifetime.toChild();
     if (isError(lifetimeResult)) {
       return lifetimeResult.elaborate(
-        'Unable to allocate lifetime for handle registry'
+        "Unable to allocate lifetime for handle registry"
       );
     }
     const registryResult = this.handleRegistryDescription.registryForContext(
@@ -140,7 +140,7 @@ export class StandardProtectionsManager<Context = unknown>
     const lifetimeResult = this.lifetime.toChild();
     if (isError(lifetimeResult)) {
       return lifetimeResult.elaborate(
-        'Unable to allocate lifetime for protection'
+        "Unable to allocate lifetime for protection"
       );
     }
     const protectionResult = await protectionDescription.factory(
@@ -240,7 +240,7 @@ export class StandardProtectionsManager<Context = unknown>
     protectionFailedToStart: ProtectionFailedToStartCB
   ): Promise<Result<void>> {
     if (this.allProtections.length > 0) {
-      throw new TypeError('This can only be used at startup');
+      throw new TypeError("This can only be used at startup");
     }
     for (const protectionDescription of this.enabledProtectionsConfig.getKnownEnabledProtections()) {
       const startResult = await this.startProtection(
@@ -261,8 +261,8 @@ export class StandardProtectionsManager<Context = unknown>
     return Ok(undefined);
   }
   public async changeProtectionSettings<
-    TProtectionDescription extends
-      ProtectionDescription = ProtectionDescription,
+    TProtectionDescription extends ProtectionDescription =
+      ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
@@ -289,7 +289,7 @@ export class StandardProtectionsManager<Context = unknown>
     );
     if (isError(settingsResult)) {
       return settingsResult.elaborate(
-        'Could not store the changed protection settings'
+        "Could not store the changed protection settings"
       );
     }
     const protectionEnableResult = await this.startProtection(
@@ -314,7 +314,7 @@ export class StandardProtectionsManager<Context = unknown>
         );
       }
       return protectionEnableResult.elaborate(
-        'Could not restart the protection with the new settings'
+        "Could not restart the protection with the new settings"
       );
     }
 

@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ProtectionDescription } from '../../Protection';
-import { CapabilityProviderSet } from '../../Capability/CapabilitySet';
-import { Result } from '@gnuxie/typescript-result';
+import { ProtectionDescription } from "../../Protection";
+import { CapabilityProviderSet } from "../../Capability/CapabilitySet";
+import { Result } from "@gnuxie/typescript-result";
 
 export interface ProtectionCapabilityProviderSetConfig {
   /**
@@ -13,8 +13,8 @@ export interface ProtectionCapabilityProviderSetConfig {
    * consequence provider description for.
    */
   getCapabilityProviderSet<
-    TProtectionDescription extends
-      ProtectionDescription = ProtectionDescription,
+    TProtectionDescription extends ProtectionDescription =
+      ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription
   ): Promise<Result<CapabilityProviderSet>>;

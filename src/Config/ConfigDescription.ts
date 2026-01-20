@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { TObject, TProperties, TSchema, Type } from '@sinclair/typebox';
-import { EDStatic } from '../Interface/Static';
-import { Ok, Result } from '@gnuxie/typescript-result';
-import { Value as TBValue } from '@sinclair/typebox/value';
-import { ConfigParseError, ConfigPropertyError } from './ConfigParseError';
-import { ConfigMirror, StandardConfigMirror } from './ConfigMirror';
+import { TObject, TProperties, TSchema, Type } from "@sinclair/typebox";
+import { EDStatic } from "../Interface/Static";
+import { Ok, Result } from "@gnuxie/typescript-result";
+import { Value as TBValue } from "@sinclair/typebox/value";
+import { ConfigParseError, ConfigPropertyError } from "./ConfigParseError";
+import { ConfigMirror, StandardConfigMirror } from "./ConfigMirror";
 
 type StaticProperties<T extends TSchema, P extends unknown[] = []> = (T & {
   params: P;
-})['params'];
+})["params"];
 
 export type UnknownProperties<T extends TSchema> = {
   [K in keyof StaticProperties<T>]: unknown;
@@ -41,9 +41,9 @@ export type ConfigDescription<TConfigSchema extends TObject = TObject> = {
   getDefaultConfig(): EDStatic<TConfigSchema>;
 };
 
-export class StandardConfigDescription<TConfigSchema extends TObject>
-  implements ConfigDescription<TConfigSchema>
-{
+export class StandardConfigDescription<
+  TConfigSchema extends TObject,
+> implements ConfigDescription<TConfigSchema> {
   constructor(public readonly schema: TConfigSchema) {}
 
   public parseConfig(
@@ -53,7 +53,7 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
     const withDefaults = TBValue.Default(this.schema, config);
     const errors = [...TBValue.Errors(this.schema, withDefaults)];
     if (errors.length > 0) {
-      return ConfigParseError.Result('Unable to parse this config', {
+      return ConfigParseError.Result("Unable to parse this config", {
         errors: errors.map(
           (error) =>
             new ConfigPropertyError(
@@ -82,11 +82,11 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
   public properties(): ConfigPropertyDescription[] {
     return Object.entries(this.schema.properties).map(([name, schema]) => ({
       name,
-      path: '/' + name,
+      path: "/" + name,
       description: schema.description,
       default: schema.default as unknown,
-      isUniqueItems: 'uniqueItems' in schema && schema.uniqueItems === true,
-      isArray: 'items' in schema,
+      isUniqueItems: "uniqueItems" in schema && schema.uniqueItems === true,
+      isArray: "items" in schema,
     }));
   }
 
@@ -97,11 +97,11 @@ export class StandardConfigDescription<TConfigSchema extends TObject>
     }
     return {
       name: key,
-      path: '/' + key,
+      path: "/" + key,
       description: schema.description,
       default: schema.default as unknown,
-      isUniqueItems: 'uniqueItems' in schema && schema.uniqueItems === true,
-      isArray: 'items' in schema,
+      isUniqueItems: "uniqueItems" in schema && schema.uniqueItems === true,
+      isArray: "items" in schema,
     };
   }
 

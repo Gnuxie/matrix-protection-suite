@@ -7,18 +7,18 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { Type } from '@sinclair/typebox';
+import { Type } from "@sinclair/typebox";
 import {
   ErroneousEventMixin,
   EventMixinDescription,
   OkEventMixin,
-} from '../EventMixinExtraction/EventMixinDescription';
-import { ErroneousMixin } from '../EventMixinExtraction/StandardMixinExtractor';
-import { hasOwn } from '../hasOwn';
-import { Value } from '../../Interface/Value';
-import { EDStatic } from '../../Interface/Static';
-import { StringUserIDSchema } from '../../MatrixTypes/StringlyTypedMatrix';
-import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
+} from "../EventMixinExtraction/EventMixinDescription";
+import { ErroneousMixin } from "../EventMixinExtraction/StandardMixinExtractor";
+import { hasOwn } from "../hasOwn";
+import { Value } from "../../Interface/Value";
+import { EDStatic } from "../../Interface/Static";
+import { StringUserIDSchema } from "../../MatrixTypes/StringlyTypedMatrix";
+import { StringUserID } from "@the-draupnir-project/matrix-basic-types";
 
 export type MentionsMixin = OkEventMixin & {
   user_ids: StringUserID[];
@@ -26,17 +26,17 @@ export type MentionsMixin = OkEventMixin & {
 
 type MentionsContentSchema = EDStatic<typeof MentionsContentSchema>;
 const MentionsContentSchema = Type.Object({
-  'm.mentions': Type.Object({
+  "m.mentions": Type.Object({
     user_ids: Type.Optional(Type.Array(StringUserIDSchema)),
   }),
 });
 
 export const MentionsMixinDescription = Object.freeze({
-  name: 'm.mentions',
-  description: 'Extracts the m.mentions mixin from any event',
-  properties: ['m.mentions'],
+  name: "m.mentions",
+  description: "Extracts the m.mentions mixin from any event",
+  properties: ["m.mentions"],
   parser(content) {
-    if (!hasOwn(content, 'm.mentions')) {
+    if (!hasOwn(content, "m.mentions")) {
       return undefined;
     }
     if (!Value.Check(MentionsContentSchema, content)) {
@@ -45,7 +45,7 @@ export const MentionsMixinDescription = Object.freeze({
         "The m.mentions mixin doesn't match the schema"
       );
     }
-    const userIDs = content['m.mentions']['user_ids'];
+    const userIDs = content["m.mentions"]["user_ids"];
     if (userIDs === undefined || userIDs.length === 0) {
       // We don't want to create this mixin when there are no mentions
       // and the client is just emitting garbage.

@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { JoinedRoomsChange, JoinedRoomsRevision } from './JoinedRoomsRevision';
+import EventEmitter from "events";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { JoinedRoomsChange, JoinedRoomsRevision } from "./JoinedRoomsRevision";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export interface ClientRoomsChange extends JoinedRoomsChange {
   preemptivelyJoined: StringRoomID[];
@@ -76,7 +76,7 @@ export declare interface ClientRooms {
 
 export abstract class AbstractClientRooms
   extends EventEmitter
-  implements Pick<ClientRooms, 'emit'>
+  implements Pick<ClientRooms, "emit">
 {
   constructor(
     public readonly clientUserID: StringUserID,

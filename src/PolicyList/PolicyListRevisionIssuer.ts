@@ -8,12 +8,12 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { StateEvent } from '../MatrixTypes/Events';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
-import { PolicyRuleChange } from './PolicyRuleChange';
-import { LiteralPolicyRule } from './PolicyRule';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { StateEvent } from "../MatrixTypes/Events";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { PolicyListRevision, PolicyRoomRevision } from "./PolicyListRevision";
+import { PolicyRuleChange } from "./PolicyRuleChange";
+import { LiteralPolicyRule } from "./PolicyRule";
 
 export type RevisionListener = (
   nextRevision: PolicyListRevision,
@@ -38,9 +38,9 @@ export declare interface PolicyListRevisionIssuer {
   /**
    * A listener for when a new revision has been issued.
    */
-  on(event: 'revision', listener: RevisionListener): this;
-  off(...args: Parameters<PolicyListRevisionIssuer['on']>): this;
-  emit(event: 'revision', ...args: Parameters<RevisionListener>): boolean;
+  on(event: "revision", listener: RevisionListener): this;
+  off(...args: Parameters<PolicyListRevisionIssuer["on"]>): this;
+  emit(event: "revision", ...args: Parameters<RevisionListener>): boolean;
   /**
    * This is mostly used when PolicyListRevisionIssuer's have listeners
    * in other `PolicyListRevision` issuer's that need to be unregistered

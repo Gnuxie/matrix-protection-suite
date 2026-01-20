@@ -6,8 +6,8 @@ import {
   MatrixRoomID,
   StringEventID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
 
 export interface RoomEventRedacter {
   redactEvent(

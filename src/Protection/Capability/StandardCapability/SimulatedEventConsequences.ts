@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Ok, Result } from '@gnuxie/typescript-result';
-import { RoomEventRedacter } from '../../../Client/RoomEventRedacter';
-import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
-import { EventConsequences } from './EventConsequences';
-import { StandardEventConsequences } from './StandardEventConsequences';
-import { randomEventID } from '../../../TestUtilities/EventGeneration';
+import { Ok, Result } from "@gnuxie/typescript-result";
+import { RoomEventRedacter } from "../../../Client/RoomEventRedacter";
+import { Capability, describeCapabilityProvider } from "../CapabilityProvider";
+import { EventConsequences } from "./EventConsequences";
+import { StandardEventConsequences } from "./StandardEventConsequences";
+import { randomEventID } from "../../../TestUtilities/EventGeneration";
 import {
   StringRoomID,
   StringEventID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 const FakeEventRedacter = Object.freeze({
   redactEvent(_room, _eventID, _reason) {
@@ -44,10 +44,10 @@ export class SimulatedEventConsequences
 }
 
 describeCapabilityProvider({
-  name: 'SimulatedEventConsequences',
+  name: "SimulatedEventConsequences",
   description:
-    'Simulates redacting events in protected rooms, but has no real effects',
-  interface: 'EventConsequences',
+    "Simulates redacting events in protected rooms, but has no real effects",
+  interface: "EventConsequences",
   isSimulated: true,
   factory(_description, _context) {
     return new SimulatedEventConsequences();

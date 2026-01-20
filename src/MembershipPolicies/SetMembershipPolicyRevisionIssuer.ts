@@ -2,29 +2,29 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
+import EventEmitter from "events";
 import {
   SetMembershipDelta,
   SetMembershipRevision,
-} from '../Membership/SetMembershipRevision';
+} from "../Membership/SetMembershipRevision";
 import {
   SetMembershipRevisionIssuer,
   SetMembershipRevisionListener,
-} from '../Membership/SetMembershipRevisionIssuer';
+} from "../Membership/SetMembershipRevisionIssuer";
 import {
   PolicyListRevisionIssuer,
   RevisionListener,
-} from '../PolicyList/PolicyListRevisionIssuer';
+} from "../PolicyList/PolicyListRevisionIssuer";
 import {
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
-} from './MembershipPolicyRevision';
-import { StandardSetMembershipPolicyRevision } from './StandardSetMembershipPolicyRevision';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { Logger } from '../Logging/Logger';
+} from "./MembershipPolicyRevision";
+import { StandardSetMembershipPolicyRevision } from "./StandardSetMembershipPolicyRevision";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
+import { PolicyRuleChange } from "../PolicyList/PolicyRuleChange";
+import { Logger } from "../Logging/Logger";
 
-const log = new Logger('SetMembershipPolicyRevisionIssuer');
+const log = new Logger("SetMembershipPolicyRevisionIssuer");
 
 export type SetMembershipPolicyRevisionListener = (
   nextRevision: SetMembershipPolicyRevision,
@@ -34,10 +34,10 @@ export type SetMembershipPolicyRevisionListener = (
 
 export interface SetMembershipPolicyRevisionIssuer {
   readonly currentRevision: SetMembershipPolicyRevision;
-  on(event: 'revision', listener: SetMembershipPolicyRevisionListener): this;
-  off(event: 'revision', listener: SetMembershipPolicyRevisionListener): this;
+  on(event: "revision", listener: SetMembershipPolicyRevisionListener): this;
+  off(event: "revision", listener: SetMembershipPolicyRevisionListener): this;
   emit(
-    event: 'revision',
+    event: "revision",
     ...args: Parameters<SetMembershipPolicyRevisionListener>
   ): boolean;
   unregisterListeners(): void;
@@ -56,7 +56,7 @@ export class StandardMembershipPolicyRevisionIssuer
   ) {
     super();
     log.info(
-      'Creating a SetMembershipPolicyRevision, this may take some time.'
+      "Creating a SetMembershipPolicyRevision, this may take some time."
     );
     this.currentRevision = StandardSetMembershipPolicyRevision.blankRevision();
     this.currentRevision = this.currentRevision.reviseFromChanges(
@@ -65,14 +65,14 @@ export class StandardMembershipPolicyRevisionIssuer
         setMembershipRevisionIssuer.currentRevision
       )
     );
-    log.info('Finished creating a SetMembershipPolicyRevision.');
+    log.info("Finished creating a SetMembershipPolicyRevision.");
     this.setMembershipRevisionListener = this.setMembershipRevision.bind(this);
     this.policyRevisionListener = this.policyRevision.bind(this);
     setMembershipRevisionIssuer.on(
-      'revision',
+      "revision",
       this.setMembershipRevisionListener
     );
-    policyRevisionIssuer.on('revision', this.policyRevisionListener);
+    policyRevisionIssuer.on("revision", this.policyRevisionListener);
   }
 
   private setMembershipRevision(
@@ -91,7 +91,7 @@ export class StandardMembershipPolicyRevisionIssuer
       return;
     }
     this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   private policyRevision(
@@ -104,14 +104,14 @@ export class StandardMembershipPolicyRevisionIssuer
       this.setMembershipRevisionIssuer.currentRevision
     );
     this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   public unregisterListeners(): void {
     this.setMembershipRevisionIssuer.off(
-      'revision',
+      "revision",
       this.setMembershipRevisionListener
     );
-    this.policyRevisionIssuer.off('revision', this.policyRevisionListener);
+    this.policyRevisionIssuer.off("revision", this.policyRevisionListener);
   }
 }

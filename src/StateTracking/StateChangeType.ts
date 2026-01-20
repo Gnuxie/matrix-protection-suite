@@ -8,7 +8,7 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { StateEvent } from '../MatrixTypes/Events';
+import { StateEvent } from "../MatrixTypes/Events";
 
 export enum StateChangeType {
   /**
@@ -16,7 +16,7 @@ export enum StateChangeType {
    * in the room's history. This also means where there are no previous redacted
    * or blanked state events.
    */
-  Introduced = 'Introduced',
+  Introduced = "Introduced",
   /**
    * A state event that has content has been reintroduced where a blank or redacted state type-key
    * pair had previously resided in the room state.
@@ -24,43 +24,43 @@ export enum StateChangeType {
    * an issuer can always treat introduced state in the timeline as a delta,
    * but not reintroduced, modified or removed state.
    */
-  Reintroduced = 'Reintroduced',
+  Reintroduced = "Reintroduced",
   /**
    * This is a special case of introduced, where a state type-key pair has been
    * introduced for the first time, but with empty content.
    */
-  IntroducedAsBlank = 'IntroducedAsBlank',
+  IntroducedAsBlank = "IntroducedAsBlank",
   /**
    * This is when a unique state event with empty content has been added
    * where there was previously a state event with empty or entirely redacted content.
    * Can alternatively be thought of as "ReintroducedAsEmpty".
    */
-  BlankedEmptyContent = 'BlankedEmptyContent',
+  BlankedEmptyContent = "BlankedEmptyContent",
   /**
    * A state event with empty content has been sent over a contentful event
    * with the same type-key pair.
    */
-  BlankedContent = 'BlankedContent',
+  BlankedContent = "BlankedContent",
   /**
    * A redaction was sent for an existing state event that is being tracked
    * and has removed all content keys.
    */
-  CompletelyRedacted = 'CompletelyRedacted',
+  CompletelyRedacted = "CompletelyRedacted",
   /**
    * A redaction was sent for an existing state event that is being tracked
    * and has removed all content keys that are not protected by authorization rules.
    * For example `membership` in a member event will not be removed.
    */
-  PartiallyRedacted = 'PartiallyRedacted',
+  PartiallyRedacted = "PartiallyRedacted",
   /**
    * There is an existing contentful state event for this type-key pair that has been replaced
    * with a new contenful state event.
    */
-  SupersededContent = 'SupersededContent',
+  SupersededContent = "SupersededContent",
   /**
    * The events are the same, and the event is intact.
    */
-  NoChange = 'NoChange',
+  NoChange = "NoChange",
 }
 
 function isSameEvent(eventA: StateEvent, eventB: StateEvent): boolean {

@@ -5,34 +5,34 @@
 import {
   StringUserID,
   userServerName,
-} from '@the-draupnir-project/matrix-basic-types';
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
+} from "@the-draupnir-project/matrix-basic-types";
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
 import {
   SetMembershipChangeType,
   SetMembershipDelta,
   SetMembershipRevision,
-} from '../Membership/SetMembershipRevision';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
+} from "../Membership/SetMembershipRevision";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
 import {
   Recommendation,
   PolicyRule,
   PolicyRuleMatchType,
   LiteralPolicyRule,
   GlobPolicyRule,
-} from '../PolicyList/PolicyRule';
+} from "../PolicyList/PolicyRule";
 import {
   PolicyRuleChange,
   PolicyRuleChangeType,
-} from '../PolicyList/PolicyRuleChange';
+} from "../PolicyList/PolicyRuleChange";
 import {
   MemberPolicyMatch,
   MemberPolicyMatches,
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
-} from './MembershipPolicyRevision';
-import { Map as PerisstentMap, List } from 'immutable';
-import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
-import { Revision } from '../PolicyList/Revision';
+} from "./MembershipPolicyRevision";
+import { Map as PerisstentMap, List } from "immutable";
+import { StandardPolicyListRevision } from "../PolicyList/StandardPolicyListRevision";
+import { Revision } from "../PolicyList/Revision";
 
 // TODO: It would be nice to have a method on PolicyListRevision that would
 // let us pass a membership revision and have it run the matches for us
@@ -67,9 +67,7 @@ import { Revision } from '../PolicyList/Revision';
 // policies. And that would need to happen in this revision. (Recalled vs no policies
 // left and became absent)
 
-export class StandardSetMembershipPolicyRevision
-  implements SetMembershipPolicyRevision
-{
+export class StandardSetMembershipPolicyRevision implements SetMembershipPolicyRevision {
   readonly revision = new Revision();
   private constructor(
     private readonly memberPolicies: PerisstentMap<
@@ -151,7 +149,7 @@ export class StandardSetMembershipPolicyRevision
       .map((change) => {
         if (change.previousRule === undefined) {
           throw new TypeError(
-            'Modified and Removed policies should have the previousRule field.'
+            "Modified and Removed policies should have the previousRule field."
           );
         }
         return change.previousRule;

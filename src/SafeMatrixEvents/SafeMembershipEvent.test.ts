@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { isError } from '../Interface/Action';
-import { SafeMembershipEventMirror } from './SafeMembershipEvent';
+import { isError } from "../Interface/Action";
+import { SafeMembershipEventMirror } from "./SafeMembershipEvent";
 
-test('This example from a client that pollutes nulls like no tomorrow', function () {
+test("This example from a client that pollutes nulls like no tomorrow", function () {
   const unknownContent = {
     avatar_url: null,
-    displayname: 'robb',
-    membership: 'join',
+    displayname: "robb",
+    membership: "join",
   };
   const result = SafeMembershipEventMirror.parse(unknownContent);
   if (isError(result)) {
@@ -22,16 +22,16 @@ test('This example from a client that pollutes nulls like no tomorrow', function
   const unsafeContent = SafeMembershipEventMirror.getUnsafeContent(safeContent);
   expect(unsafeContent).toBeDefined();
   if (unsafeContent === undefined) {
-    throw new TypeError('unsafe content is supposed to be defined');
+    throw new TypeError("unsafe content is supposed to be defined");
   }
-  expect(unsafeContent['avatar_url']).toBe(null);
+  expect(unsafeContent["avatar_url"]).toBe(null);
 });
 
-test('hidden properties do not leak', function () {
+test("hidden properties do not leak", function () {
   const unknownContent = {
     avatar_url: null,
-    displayname: 'robb',
-    membership: 'join',
+    displayname: "robb",
+    membership: "join",
   };
   const result = SafeMembershipEventMirror.parse(unknownContent);
   if (isError(result)) {

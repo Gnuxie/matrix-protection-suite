@@ -11,15 +11,15 @@
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { PowerLevelPermission } from '../../../Client/PowerLevelsMirror';
-import { RoomBanner } from '../../../Client/RoomBanner';
-import { RoomUnbanner } from '../../../Client/RoomUnbanner';
-import { ActionError, ActionResult, Ok } from '../../../Interface/Action';
-import { Membership } from '../../../Membership/MembershipChange';
-import { RoomMembershipRevision } from '../../../Membership/MembershipRevision';
-import { SetRoomMembership } from '../../../Membership/SetRoomMembership';
-import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
+} from "@the-draupnir-project/matrix-basic-types";
+import { PowerLevelPermission } from "../../../Client/PowerLevelsMirror";
+import { RoomBanner } from "../../../Client/RoomBanner";
+import { RoomUnbanner } from "../../../Client/RoomUnbanner";
+import { ActionError, ActionResult, Ok } from "../../../Interface/Action";
+import { Membership } from "../../../Membership/MembershipChange";
+import { RoomMembershipRevision } from "../../../Membership/MembershipRevision";
+import { SetRoomMembership } from "../../../Membership/SetRoomMembership";
+import { Capability, describeCapabilityProvider } from "../CapabilityProvider";
 import {
   ResultForUsersInSetBuilder,
   ResultForUsersInSet,
@@ -27,13 +27,13 @@ import {
   RoomSetResult,
   ResultForUsersInRoom,
   ResultForUsersInRoomBuilder,
-} from './RoomSetResult';
+} from "./RoomSetResult";
 import {
   TargetMember,
   targetReason,
   UserConsequences,
-} from './UserConsequences';
-import './UserConsequences'; // we need this so the interface is loaded.
+} from "./UserConsequences";
+import "./UserConsequences"; // we need this so the interface is loaded.
 
 export class StandardUserConsequences implements UserConsequences, Capability {
   public readonly requiredPermissions = [PowerLevelPermission.Ban];
@@ -50,7 +50,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   private static async applyPolicyMatchesToRoom(
     matches: TargetMember[],
     roomMembershipRevision: RoomMembershipRevision,
-    consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
+    consequenceProviderCB: UserConsequences["consequenceForUserInRoom"]
   ): Promise<ResultForUsersInRoom> {
     const resultBuilder = new ResultForUsersInRoomBuilder();
     for (const match of matches) {
@@ -74,7 +74,7 @@ export class StandardUserConsequences implements UserConsequences, Capability {
   public static async applyPolicyMatchesToSetMembership(
     matches: TargetMember[],
     setMembership: SetRoomMembership,
-    consequenceProviderCB: UserConsequences['consequenceForUserInRoom']
+    consequenceProviderCB: UserConsequences["consequenceForUserInRoom"]
   ): Promise<ResultForUsersInSet> {
     const resultBuilder = new ResultForUsersInSetBuilder();
     for (const membershipRevision of setMembership.allRooms) {
@@ -162,9 +162,9 @@ export type StandardUserConsequencesContext = {
 };
 
 describeCapabilityProvider({
-  name: 'StandardUserConsequences',
-  description: 'Issues room level bans and unbans for users.',
-  interface: 'UserConsequences',
+  name: "StandardUserConsequences",
+  description: "Issues room level bans and unbans for users.",
+  interface: "UserConsequences",
   factory(_description, context: StandardUserConsequencesContext) {
     return new StandardUserConsequences(
       context.roomBanner,

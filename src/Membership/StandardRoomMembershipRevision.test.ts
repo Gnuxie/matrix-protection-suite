@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { describeRoomMember } from '../StateTracking/DeclareRoomState';
-import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { Membership } from './MembershipChange';
-import { StandardRoomMembershipRevision } from './StandardRoomMembershipRevision';
+import { describeRoomMember } from "../StateTracking/DeclareRoomState";
+import { randomRoomID, randomUserID } from "../TestUtilities/EventGeneration";
+import { Membership } from "./MembershipChange";
+import { StandardRoomMembershipRevision } from "./StandardRoomMembershipRevision";
 
-test('Membership events are unintenrned', function () {
+test("Membership events are unintenrned", function () {
   const joinLeaveUser = randomUserID();
   const room = randomRoomID([]);
   const joinEvent = describeRoomMember({

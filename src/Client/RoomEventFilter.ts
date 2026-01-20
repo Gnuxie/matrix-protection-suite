@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Type, Static } from '@sinclair/typebox';
+import { Type, Static } from "@sinclair/typebox";
 import {
   StringRoomIDSchema,
   StringUserIDSchema,
-} from '../MatrixTypes/StringlyTypedMatrix';
+} from "../MatrixTypes/StringlyTypedMatrix";
 
 export const RoomEventFilter = Type.Object({
   limit: Type.Optional(Type.Number()),

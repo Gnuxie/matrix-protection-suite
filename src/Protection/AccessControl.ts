@@ -11,10 +11,10 @@
 import {
   StringUserID,
   userServerName,
-} from '@the-draupnir-project/matrix-basic-types';
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { PolicyRule, Recommendation } from '../PolicyList/PolicyRule';
+} from "@the-draupnir-project/matrix-basic-types";
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
+import { PolicyRule, Recommendation } from "../PolicyList/PolicyRule";
 
 export enum Access {
   /// The entity was explicitly banned by a policy list.
@@ -63,14 +63,14 @@ export class AccessControl {
   public static getAccessForUser(
     revision: PolicyListRevision,
     userID: StringUserID,
-    policy: 'CHECK_SERVER' | 'IGNORE_SERVER'
+    policy: "CHECK_SERVER" | "IGNORE_SERVER"
   ): EntityAccess {
     const userAccess = AccessControl.getAccessForEntity(
       revision,
       userID,
       PolicyRuleType.User
     );
-    if (policy === 'IGNORE_SERVER' || userAccess.outcome === Access.Banned) {
+    if (policy === "IGNORE_SERVER" || userAccess.outcome === Access.Banned) {
       return userAccess;
     } else {
       const serverAccess = AccessControl.getAccessForEntity(

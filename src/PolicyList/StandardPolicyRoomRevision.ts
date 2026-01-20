@@ -14,12 +14,12 @@ import {
   UnredactedPolicyContent,
   isPolicyTypeObsolete,
   normalisePolicyRuleType,
-} from '../MatrixTypes/PolicyEvents';
+} from "../MatrixTypes/PolicyEvents";
 import {
   EntityMatchOptions,
   MjolnirShortcodeEvent,
   PolicyRoomRevision,
-} from './PolicyListRevision';
+} from "./PolicyListRevision";
 import {
   HashedLiteralPolicyRule,
   LiteralPolicyRule,
@@ -27,27 +27,27 @@ import {
   PolicyRuleMatchType,
   Recommendation,
   parsePolicyRule,
-} from './PolicyRule';
-import { PolicyRuleChange, PolicyRuleChangeType } from './PolicyRuleChange';
+} from "./PolicyRule";
+import { PolicyRuleChange, PolicyRuleChangeType } from "./PolicyRuleChange";
 import {
   StateChangeType,
   calculateStateChange,
-} from '../StateTracking/StateChangeType';
-import { Revision } from './Revision';
-import { Map as PersistentMap, List as PersistentList } from 'immutable';
-import { Logger } from '../Logging/Logger';
-import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { PowerLevelsMirror } from '../Client/PowerLevelsMirror';
+} from "../StateTracking/StateChangeType";
+import { Revision } from "./Revision";
+import { Map as PersistentMap, List as PersistentList } from "immutable";
+import { Logger } from "../Logging/Logger";
+import { PowerLevelsEvent } from "../MatrixTypes/PowerLevels";
+import { PowerLevelsMirror } from "../Client/PowerLevelsMirror";
 import {
   MatrixRoomID,
   StringEventID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { isError } from '@gnuxie/typescript-result';
-import { SHA256 } from 'crypto-js';
-import Base64 from 'crypto-js/enc-base64';
+} from "@the-draupnir-project/matrix-basic-types";
+import { isError } from "@gnuxie/typescript-result";
+import { SHA256 } from "crypto-js";
+import Base64 from "crypto-js/enc-base64";
 
-const log = new Logger('StandardPolicyRoomRevision');
+const log = new Logger("StandardPolicyRoomRevision");
 
 /**
  * A map interning rules by their rule type, and then their state key.
@@ -138,22 +138,22 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
         return ruleKind;
-      } else if (entityPart.startsWith('!') || entityPart.startsWith('#')) {
+      } else if (entityPart.startsWith("!") || entityPart.startsWith("#")) {
         return PolicyRuleType.Room;
-      } else if (entity.startsWith('@')) {
+      } else if (entity.startsWith("@")) {
         return PolicyRuleType.User;
       } else {
         return PolicyRuleType.Server;
       }
     };
-    const hash = searchHashedRules ? Base64.stringify(SHA256(entity)) : '';
+    const hash = searchHashedRules ? Base64.stringify(SHA256(entity)) : "";
     return this.allRulesOfType(ruleTypeOf(entity), recommendation).filter(
       (rule) => {
         if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
           return rule.isMatch(entity);
         } else {
           if (searchHashedRules) {
-            return rule.hashes['sha256'] === hash;
+            return rule.hashes["sha256"] === hash;
           } else {
             return false;
           }
@@ -168,10 +168,10 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     {
       type,
       recommendation,
-    }: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
-      Pick<EntityMatchOptions, 'type'>
+    }: Partial<Pick<EntityMatchOptions, "recommendation">> &
+      Pick<EntityMatchOptions, "type">
   ): HashedLiteralPolicyRule[] {
-    if (algorithm === 'sha256') {
+    if (algorithm === "sha256") {
       return [
         ...this.policyRuleBySHA256
           .get(hash, PersistentList<HashedLiteralPolicyRule>())
@@ -195,13 +195,13 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
     entity: string,
     { recommendation, type, searchHashedRules }: EntityMatchOptions
   ): PolicyRule | undefined {
-    const hash = searchHashedRules ? Base64.stringify(SHA256(entity)) : '';
+    const hash = searchHashedRules ? Base64.stringify(SHA256(entity)) : "";
     return this.allRulesOfType(type, recommendation).find((rule) => {
       if (rule.matchType !== PolicyRuleMatchType.HashedLiteral) {
         return rule.isMatch(entity);
       } else {
         if (searchHashedRules) {
-          return rule.hashes['sha256'] === hash;
+          return rule.hashes["sha256"] === hash;
         } else {
           return false;
         }
@@ -251,13 +251,13 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       );
       if (
         rule.matchType === PolicyRuleMatchType.HashedLiteral &&
-        rule.hashes['sha256']
+        rule.hashes["sha256"]
       ) {
         const entry = nextPolicyRulesBySHA256.get(
-          rule.hashes['sha256'],
+          rule.hashes["sha256"],
           PersistentList<HashedLiteralPolicyRule>()
         );
-        nextPolicyRulesBySHA256.set(rule.hashes['sha256'], entry.push(rule));
+        nextPolicyRulesBySHA256.set(rule.hashes["sha256"], entry.push(rule));
       }
     };
     const removePolicyRule = (rule: PolicyRule): void => {
@@ -276,9 +276,9 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       );
       if (
         rule.matchType === PolicyRuleMatchType.HashedLiteral &&
-        rule.hashes['sha256']
+        rule.hashes["sha256"]
       ) {
-        const entry = nextPolicyRulesBySHA256.get(rule.hashes['sha256']);
+        const entry = nextPolicyRulesBySHA256.get(rule.hashes["sha256"]);
         if (entry !== undefined) {
           const nextEntry = entry.filter(
             (searchRule) =>
@@ -286,11 +286,11 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           );
           if (nextEntry.size === 0) {
             nextPolicyRulesBySHA256 = nextPolicyRulesBySHA256.delete(
-              rule.hashes['sha256']
+              rule.hashes["sha256"]
             );
           } else {
             nextPolicyRulesBySHA256 = nextPolicyRulesBySHA256.set(
-              rule.hashes['sha256'],
+              rule.hashes["sha256"],
               nextEntry
             );
           }
@@ -387,11 +387,11 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
       if (existingState) {
         if (isPolicyTypeObsolete(ruleKind, existingState.type, event.type)) {
           log.info(
-            'PolicyList',
+            "PolicyList",
             `In PolicyList ${this.room.toPermalink()}, conflict between rules ${
-              event['event_id']
-            } (with obsolete type ${event['type']}) ` +
-              `and ${existingState.event_id} (with standard type ${existingState['type']}). Ignoring rule with obsolete type.`
+              event["event_id"]
+            } (with obsolete type ${event["type"]}) ` +
+              `and ${existingState.event_id} (with standard type ${existingState["type"]}). Ignoring rule with obsolete type.`
           );
           continue;
         }
@@ -410,10 +410,10 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           // remove the rule.
           const redactedBecause = event.unsigned?.redacted_because;
           const sender =
-            typeof redactedBecause === 'object' &&
+            typeof redactedBecause === "object" &&
             redactedBecause !== null &&
-            'sender' in redactedBecause &&
-            typeof redactedBecause.sender === 'string'
+            "sender" in redactedBecause &&
+            typeof redactedBecause.sender === "string"
               ? redactedBecause.sender
               : event.sender;
           changes.push({
@@ -435,12 +435,12 @@ export class StandardPolicyRoomRevision implements PolicyRoomRevision {
           // We should really consider making all of the properties in MatrixTypes
           // readonly.
           const ruleParseResult = parsePolicyRule(
-            event as Omit<PolicyRuleEvent, 'content'> & {
+            event as Omit<PolicyRuleEvent, "content"> & {
               content: UnredactedPolicyContent;
             }
           );
           if (isError(ruleParseResult)) {
-            log.error('Unable to parse a policy rule', ruleParseResult.error);
+            log.error("Unable to parse a policy rule", ruleParseResult.error);
             continue;
           }
           changes.push({

@@ -7,9 +7,9 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../../../PolicyList/PolicyRuleChange';
-import { ProjectionNode } from '../../../Projection/ProjectionNode';
+import { PolicyListRevision } from "../../../PolicyList/PolicyListRevision";
+import { PolicyRuleChange } from "../../../PolicyList/PolicyRuleChange";
+import { ProjectionNode } from "../../../Projection/ProjectionNode";
 
 export type PolicyListBridgeProjectionNode = ProjectionNode<
   [],

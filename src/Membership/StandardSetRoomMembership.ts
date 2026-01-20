@@ -2,23 +2,23 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
-import { ActionResult, Ok, isError } from '../Interface/Action';
-import { RoomMembershipRevision } from './MembershipRevision';
+import EventEmitter from "events";
+import { ActionResult, Ok, isError } from "../Interface/Action";
+import { RoomMembershipRevision } from "./MembershipRevision";
 import {
   SetRoomMembership,
   SetRoomMembershipMirror,
   SetRoomMembershipMirrorCord,
-} from './SetRoomMembership';
+} from "./SetRoomMembership";
 import {
   MembershipRevisionListener,
   RoomMembershipRevisionIssuer,
-} from './MembershipRevisionIssuer';
-import { RoomMembershipManager } from './RoomMembershipManager';
+} from "./MembershipRevisionIssuer";
+import { RoomMembershipManager } from "./RoomMembershipManager";
 import {
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export class StandardSetRoomMembership
   extends EventEmitter
@@ -77,11 +77,11 @@ export class StandardSetRoomMembership
       return;
     }
     this.issuers.set(room.toRoomIDOrAlias(), issuer);
-    issuer.on('revision', this.revisionListener);
+    issuer.on("revision", this.revisionListener);
     this.emit(
-      'SetChange',
+      "SetChange",
       room.toRoomIDOrAlias(),
-      'add',
+      "add",
       issuer.currentRevision
     );
   }
@@ -91,17 +91,17 @@ export class StandardSetRoomMembership
       return;
     }
     this.issuers.delete(room.toRoomIDOrAlias());
-    issuer.off('revision', this.revisionListener);
+    issuer.off("revision", this.revisionListener);
     this.emit(
-      'SetChange',
+      "SetChange",
       room.toRoomIDOrAlias(),
-      'remove',
+      "remove",
       issuer.currentRevision
     );
   }
   public unregisterListeners(): void {
     for (const issuer of this.issuers.values()) {
-      issuer.off('revision', this.revisionListener);
+      issuer.off("revision", this.revisionListener);
     }
   }
   public get allRooms(): RoomMembershipRevision[] {
@@ -114,7 +114,7 @@ export class StandardSetRoomMembership
     >
   ) {
     this.emit(
-      'membership',
+      "membership",
       nextRevision.room.toRoomIDOrAlias(),
       nextRevision,
       changes,

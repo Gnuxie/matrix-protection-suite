@@ -12,13 +12,13 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
-import { Logger } from '../Logging/Logger';
+import { StringEventID } from "@the-draupnir-project/matrix-basic-types";
+import { Logger } from "../Logging/Logger";
 
-const log = new Logger('EventBatch');
+const log = new Logger("EventBatch");
 
 function logBatchCompleteCallbackError(e: unknown): void {
-  log.error('Caught an exception from the callback for an event batch', e);
+  log.error("Caught an exception from the callback for an event batch", e);
 }
 
 export interface Batcher<Key extends string, Value> {
@@ -26,9 +26,10 @@ export interface Batcher<Key extends string, Value> {
   dispose(): void;
 }
 
-export class StandardBatcher<Key extends string, Value>
-  implements Batcher<Key, Value>
-{
+export class StandardBatcher<Key extends string, Value> implements Batcher<
+  Key,
+  Value
+> {
   private currentBatch: Batch<Key, Value>;
   public constructor(
     private readonly batchFactoryMethod: () => Batch<Key, Value>
@@ -57,9 +58,10 @@ export interface Batch<Key extends string, Value> {
   cancel(): void;
 }
 
-export class ConstantPeriodItemBatch<Key extends string, Value>
-  implements Batch<Key, Value>
-{
+export class ConstantPeriodItemBatch<
+  Key extends string,
+  Value,
+> implements Batch<Key, Value> {
   private readonly waitPeriodMS: number;
   private items = new Map<Key, Value>();
   private isBatchComplete = false;
@@ -68,7 +70,7 @@ export class ConstantPeriodItemBatch<Key extends string, Value>
     public readonly batchCompleteCallback: Batch<
       Key,
       Value
-    >['batchCompleteCallback'],
+    >["batchCompleteCallback"],
     { waitPeriodMS = 200 }
   ) {
     this.waitPeriodMS = waitPeriodMS;
@@ -81,7 +83,7 @@ export class ConstantPeriodItemBatch<Key extends string, Value>
   public add(key: Key, item: Value): void {
     if (this.isFinished()) {
       throw new TypeError(
-        'Something tried adding an event to a completed EventBatch'
+        "Something tried adding an event to a completed EventBatch"
       );
     }
     if (this.items.has(key)) {
@@ -96,7 +98,7 @@ export class ConstantPeriodItemBatch<Key extends string, Value>
 
   private startCallbackTimer(): void {
     if (this.timeoutID) {
-      throw new TypeError('The callback timer is being started more than once');
+      throw new TypeError("The callback timer is being started more than once");
     }
     this.timeoutID = setTimeout(
       this.completeBatch.bind(this),
@@ -127,12 +129,12 @@ export interface EventBatch<E extends EventWithID = EventWithID> {
   batchCompleteCallback: (events: E[]) => Promise<void>;
 }
 
-export class ConstantPeriodEventBatch<E extends EventWithID = EventWithID>
-  implements EventBatch<E>
-{
+export class ConstantPeriodEventBatch<
+  E extends EventWithID = EventWithID,
+> implements EventBatch<E> {
   private readonly batch: ConstantPeriodItemBatch<StringEventID, EventWithID>;
   constructor(
-    public readonly batchCompleteCallback: EventBatch['batchCompleteCallback'],
+    public readonly batchCompleteCallback: EventBatch["batchCompleteCallback"],
     { waitPeriodMS = 200 }
   ) {
     this.batch = new ConstantPeriodItemBatch<StringEventID, EventWithID>(

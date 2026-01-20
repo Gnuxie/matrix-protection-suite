@@ -11,10 +11,10 @@
 import {
   MatrixRoomID,
   StringEventID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyRule, Recommendation } from './PolicyRule';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { PolicyRule, Recommendation } from "./PolicyRule";
 
 export type TakedownPolicyOption = {
   /** Whether the policy should be hashed, default to true */

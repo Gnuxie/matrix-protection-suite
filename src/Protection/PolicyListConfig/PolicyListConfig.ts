@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../../Interface/Action';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../../Interface/Action";
 
 export interface PolicyRoomWatchProfile<T = unknown> {
   room: MatrixRoomID;
@@ -30,5 +30,5 @@ export interface PolicyListConfig {
 }
 
 export enum PropagationType {
-  Direct = 'direct',
+  Direct = "direct",
 }

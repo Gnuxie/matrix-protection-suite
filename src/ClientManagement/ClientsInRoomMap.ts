@@ -2,21 +2,21 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { JoinedRoomsRevision } from './JoinedRoomsRevision';
+import { JoinedRoomsRevision } from "./JoinedRoomsRevision";
 import {
   ClientRooms,
   ClientRoomsChange,
   ClientRoomsEvents,
-} from './ClientRooms';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { Value } from '../Interface/Value';
-import { JoinedRoomsSafe, StandardClientRooms } from './StandardClientRooms';
-import { ActionResult, Ok, isError } from '../Interface/Action';
+} from "./ClientRooms";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { Value } from "../Interface/Value";
+import { JoinedRoomsSafe, StandardClientRooms } from "./StandardClientRooms";
+import { ActionResult, Ok, isError } from "../Interface/Action";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export interface ClientsInRoomMap {
   isClientInRoom(userID: StringUserID, roomID: StringRoomID): boolean;
@@ -39,7 +39,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
   private readonly userIDByRoom = new Map<StringRoomID, StringUserID[]>();
   private readonly clientRoomsByUserID = new Map<StringUserID, ClientRooms>();
 
-  private readonly userRevisionListener: ClientRoomsEvents['revision'];
+  private readonly userRevisionListener: ClientRoomsEvents["revision"];
 
   constructor() {
     this.userRevisionListener = this.userRevisionListenerMethod.bind(this);
@@ -92,7 +92,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
       this.addUserToRoom(roomID, client.clientUserID);
     }
     this.clientRoomsByUserID.set(client.clientUserID, client);
-    client.on('revision', this.userRevisionListener);
+    client.on("revision", this.userRevisionListener);
   }
   public async makeClientRooms(
     userID: StringUserID,
@@ -125,7 +125,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
       this.removeUserFromRoom(roomID, client.clientUserID);
     }
     this.clientRoomsByUserID.delete(client.clientUserID);
-    client.off('revision', this.userRevisionListener);
+    client.off("revision", this.userRevisionListener);
   }
 
   public removeClient(clientUserID: StringUserID): void {
@@ -181,7 +181,7 @@ export class StandardClientsInRoomMap implements ClientsInRoomMap {
       const clientRooms = this.getClientRooms(user);
       clientRooms?.handleTimelineEvent(roomID, event);
     }
-    if (event.type === 'm.room.member' && Value.Check(MembershipEvent, event)) {
+    if (event.type === "m.room.member" && Value.Check(MembershipEvent, event)) {
       // only inform if we already informed the client about this event.
       if (!usersInRoom.includes(event.state_key)) {
         const clientRooms = this.getClientRooms(event.state_key);

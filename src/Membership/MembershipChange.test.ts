@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { describeRoomMember } from '../StateTracking/DeclareRoomState';
-import { randomUserID } from '../TestUtilities/EventGeneration';
+import { describeRoomMember } from "../StateTracking/DeclareRoomState";
+import { randomUserID } from "../TestUtilities/EventGeneration";
 import {
   Membership,
   MembershipChangeType,
   membershipChangeType,
-} from './MembershipChange';
+} from "./MembershipChange";
 
-test('Unseen memberships are classified as joins', function () {
+test("Unseen memberships are classified as joins", function () {
   expect(
     membershipChangeType(
       describeRoomMember({
@@ -22,7 +22,7 @@ test('Unseen memberships are classified as joins', function () {
   ).toBe(MembershipChangeType.Joined);
 });
 
-test('Invited and knocked users joining are classified as joins', function () {
+test("Invited and knocked users joining are classified as joins", function () {
   const sender = randomUserID();
   const memberships = [Membership.Invite, Membership.Knock];
   for (const membership of memberships) {
@@ -41,7 +41,7 @@ test('Invited and knocked users joining are classified as joins', function () {
   }
 });
 
-test('Previously discovered memberships are classified as Rejoins', function () {
+test("Previously discovered memberships are classified as Rejoins", function () {
   const sender = randomUserID();
   const memberships = [
     Membership.Leave,

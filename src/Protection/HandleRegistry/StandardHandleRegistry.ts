@@ -2,22 +2,21 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { AllocatableLifetime, OwnLifetime } from '../../Interface/Lifetime';
+import { AllocatableLifetime, OwnLifetime } from "../../Interface/Lifetime";
 import {
   AnyHandleDescription,
   ExtractHandleName,
   HandleDataSourceType,
   HandleDescription,
   PluginWithHandle,
-} from './HandleDescription';
-import { HandleRegistry } from './HandleRegistry';
-import { isError, Ok, Result } from '@gnuxie/typescript-result';
+} from "./HandleDescription";
+import { HandleRegistry } from "./HandleRegistry";
+import { isError, Ok, Result } from "@gnuxie/typescript-result";
 
 export class StandardHandleRegistry<
   TPluginContext = Record<string, unknown>,
   THandles extends AnyHandleDescription = never,
-> implements HandleRegistry<TPluginContext, THandles>
-{
+> implements HandleRegistry<TPluginContext, THandles> {
   private readonly handleDescriptions = new Map<string, AnyHandleDescription>();
   private readonly plugins = new Set<PluginWithHandle<THandles>>();
 

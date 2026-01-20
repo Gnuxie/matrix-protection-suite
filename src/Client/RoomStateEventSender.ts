@@ -6,8 +6,8 @@ import {
   MatrixRoomID,
   StringRoomID,
   StringEventID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
 
 export interface RoomStateEventSender {
   sendStateEvent(

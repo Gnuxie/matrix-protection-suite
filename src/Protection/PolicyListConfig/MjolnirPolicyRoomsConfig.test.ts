@@ -2,19 +2,19 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { isError } from '../../Interface/Action';
-import { FakePersistentConfigBackend } from '../../Interface/FakePersistentMatrixData';
-import { PolicyRuleType } from '../../MatrixTypes/PolicyEvents';
-import { Recommendation } from '../../PolicyList/PolicyRule';
-import { describeRoom } from '../../StateTracking/DeclareRoomState';
-import { FakePolicyRoomManager } from '../../StateTracking/FakePolicyRoomManager';
-import { MjolnirPolicyRoomsConfig } from './MjolnirPolicyRoomsConfig';
-import { DummyRoomJoiner } from '../../Client/DummyClientPlatform';
-import { MjolnirPolicyRoomsEncodedShape } from './MjolnirPolicyRoomsDescription';
-import { StandardWatchedPolicyRooms } from '../WatchedPolicyRooms/StandardWatchedPolicyRooms';
+import { isError } from "../../Interface/Action";
+import { FakePersistentConfigBackend } from "../../Interface/FakePersistentMatrixData";
+import { PolicyRuleType } from "../../MatrixTypes/PolicyEvents";
+import { Recommendation } from "../../PolicyList/PolicyRule";
+import { describeRoom } from "../../StateTracking/DeclareRoomState";
+import { FakePolicyRoomManager } from "../../StateTracking/FakePolicyRoomManager";
+import { MjolnirPolicyRoomsConfig } from "./MjolnirPolicyRoomsConfig";
+import { DummyRoomJoiner } from "../../Client/DummyClientPlatform";
+import { MjolnirPolicyRoomsEncodedShape } from "./MjolnirPolicyRoomsDescription";
+import { StandardWatchedPolicyRooms } from "../WatchedPolicyRooms/StandardWatchedPolicyRooms";
 
-test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that already have policies in them', async function () {
-  const targetUser = '@spam:example.com';
+test("That creating a MjolnirPolicyRoomsConfig will correctly load rooms that already have policies in them", async function () {
+  const targetUser = "@spam:example.com";
   const policyRoom = describeRoom({
     policyDescriptions: [
       {
@@ -47,7 +47,7 @@ test('That creating a MjolnirPolicyRoomsConfig will correctly load rooms that al
       DummyRoomJoiner
     )
   ).expect(
-    'Should be able to create the watched policy rooms with the mjolnir config'
+    "Should be able to create the watched policy rooms with the mjolnir config"
   );
   expect(watchedPolicyRooms.currentRevision.allRules().length).toBe(1);
   expect(

@@ -5,8 +5,8 @@
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult, isError } from '../../../Interface/Action';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult, isError } from "../../../Interface/Action";
 
 export interface SetResult {
   readonly isEveryResultOk: boolean;

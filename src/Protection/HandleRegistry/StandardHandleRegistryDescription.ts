@@ -2,18 +2,17 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Ok, isError } from '@gnuxie/typescript-result';
-import { AnyHandleDescription } from './HandleDescription';
-import { HandleRegistryDescription } from './HandleRegistryDescription';
-import { StandardHandleRegistry } from './StandardHandleRegistry';
-import { OwnLifetime } from '../../Interface/Lifetime';
-import { HandleRegistry } from './HandleRegistry';
+import { Ok, isError } from "@gnuxie/typescript-result";
+import { AnyHandleDescription } from "./HandleDescription";
+import { HandleRegistryDescription } from "./HandleRegistryDescription";
+import { StandardHandleRegistry } from "./StandardHandleRegistry";
+import { OwnLifetime } from "../../Interface/Lifetime";
+import { HandleRegistry } from "./HandleRegistry";
 
 export class StandardHandleRegistryDescription<
   TPluginContext = Record<string, unknown>,
   THandles extends AnyHandleDescription = never,
-> implements HandleRegistryDescription<TPluginContext, THandles>
-{
+> implements HandleRegistryDescription<TPluginContext, THandles> {
   public readonly handleDescriptions: readonly THandles[];
 
   public constructor(handleDescriptions: readonly THandles[] = []) {
@@ -33,7 +32,7 @@ export class StandardHandleRegistryDescription<
     lifetime: OwnLifetime<HandleRegistry<TPluginContext, THandles>>,
     context: TPluginContext
   ): ReturnType<
-    HandleRegistryDescription<TPluginContext, THandles>['registryForContext']
+    HandleRegistryDescription<TPluginContext, THandles>["registryForContext"]
   > {
     const registry = new StandardHandleRegistry<TPluginContext, THandles>(
       context,

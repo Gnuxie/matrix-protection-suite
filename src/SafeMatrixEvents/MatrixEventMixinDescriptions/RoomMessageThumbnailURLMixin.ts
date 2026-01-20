@@ -11,24 +11,24 @@ import {
   ErroneousEventMixin,
   EventMixinDescription,
   OkEventMixin,
-} from '../EventMixinExtraction/EventMixinDescription';
-import { ErroneousMixin } from '../EventMixinExtraction/StandardMixinExtractor';
-import { hasOwn } from '../hasOwn';
+} from "../EventMixinExtraction/EventMixinDescription";
+import { ErroneousMixin } from "../EventMixinExtraction/StandardMixinExtractor";
+import { hasOwn } from "../hasOwn";
 
 export type RoomMessageThumbnailURLMixin = OkEventMixin & {
   thumbnail_url: string;
 };
 
 export const RoomMessageThumbnailURLMixinDescription = Object.freeze({
-  name: 'm.room.message thumbnail URL mixin',
+  name: "m.room.message thumbnail URL mixin",
   description:
-    'Extracts the thumbnail URL mixin from content that looks like m.room.message',
-  properties: ['thumbnail_url'],
+    "Extracts the thumbnail URL mixin from content that looks like m.room.message",
+  properties: ["thumbnail_url"],
   parser(content) {
-    if (!hasOwn(content, 'thumbnail_url')) {
+    if (!hasOwn(content, "thumbnail_url")) {
       return undefined;
     }
-    if (typeof content.thumbnail_url !== 'string') {
+    if (typeof content.thumbnail_url !== "string") {
       return ErroneousMixin(
         this,
         "The thumbnail URL mixin doesn't match the schema"

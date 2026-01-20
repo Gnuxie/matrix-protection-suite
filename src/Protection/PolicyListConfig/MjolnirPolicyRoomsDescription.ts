@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticEncode, Type } from '@sinclair/typebox';
-import { describeConfig } from '../../Config/describeConfig';
-import { RoomReferencePermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
-import { EDStatic } from '../../Interface/Static';
+import { StaticEncode, Type } from "@sinclair/typebox";
+import { describeConfig } from "../../Config/describeConfig";
+import { RoomReferencePermalinkSchema } from "../../MatrixTypes/PermalinkSchema";
+import { EDStatic } from "../../Interface/Static";
 
 export const MjolnirPolicyRoomsDescription = describeConfig({
   schema: Type.Object(
@@ -15,7 +15,7 @@ export const MjolnirPolicyRoomsDescription = describeConfig({
         uniqueItems: true,
       }),
     },
-    { title: 'PolicyRoomsConfig' }
+    { title: "PolicyRoomsConfig" }
   ),
 });
 

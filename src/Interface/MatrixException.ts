@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionError, ActionResult, ResultError } from './Action';
-import { ActionException, ActionExceptionKind } from './ActionException';
+import { ActionError, ActionResult, ResultError } from "./Action";
+import { ActionException, ActionExceptionKind } from "./ActionException";
 
 export class MatrixException extends ActionException implements ActionError {
   public constructor(

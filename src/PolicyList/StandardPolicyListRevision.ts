@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { EntityMatchOptions, PolicyListRevision } from './PolicyListRevision';
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { EntityMatchOptions, PolicyListRevision } from "./PolicyListRevision";
 import {
   EntityPolicyRule,
   GlobPolicyRule,
@@ -18,16 +18,16 @@ import {
   PolicyRule,
   PolicyRuleMatchType,
   Recommendation,
-} from './PolicyRule';
-import { PolicyRuleChange, PolicyRuleChangeType } from './PolicyRuleChange';
-import { Revision } from './Revision';
-import { Map as PersistentMap, List as PersistentList } from 'immutable';
-import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
-import { SHA256 } from 'crypto-js';
-import Base64 from 'crypto-js/enc-base64';
-import { Logger } from '../Logging/Logger';
+} from "./PolicyRule";
+import { PolicyRuleChange, PolicyRuleChangeType } from "./PolicyRuleChange";
+import { Revision } from "./Revision";
+import { Map as PersistentMap, List as PersistentList } from "immutable";
+import { StringEventID } from "@the-draupnir-project/matrix-basic-types";
+import { SHA256 } from "crypto-js";
+import Base64 from "crypto-js/enc-base64";
+import { Logger } from "../Logging/Logger";
 
-const log = new Logger('StandardPolicyListRevision');
+const log = new Logger("StandardPolicyListRevision");
 
 /**
  * A map of policy rules, by their type and then event id.
@@ -94,9 +94,9 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     const ruleTypeOf = (entityPart: string): PolicyRuleType => {
       if (ruleKind) {
         return ruleKind;
-      } else if (entityPart.startsWith('!') || entityPart.startsWith('#')) {
+      } else if (entityPart.startsWith("!") || entityPart.startsWith("#")) {
         return PolicyRuleType.Room;
-      } else if (entity.startsWith('@')) {
+      } else if (entity.startsWith("@")) {
         return PolicyRuleType.User;
       } else {
         return PolicyRuleType.Server;
@@ -124,11 +124,11 @@ export class StandardPolicyListRevision implements PolicyListRevision {
     {
       type,
       recommendation,
-    }: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
-      Pick<EntityMatchOptions, 'type'>
+    }: Partial<Pick<EntityMatchOptions, "recommendation">> &
+      Pick<EntityMatchOptions, "type">
   ): HashedLiteralPolicyRule[] {
-    if (algorithm !== 'sha256') {
-      throw new TypeError('Unimplemented hash algorithm');
+    if (algorithm !== "sha256") {
+      throw new TypeError("Unimplemented hash algorithm");
     }
     const allScopesForType = this.policyRuleScopes.get(type);
     if (allScopesForType === undefined) {
@@ -228,7 +228,7 @@ export class StandardPolicyListRevision implements PolicyListRevision {
         } else {
           // We need to discount revealed literals for rules we don't know about... because otherwise we could be interning removed rules.
           log.error(
-            'got a RevealedLiteral for an unknown policy rule',
+            "got a RevealedLiteral for an unknown policy rule",
             change.rule
           );
         }
@@ -439,7 +439,7 @@ class PolicyRuleScope {
       } else if (rule.matchType === PolicyRuleMatchType.Literal) {
         nextLiteralRules = addRuleToMap(nextLiteralRules, rule);
       } else {
-        const sha256 = rule.hashes['sha256'];
+        const sha256 = rule.hashes["sha256"];
         if (sha256) {
           nextSha256LiteralRules = ((rules) =>
             nextSha256LiteralRules.set(sha256, rules.push(rule)))(
@@ -455,7 +455,7 @@ class PolicyRuleScope {
       } else if (rule.matchType === PolicyRuleMatchType.Literal) {
         nextLiteralRules = removeRuleFromMap(nextLiteralRules, rule);
       } else {
-        const sha256 = rule.hashes['sha256'];
+        const sha256 = rule.hashes["sha256"];
         if (sha256) {
           const rules = (
             nextSha256LiteralRules.get(sha256) ?? PersistentList()

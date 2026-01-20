@@ -6,8 +6,8 @@ import {
   StringEventID,
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { RoomEvent } from '../MatrixTypes/Events';
+} from "@the-draupnir-project/matrix-basic-types";
+import { RoomEvent } from "../MatrixTypes/Events";
 
 export interface EventReport {
   event_id: StringEventID;

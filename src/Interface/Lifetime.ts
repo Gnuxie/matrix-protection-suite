@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { isError, Ok, Result, ResultError } from '@gnuxie/typescript-result';
-import { Logger } from '../Logging/Logger';
+import { isError, Ok, Result, ResultError } from "@gnuxie/typescript-result";
+import { Logger } from "../Logging/Logger";
 
-const log = new Logger('Lifetime');
+const log = new Logger("Lifetime");
 
 export type LifetimeDisposeHandle<Owner = unknown> =
   | OwnLifetime<Owner>
@@ -74,8 +74,9 @@ export interface AllocatableLifetime<Owner = unknown> extends Lifetime<Owner> {
  *   Use allocateResource.
  *
  */
-export interface OwnLifetime<Owner = unknown>
-  extends AllocatableLifetime<Owner> {
+export interface OwnLifetime<
+  Owner = unknown,
+> extends AllocatableLifetime<Owner> {
   /**
    * We specifically provide a contract that this method will only exit
    * when all resources have cleaned up. And it is not possible to allocate
@@ -90,7 +91,7 @@ export type LifetimeOptions = {
 };
 
 async function callDisposeHandle(handle: LifetimeDisposeHandle): Promise<void> {
-  if (typeof handle === 'function') {
+  if (typeof handle === "function") {
     await handle();
   } else if (Symbol.dispose in handle) {
     handle[Symbol.dispose]();
@@ -121,7 +122,7 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
   public onDispose(callback: LifetimeDisposeHandle<Owner>): this {
     if (this.isInDisposal()) {
       throw new TypeError(
-        'You are registering a resource with the Lifetime non atomically. You must only register resources immediately and atomically with resource allocation. Use the allocateResource method.'
+        "You are registering a resource with the Lifetime non atomically. You must only register resources immediately and atomically with resource allocation. Use the allocateResource method."
       );
     } else {
       this.callbacks.add(callback);
@@ -162,7 +163,7 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
       try {
         await callDisposeHandle(callback);
       } catch (error) {
-        log.error('Error during disposal callback', error);
+        log.error("Error during disposal callback", error);
       }
     }
     this.callbacks.clear();
@@ -175,7 +176,7 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
         if (this.resolveDisposed === undefined) {
           reject(
             new TypeError(
-              'resolveDisposed is undefined during disposal. This should not be possible.'
+              "resolveDisposed is undefined during disposal. This should not be possible."
             )
           );
           return;
@@ -201,7 +202,7 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
   ): Result<T> {
     if (this.isInDisposal()) {
       return ResultError.Result(
-        'Resource was not initialized: Lifetime is in disposal. Use isInDisposal to check before using this method.'
+        "Resource was not initialized: Lifetime is in disposal. Use isInDisposal to check before using this method."
       );
     }
     const resource = factory(this);
@@ -223,7 +224,7 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
   ): Promise<Result<T>> {
     if (this.isInDisposal()) {
       return ResultError.Result(
-        'Lifetime is in disposal, so disposal cannot be blocked'
+        "Lifetime is in disposal, so disposal cannot be blocked"
       );
     }
     const blockingPromise = cb();
@@ -248,7 +249,7 @@ export class StandardLifetime<Owner = unknown> implements OwnLifetime<Owner> {
       if (this.isInDisposal()) {
         await callDisposeHandle(disposer(resource.ok));
         return ResultError.Result(
-          'Resource had to be disposed after allocation because Lifetime entered disposal'
+          "Resource had to be disposed after allocation because Lifetime entered disposal"
         );
       } else {
         this.onDispose(disposer(resource.ok));

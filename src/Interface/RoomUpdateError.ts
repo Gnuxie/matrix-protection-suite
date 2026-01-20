@@ -8,9 +8,9 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { ActionError, ActionResult, ResultError } from './Action';
-import { ActionException, ActionExceptionKind } from './ActionException';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { ActionError, ActionResult, ResultError } from "./Action";
+import { ActionException, ActionExceptionKind } from "./ActionException";
 
 // might be best also to have a version of result with a room id that
 // explains what we were trying to do ? not sure.

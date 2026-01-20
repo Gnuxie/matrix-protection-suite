@@ -2,31 +2,31 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import AwaitLock from 'await-lock';
+import AwaitLock from "await-lock";
 import {
   PolicyListConfig,
   PolicyRoomWatchProfile,
   PropagationType,
-} from './PolicyListConfig';
-import { RoomJoiner } from '../../Client/RoomJoiner';
-import { Logger } from '../../Logging/Logger';
+} from "./PolicyListConfig";
+import { RoomJoiner } from "../../Client/RoomJoiner";
+import { Logger } from "../../Logging/Logger";
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   PersistentConfigBackend,
   PersistentConfigData,
   StandardPersistentConfigData,
-} from '../../Config/PersistentConfigData';
+} from "../../Config/PersistentConfigData";
 import {
   MjolnirPolicyRoomsDescription,
   MjolnirPolicyRoomsEncodedShape,
-} from './MjolnirPolicyRoomsDescription';
-import { Map as PersistentMap } from 'immutable';
-import { Result, isError, Ok, ResultError } from '@gnuxie/typescript-result';
+} from "./MjolnirPolicyRoomsDescription";
+import { Map as PersistentMap } from "immutable";
+import { Result, isError, Ok, ResultError } from "@gnuxie/typescript-result";
 
-const log = new Logger('MjolnirPolicyRoomsConfig');
+const log = new Logger("MjolnirPolicyRoomsConfig");
 
 export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
   private readonly writeLock = new AwaitLock();
@@ -51,7 +51,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
     const dataResult = await config.requestParsedConfig();
     if (isError(dataResult)) {
       return dataResult.elaborate(
-        'Failed to load MjolnirPolicyRoomsConfig from account data'
+        "Failed to load MjolnirPolicyRoomsConfig from account data"
       );
     }
     const data = dataResult.ok ?? config.description.getDefaultConfig();
@@ -61,7 +61,7 @@ export class MjolnirPolicyRoomsConfig implements PolicyListConfig {
       if (isError(joinResult)) {
         log.info(`MjolnirPolicyRoomsConfig:`, data);
         return await config.reportUseError(
-          'Unable to join policy room from a provided reference',
+          "Unable to join policy room from a provided reference",
           {
             path: `/references/${i}`,
             value: reference,

@@ -7,7 +7,7 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { RoomEvent } from '../../MatrixTypes/Events';
+import { RoomEvent } from "../../MatrixTypes/Events";
 import {
   ErroneousEventMixin,
   EventMixin,
@@ -15,7 +15,7 @@ import {
   ExtractEerrorMixinFromDescription,
   ExtractOkMixinFromDescription,
   OkEventMixin,
-} from './EventMixinDescription';
+} from "./EventMixinDescription";
 
 // mixins can be nested arbritrarily in other mixins unfortunatly,
 // see m.new_content.

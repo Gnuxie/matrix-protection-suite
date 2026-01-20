@@ -8,28 +8,28 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
-import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
+import { StaticDecode, Type } from "@sinclair/typebox";
+import { PolicyRuleEvent, PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { PowerLevelsEvent } from "../MatrixTypes/PowerLevels";
 import {
   HashedLiteralPolicyRule,
   LiteralPolicyRule,
   PolicyRule,
   Recommendation,
-} from './PolicyRule';
-import { PolicyRuleChange } from './PolicyRuleChange';
-import { Revision } from './Revision';
-import { StateEvent } from '../MatrixTypes/Events';
+} from "./PolicyRule";
+import { PolicyRuleChange } from "./PolicyRuleChange";
+import { Revision } from "./Revision";
+import { StateEvent } from "../MatrixTypes/Events";
 import {
   MatrixRoomID,
   StringEventID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 /** MSC3784 support. Please note that policy lists predate room types. So there will be lists in the wild without this type. */
-export const POLICY_ROOM_TYPE = 'support.feline.policy.lists.msc.v1';
+export const POLICY_ROOM_TYPE = "support.feline.policy.lists.msc.v1";
 export const POLICY_ROOM_TYPE_VARIANTS = [POLICY_ROOM_TYPE];
-export const MJOLNIR_SHORTCODE_EVENT_TYPE = 'org.matrix.mjolnir.shortcode';
+export const MJOLNIR_SHORTCODE_EVENT_TYPE = "org.matrix.mjolnir.shortcode";
 
 export type MjolnirShortcodeEventContent = StaticDecode<
   typeof MjolnirShortcodeEventContent
@@ -94,8 +94,8 @@ export interface PolicyListRevisionView {
   findRulesMatchingHash(
     hash: string,
     algorithm: string,
-    options: Partial<Pick<EntityMatchOptions, 'recommendation'>> &
-      Pick<EntityMatchOptions, 'type'>
+    options: Partial<Pick<EntityMatchOptions, "recommendation">> &
+      Pick<EntityMatchOptions, "type">
   ): HashedLiteralPolicyRule[];
 }
 

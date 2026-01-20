@@ -2,36 +2,36 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { EventEmitter } from 'events';
-import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { RoomMembershipManager } from '../../Membership/RoomMembershipManager';
+import { EventEmitter } from "events";
+import { ActionResult, Ok, isError } from "../../Interface/Action";
+import { RoomMembershipManager } from "../../Membership/RoomMembershipManager";
 import {
   SetRoomMembership,
   SetRoomMembershipMirror,
-} from '../../Membership/SetRoomMembership';
+} from "../../Membership/SetRoomMembership";
 import {
   SetRoomState,
   SetRoomStateMirror,
-} from '../../StateTracking/SetRoomState';
+} from "../../StateTracking/SetRoomState";
 import {
   RoomStateManager,
   RoomStateRevisionIssuer,
-} from '../../StateTracking/StateRevisionIssuer';
-import { ProtectedRoomsConfig } from '../ProtectedRoomsConfig/ProtectedRoomsConfig';
+} from "../../StateTracking/StateRevisionIssuer";
+import { ProtectedRoomsConfig } from "../ProtectedRoomsConfig/ProtectedRoomsConfig";
 import {
   ProtectedRoomChangeType,
   ProtectedRoomsManager,
-} from './ProtectedRoomsManager';
-import { RoomJoiner } from '../../Client/RoomJoiner';
-import { RoomMembershipRevisionIssuer } from '../../Membership/MembershipRevisionIssuer';
+} from "./ProtectedRoomsManager";
+import { RoomJoiner } from "../../Client/RoomJoiner";
+import { RoomMembershipRevisionIssuer } from "../../Membership/MembershipRevisionIssuer";
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   SetMembershipRevisionIssuer,
   StandardSetMembershipRevisionIssuer,
-} from '../../Membership/SetMembershipRevisionIssuer';
+} from "../../Membership/SetMembershipRevisionIssuer";
 
 function makeJoinAndAdd(
   roomJoiner: RoomJoiner,
@@ -180,7 +180,7 @@ export class StandardProtectedRoomsManager
       room,
       membershipIssuer.ok
     );
-    this.emit('change', room, ProtectedRoomChangeType.Added);
+    this.emit("change", room, ProtectedRoomChangeType.Added);
     return Ok(undefined);
   }
   public async removeRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
@@ -192,7 +192,7 @@ export class StandardProtectedRoomsManager
       SetRoomStateMirror.removeRoom(this.setRoomState, room);
       SetRoomMembershipMirror.removeRoom(this.setRoomMembership, room);
       this.protectedRooms.delete(room.toRoomIDOrAlias());
-      this.emit('change', room, ProtectedRoomChangeType.Removed);
+      this.emit("change", room, ProtectedRoomChangeType.Removed);
     }
     return Ok(undefined);
   }

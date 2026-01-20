@@ -11,35 +11,35 @@ import {
   ErroneousEventMixin,
   EventMixinDescription,
   OkEventMixin,
-} from '../EventMixinExtraction/EventMixinDescription';
-import { ContentMixins } from '../EventMixinExtraction/EventMixinExtraction';
-import { ErroneousMixin } from '../EventMixinExtraction/StandardMixinExtractor';
-import { hasOwn } from '../hasOwn';
+} from "../EventMixinExtraction/EventMixinDescription";
+import { ContentMixins } from "../EventMixinExtraction/EventMixinExtraction";
+import { ErroneousMixin } from "../EventMixinExtraction/StandardMixinExtractor";
+import { hasOwn } from "../hasOwn";
 
 export type NewContentMixin = OkEventMixin & ContentMixins;
 
 export const NewContentMixinDescription = Object.freeze({
-  name: 'm.new_content',
-  description: 'Extracts the m.new_content mixin from any event content',
-  properties: ['m.new_content'],
+  name: "m.new_content",
+  description: "Extracts the m.new_content mixin from any event content",
+  properties: ["m.new_content"],
   parser(content, extractor) {
-    if (!hasOwn(content, 'm.new_content')) {
+    if (!hasOwn(content, "m.new_content")) {
       return undefined;
     }
     if (
-      typeof content['m.new_content'] !== 'object' ||
-      content['m.new_content'] === null
+      typeof content["m.new_content"] !== "object" ||
+      content["m.new_content"] === null
     ) {
       return ErroneousMixin(
         this,
-        'The m.new_content mixin does not match the schema'
+        "The m.new_content mixin does not match the schema"
       );
     }
     return {
       description: this,
       isErroneous: false,
       ...extractor.parseContent(
-        content['m.new_content'] as Record<string, unknown>
+        content["m.new_content"] as Record<string, unknown>
       ),
     };
   },

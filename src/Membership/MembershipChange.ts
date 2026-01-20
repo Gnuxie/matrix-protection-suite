@@ -2,23 +2,23 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticDecode } from '@sinclair/typebox';
+import { StaticDecode } from "@sinclair/typebox";
 import {
   MembershipEvent,
   MembershipEventContent,
-} from '../MatrixTypes/MembershipEvent';
+} from "../MatrixTypes/MembershipEvent";
 import {
   StringEventID,
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export enum Membership {
-  Join = 'join',
-  Invite = 'invite',
-  Knock = 'knock',
-  Leave = 'leave',
-  Ban = 'ban',
+  Join = "join",
+  Invite = "invite",
+  Knock = "knock",
+  Leave = "leave",
+  Ban = "ban",
 }
 
 // TODO: The problem with this is that leave->leave implies a user temporarily
@@ -47,28 +47,28 @@ export enum Membership {
  */
 export enum MembershipChangeType {
   /** A genuine join to the room. */
-  Joined = 'joined',
+  Joined = "joined",
   /** A join to the room when the user has recently left, was removed or banned.
    * This distinction exists because bridged users from IRC or XMPP will do this all the time.
    * And things like greeter bots would break.
    */
-  Rejoined = 'rejoined',
+  Rejoined = "rejoined",
   /** The user left the room by their own command. */
-  Left = 'left',
+  Left = "left",
   /** The user was kicked by another user. */
-  Kicked = 'kicked',
+  Kicked = "kicked",
   /** The user was banned by another user. */
-  Banned = 'banned',
+  Banned = "banned",
   /** The user was unbanned by another user. */
-  Unbanned = 'unbanned',
+  Unbanned = "unbanned",
   /** The user made a genuine knock on the room. */
-  Knocked = 'knocked',
+  Knocked = "knocked",
   /** The user renocked on the room after recently leaving @see {@link MembershipChangeType.Rejoin}. */
-  Reknocked = 'renocked',
+  Reknocked = "renocked",
   /** The user was invited by another user. */
-  Invited = 'invited',
+  Invited = "invited",
   /** There was no change to the membership, but there may have been changes to their profile or reason for their membership. */
-  NoChange = 'no-change',
+  NoChange = "no-change",
 }
 
 export function membershipChangeType(
@@ -76,7 +76,7 @@ export function membershipChangeType(
   previousMembershipContent?: MembershipEventContent
 ): MembershipChangeType {
   const previousMembership =
-    previousMembershipContent?.membership ?? 'external';
+    previousMembershipContent?.membership ?? "external";
   switch (nextMembership.content.membership) {
     case Membership.Join:
       switch (previousMembership) {
@@ -137,11 +137,11 @@ export function membershipChangeType(
 }
 
 export enum ProfileChangeType {
-  InitialProfile = 'initial-profile',
-  Displayname = 'displayname',
-  Avatar = 'avatar',
-  DisplaynameAndAvatar = 'displayname-and-avatar',
-  NoChange = 'no-change',
+  InitialProfile = "initial-profile",
+  Displayname = "displayname",
+  Avatar = "avatar",
+  DisplaynameAndAvatar = "displayname-and-avatar",
+  NoChange = "no-change",
 }
 
 export function profileChangeType(
@@ -174,7 +174,7 @@ export class MembershipChange {
     public readonly sender: StringUserID,
     public readonly roomID: StringRoomID,
     public readonly eventID: StringEventID,
-    public readonly membership: 'join' | 'invite' | 'knock' | 'leave' | 'ban',
+    public readonly membership: "join" | "invite" | "knock" | "leave" | "ban",
     public readonly membershipChangeType: MembershipChangeType,
     public readonly profileChangeType: ProfileChangeType,
     public readonly content: MembershipEventContent

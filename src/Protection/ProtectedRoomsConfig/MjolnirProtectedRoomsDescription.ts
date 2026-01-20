@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticEncode, Type } from '@sinclair/typebox';
-import { describeConfig } from '../../Config/describeConfig';
-import { StringRoomIDSchema } from '../../MatrixTypes/StringlyTypedMatrix';
-import { EDStatic } from '../../Interface/Static';
+import { StaticEncode, Type } from "@sinclair/typebox";
+import { describeConfig } from "../../Config/describeConfig";
+import { StringRoomIDSchema } from "../../MatrixTypes/StringlyTypedMatrix";
+import { EDStatic } from "../../Interface/Static";
 
 export const MjolnirProtectedRoomsDescription = describeConfig({
   schema: Type.Object(
@@ -16,7 +16,7 @@ export const MjolnirProtectedRoomsDescription = describeConfig({
       // https://github.com/Gnuxie/matrix-protection-suite/blob/de249c4cb81290aa1081f440af16f0cadc3522d0/src/Protection/ProtectedRoomsConfig/ProtectedRoomsConfig.ts#L108
       rooms: Type.Array(StringRoomIDSchema, { default: [] }),
     },
-    { title: 'ProtectedRoomsConfig' }
+    { title: "ProtectedRoomsConfig" }
   ),
 });
 

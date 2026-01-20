@@ -8,36 +8,36 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { Type } from '@sinclair/typebox';
-import { RoomEvent } from './Events';
-import { StringEventIDSchema } from './StringlyTypedMatrix';
-import { EDStatic } from '../Interface/Static';
-import { StringEventID } from '@the-draupnir-project/matrix-basic-types';
+import { Type } from "@sinclair/typebox";
+import { RoomEvent } from "./Events";
+import { StringEventIDSchema } from "./StringlyTypedMatrix";
+import { EDStatic } from "../Interface/Static";
+import { StringEventID } from "@the-draupnir-project/matrix-basic-types";
 
 export type RedactionContent = EDStatic<typeof RedactionContent>;
 export const RedactionContent = Type.Object({
   redacts: Type.Optional(
     Type.Union([StringEventIDSchema], {
       description:
-        'The event ID that was redacted. Required for, and present starting in, room version 11. This is protected from redaction.',
+        "The event ID that was redacted. Required for, and present starting in, room version 11. This is protected from redaction.",
     })
   ),
   reason: Type.Optional(
-    Type.String({ description: 'The reason for the redaction, if any.' })
+    Type.String({ description: "The reason for the redaction, if any." })
   ),
 });
 
 export type Redaction = EDStatic<typeof Redaction>;
 export const Redaction = Type.Intersect([
-  Type.Omit(RoomEvent(RedactionContent), ['type']),
+  Type.Omit(RoomEvent(RedactionContent), ["type"]),
   Type.Object({
     redacts: Type.Optional(
       Type.Union([StringEventIDSchema], {
         description:
-          'Required for, and only present in, room versions 1 - 10. The event ID that was redacted. This is not protected from redaction and can be removed in room versions prior to v11.',
+          "Required for, and only present in, room versions 1 - 10. The event ID that was redacted. This is not protected from redaction and can be removed in room versions prior to v11.",
       })
     ),
-    type: Type.Literal('m.room.redaction'),
+    type: Type.Literal("m.room.redaction"),
   }),
 ]);
 

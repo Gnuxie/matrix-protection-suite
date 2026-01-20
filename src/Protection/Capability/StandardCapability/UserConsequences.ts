@@ -8,21 +8,21 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { Type } from '@sinclair/typebox';
-import { describeCapabilityInterface } from '../CapabilityInterface';
-import { CapabilityMethodSchema } from './CapabilityMethodSchema';
-import { ActionResult } from '../../../Interface/Action';
-import { Capability } from '../CapabilityProvider';
+import { Type } from "@sinclair/typebox";
+import { describeCapabilityInterface } from "../CapabilityInterface";
+import { CapabilityMethodSchema } from "./CapabilityMethodSchema";
+import { ActionResult } from "../../../Interface/Action";
+import { Capability } from "../CapabilityProvider";
 import {
   ResultForUsersInRoom,
   ResultForUsersInSet,
   RoomSetResult,
-} from './RoomSetResult';
+} from "./RoomSetResult";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { MemberPolicyMatches } from '../../../MembershipPolicies/MembershipPolicyRevision';
+} from "@the-draupnir-project/matrix-basic-types";
+import { MemberPolicyMatches } from "../../../MembershipPolicies/MembershipPolicyRevision";
 
 export type TargetMember =
   | MemberPolicyMatches
@@ -32,14 +32,14 @@ export type TargetMember =
     };
 
 export function targetReason(member: TargetMember): string {
-  if ('reason' in member) {
+  if ("reason" in member) {
     return member.reason;
   } else {
     const reasonPolicy = member.policies.at(0);
     if (reasonPolicy === undefined) {
       throw new TypeError(`Some protection isn't providing matches properly`);
     }
-    return reasonPolicy.reason ?? '<no reason provided>';
+    return reasonPolicy.reason ?? "<no reason provided>";
   }
 }
 
@@ -72,7 +72,7 @@ export const UserConsequences = Type.Intersect([
 ]);
 
 describeCapabilityInterface({
-  name: 'UserConsequences',
-  description: 'Capabilities for taking consequences against a user',
+  name: "UserConsequences",
+  description: "Capabilities for taking consequences against a user",
   schema: UserConsequences,
 });

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Evaluate, StaticDecode, TSchema } from '@sinclair/typebox';
+import { Evaluate, StaticDecode, TSchema } from "@sinclair/typebox";
 
 // Specialized Static - Evaluates Intersections as Object type
 // See https://github.com/sinclairzx81/typebox/issues/825#issuecomment-2067795724.

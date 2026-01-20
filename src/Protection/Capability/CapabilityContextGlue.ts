@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { DescriptionMeta } from '../DescriptionMeta';
+import { DescriptionMeta } from "../DescriptionMeta";
 import {
   Capability,
   CapabilityProviderDescription,
   findCapabilityProvider,
-} from './CapabilityProvider';
+} from "./CapabilityProvider";
 
 const CAPABILITY_CONTEXT_GLUE = new Map<string, CapabilityContextGlue>();
 

@@ -7,15 +7,15 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { StandardMixinExtractor } from '../EventMixinExtraction/StandardMixinExtractor';
-import { ExtensibleTextMixinDescription } from './ExtensibleTextMixin';
-import { MentionsMixinDescription } from './MentionsMixin';
-import { NewContentMixinDescription } from './NewContentMixin';
-import { RoomMessageBodyMixinDescription } from './RoomMessageBodyMixin';
-import { RoomMessageFileMixinDescription } from './RoomMessageFileMixin';
-import { RoomMessageFormattedBodyMixinDescription } from './RoomMessageFormatedBodyMixin';
-import { RoomMessageMediaURLMixinDescription } from './RoomMessageMediaURLMixin';
-import { RoomMessageThumbnailURLMixinDescription } from './RoomMessageThumbnailURLMixin';
+import { StandardMixinExtractor } from "../EventMixinExtraction/StandardMixinExtractor";
+import { ExtensibleTextMixinDescription } from "./ExtensibleTextMixin";
+import { MentionsMixinDescription } from "./MentionsMixin";
+import { NewContentMixinDescription } from "./NewContentMixin";
+import { RoomMessageBodyMixinDescription } from "./RoomMessageBodyMixin";
+import { RoomMessageFileMixinDescription } from "./RoomMessageFileMixin";
+import { RoomMessageFormattedBodyMixinDescription } from "./RoomMessageFormatedBodyMixin";
+import { RoomMessageMediaURLMixinDescription } from "./RoomMessageMediaURLMixin";
+import { RoomMessageThumbnailURLMixinDescription } from "./RoomMessageThumbnailURLMixin";
 
 export const DefaultMixinExtractor = new StandardMixinExtractor([
   ExtensibleTextMixinDescription,

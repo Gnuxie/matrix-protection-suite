@@ -7,20 +7,20 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { monotonicFactory } from 'ulidx';
+import { monotonicFactory } from "ulidx";
 import {
   SetMembershipPolicyRevisionIssuer,
   SetMembershipPolicyRevisionListener,
-} from '../../../MembershipPolicies/SetMembershipPolicyRevisionIssuer';
+} from "../../../MembershipPolicies/SetMembershipPolicyRevisionIssuer";
 import {
   Projection,
   ProjectionOutputHelper,
-} from '../../../Projection/Projection';
+} from "../../../Projection/Projection";
 import {
   MemberBanInputProjectionNode,
   MemberBanIntentProjectionNode,
   StandardMemberBanIntentProjectionNode,
-} from './MemberBanIntentProjectionNode';
+} from "./MemberBanIntentProjectionNode";
 
 export type MemberBanIntentProjection =
   Projection<MemberBanIntentProjectionNode>;
@@ -39,7 +39,7 @@ export class StandardMemberBanIntentProjection
     ]);
     super(node.reduceDelta(delta));
     this.membershipPolicyRevisionIssuer.on(
-      'revision',
+      "revision",
       this.handleUpstreamRevision
     );
   }
@@ -50,7 +50,7 @@ export class StandardMemberBanIntentProjection
 
   [Symbol.dispose]() {
     this.membershipPolicyRevisionIssuer.off(
-      'revision',
+      "revision",
       this.handleUpstreamRevision
     );
     super[Symbol.dispose]();

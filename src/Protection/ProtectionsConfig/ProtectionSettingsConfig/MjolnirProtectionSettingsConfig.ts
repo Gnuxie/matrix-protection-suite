@@ -2,24 +2,22 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { TObject } from '@sinclair/typebox';
-import { ProtectionDescription } from '../../Protection';
-import { ProtectionSettingsConfig } from './ProtectionSettingsConfig';
-import { Ok, Result, isError } from '@gnuxie/typescript-result';
+import { TObject } from "@sinclair/typebox";
+import { ProtectionDescription } from "../../Protection";
+import { ProtectionSettingsConfig } from "./ProtectionSettingsConfig";
+import { Ok, Result, isError } from "@gnuxie/typescript-result";
 import {
   PersistentConfigBackend,
   StandardPersistentConfigData,
-} from '../../../Config/PersistentConfigData';
-import { UnknownConfig } from '../../../Config/ConfigDescription';
-import { EDStatic } from '../../../Interface/Static';
+} from "../../../Config/PersistentConfigData";
+import { UnknownConfig } from "../../../Config/ConfigDescription";
+import { EDStatic } from "../../../Interface/Static";
 
 export type MakePersistentConfigBackendForMjolnirProtectionSettings = (
   protectionDescription: ProtectionDescription
 ) => Result<PersistentConfigBackend>;
 
-export class MjolnirProtectionSettingsConfig
-  implements ProtectionSettingsConfig
-{
+export class MjolnirProtectionSettingsConfig implements ProtectionSettingsConfig {
   public constructor(
     private readonly makePersistentConfigBackend: MakePersistentConfigBackendForMjolnirProtectionSettings
   ) {

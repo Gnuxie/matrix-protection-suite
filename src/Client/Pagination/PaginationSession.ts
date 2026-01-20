@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Result } from '@gnuxie/typescript-result';
-import { PaginationChunk } from './PaginationChunk';
+import { Result } from "@gnuxie/typescript-result";
+import { PaginationChunk } from "./PaginationChunk";
 
 /**
  * Stateful pagination session that fascilitates iteration.

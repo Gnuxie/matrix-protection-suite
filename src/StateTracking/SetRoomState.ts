@@ -5,12 +5,12 @@
 import {
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateChange,
-} from './StateRevisionIssuer';
+} from "./StateRevisionIssuer";
 
 export type SetRoomStateListener = (
   roomID: StringRoomID,
@@ -20,8 +20,8 @@ export type SetRoomStateListener = (
 ) => void;
 
 export const SetRoomStateMirrorCord = Object.freeze({
-  addRoom: Symbol('addRoom'),
-  removeRoom: Symbol('removeRoom'),
+  addRoom: Symbol("addRoom"),
+  removeRoom: Symbol("removeRoom"),
 }) as Readonly<{
   readonly addRoom: unique symbol;
   readonly removeRoom: unique symbol;
@@ -33,9 +33,9 @@ export declare interface SetRoomState {
     roomStateRevisionIssuer: RoomStateRevisionIssuer
   ): void;
   [SetRoomStateMirrorCord.removeRoom](room: MatrixRoomID): void;
-  on(event: 'revision', listener: SetRoomStateListener): this;
-  off(event: 'revision', listener: SetRoomStateListener): this;
-  emit(event: 'revision', ...args: Parameters<SetRoomStateListener>): boolean;
+  on(event: "revision", listener: SetRoomStateListener): this;
+  off(event: "revision", listener: SetRoomStateListener): this;
+  emit(event: "revision", ...args: Parameters<SetRoomStateListener>): boolean;
   unregisterListeners(): void;
   allRooms: RoomStateRevision[];
   getRevision(room: StringRoomID): RoomStateRevision | undefined;

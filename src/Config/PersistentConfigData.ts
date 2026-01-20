@@ -8,18 +8,18 @@ import {
   ResultError,
   isError,
   isOk,
-} from '@gnuxie/typescript-result';
-import { ConfigDescription } from './ConfigDescription';
+} from "@gnuxie/typescript-result";
+import { ConfigDescription } from "./ConfigDescription";
 import {
   ConfigErrorDiagnosis,
   ConfigParseError,
   ConfigPropertyError,
   ConfigPropertyUseError,
   ConfigRecoverableError,
-} from './ConfigParseError';
-import { StaticEncode, TObject } from '@sinclair/typebox';
-import { EDStatic } from '../Interface/Static';
-import { Value } from '../Interface/Value';
+} from "./ConfigParseError";
+import { StaticEncode, TObject } from "@sinclair/typebox";
+import { EDStatic } from "../Interface/Static";
+import { Value } from "../Interface/Value";
 
 export type ConfigRecoveryOption = {
   readonly description: string;
@@ -81,9 +81,9 @@ export interface PersistentConfigBackend<
   saveEncodedConfig(data: TEncodedShape): Promise<Result<void>>;
 }
 
-export class StandardPersistentConfigData<TConfigSchema extends TObject>
-  implements PersistentConfigData<TConfigSchema>
-{
+export class StandardPersistentConfigData<
+  TConfigSchema extends TObject,
+> implements PersistentConfigData<TConfigSchema> {
   public constructor(
     public readonly description: ConfigDescription<TConfigSchema>,
     private readonly backend: PersistentConfigBackend<
@@ -121,7 +121,7 @@ export class StandardPersistentConfigData<TConfigSchema extends TObject>
 
   private makeRecoveryOptionForConfig() {
     return {
-      description: 'Reset the configuration to its default values.',
+      description: "Reset the configuration to its default values.",
       recover: async () => {
         const newConfig = this.description.getDefaultConfig();
         return await this.saveConfig(newConfig);
@@ -219,7 +219,7 @@ export class StandardPersistentConfigData<TConfigSchema extends TObject>
       return loadResult;
     }
     if (loadResult.ok === undefined) {
-      throw new TypeError('The config defaults must be broken');
+      throw new TypeError("The config defaults must be broken");
     }
     return this.addRecoveryOptionsToResult(
       loadResult.ok,

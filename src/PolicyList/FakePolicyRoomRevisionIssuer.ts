@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
-import { PolicyListRevision, PolicyRoomRevision } from './PolicyListRevision';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { RoomStateRevisionIssuer } from "../StateTracking/StateRevisionIssuer";
+import { PolicyListRevision, PolicyRoomRevision } from "./PolicyListRevision";
 import {
   PolicyRoomRevisionIssuer,
   RevisionListener,
-} from './PolicyListRevisionIssuer';
-import { PolicyRuleChange } from './PolicyRuleChange';
-import { RoomStatePolicyRoomRevisionIssuer } from './RoomStatePolicyListRevisionIssuer';
+} from "./PolicyListRevisionIssuer";
+import { PolicyRuleChange } from "./PolicyRuleChange";
+import { RoomStatePolicyRoomRevisionIssuer } from "./RoomStatePolicyListRevisionIssuer";
 
 export class FakePolicyRoomRevisionIssuer
   extends RoomStatePolicyRoomRevisionIssuer
@@ -26,13 +26,13 @@ export class FakePolicyRoomRevisionIssuer
   }
 
   public emit(
-    event: 'revision',
+    event: "revision",
     nextRevision: PolicyListRevision,
     changes: PolicyRuleChange[],
     previousRevision: PolicyListRevision
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (event !== 'revision') {
+    if (event !== "revision") {
       throw new TypeError(
         `The FakePolicyRoomRevisionIssuer was only written to work with the 'revision' event and not: ${event}`
       );

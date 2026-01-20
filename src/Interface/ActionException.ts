@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { randomUUID } from 'crypto';
-import { ActionError, ResultError, ActionResult } from './Action';
-import { Logger } from '../Logging/Logger';
+import { randomUUID } from "crypto";
+import { ActionError, ResultError, ActionResult } from "./Action";
+import { Logger } from "../Logging/Logger";
 
-const log = new Logger('ActionException');
+const log = new Logger("ActionException");
 
 /**
  * A way to catagorise different Exceptions.
@@ -18,12 +18,12 @@ export enum ActionExceptionKind {
    * understood and expected. These exceptions will never be logged to the error
    * level.
    */
-  Known = 'Known',
+  Known = "Known",
   /**
    * This kind is to be used for reporting unexpected or unknown exceptions
    * that the developers need to know about.
    */
-  Unknown = 'Unknown',
+  Unknown = "Unknown",
 }
 
 // TODO: I wonder if we could allow message to be JSX?
@@ -77,8 +77,8 @@ export class ActionException extends ActionError {
   }
 
   protected log(): void {
-    const logArguments: Parameters<InstanceType<typeof Logger>['info']> = [
-      'ActionException',
+    const logArguments: Parameters<InstanceType<typeof Logger>["info"]> = [
+      "ActionException",
       this.exceptionKind,
       this.uuid,
       this.message,

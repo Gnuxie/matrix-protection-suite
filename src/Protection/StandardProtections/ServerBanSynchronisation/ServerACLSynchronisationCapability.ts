@@ -6,27 +6,27 @@ import {
   StringRoomID,
   StringServerName,
   userServerName,
-} from '@the-draupnir-project/matrix-basic-types';
-import { RoomStateEventSender } from '../../../Client/RoomStateEventSender';
-import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
-import './ServerBanSynchronisationCapability'; // we need this so the interface is loaded AND yes we are going to move to description objects instead at some point FML.
-import { isError, Ok, Result } from '@gnuxie/typescript-result';
+} from "@the-draupnir-project/matrix-basic-types";
+import { RoomStateEventSender } from "../../../Client/RoomStateEventSender";
+import { ProtectedRoomsSet } from "../../ProtectedRoomsSet";
+import "./ServerBanSynchronisationCapability"; // we need this so the interface is loaded AND yes we are going to move to description objects instead at some point FML.
+import { isError, Ok, Result } from "@gnuxie/typescript-result";
 import {
   ActionException,
   ActionExceptionKind,
-} from '../../../Interface/ActionException';
-import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
+} from "../../../Interface/ActionException";
+import { ServerBanSynchronisationCapability } from "./ServerBanSynchronisationCapability";
 import {
   Capability,
   describeCapabilityProvider,
-} from '../../Capability/CapabilityProvider';
+} from "../../Capability/CapabilityProvider";
 import {
   RoomSetResult,
   RoomSetResultBuilder,
-} from '../../Capability/StandardCapability/RoomSetResult';
-import { ServerBanIntentProjection } from './ServerBanIntentProjection';
-import { ServerBanIntentProjectionNode } from './ServerBanIntentProjectionNode';
-import { ServerACLBuilder } from '../../../MatrixTypes/ServerACLBuilder';
+} from "../../Capability/StandardCapability/RoomSetResult";
+import { ServerBanIntentProjection } from "./ServerBanIntentProjection";
+import { ServerBanIntentProjectionNode } from "./ServerBanIntentProjectionNode";
+import { ServerACLBuilder } from "../../../MatrixTypes/ServerACLBuilder";
 
 class ServerACLQueue {
   private readonly pendingRoomChecks = new Map<
@@ -60,8 +60,8 @@ class ServerACLQueue {
       );
     }
     const existingStateEvent = stateRevision.getStateEvent(
-      'm.room.server_acl',
-      ''
+      "m.room.server_acl",
+      ""
     );
     if (
       existingStateEvent !== undefined &&
@@ -71,8 +71,8 @@ class ServerACLQueue {
     }
     const result = await this.stateEventSender.sendStateEvent(
       roomID,
-      'm.room.server_acl',
-      '',
+      "m.room.server_acl",
+      "",
       ACL.safeAclContent()
     );
     // Give some time between ACL updates to not spam rooms.
@@ -134,7 +134,7 @@ export function compileServerACL(
   projectionNode: ServerBanIntentProjectionNode
 ): ServerACLBuilder {
   const builder = new ServerACLBuilder(ourServerName).denyIpAddresses();
-  builder.allowServer('*');
+  builder.allowServer("*");
   for (const serverName of projectionNode.deny) {
     builder.denyServer(serverName);
   }
@@ -146,7 +146,7 @@ export class ServerACLSynchronisationCapability
 {
   public readonly requiredPermissions = [];
   public readonly requiredEventPermissions = [];
-  public readonly requiredStatePermissions = ['m.room.server_acl'];
+  public readonly requiredStatePermissions = ["m.room.server_acl"];
   private readonly queue: ServerACLQueue;
 
   public constructor(
@@ -210,10 +210,10 @@ export type ServerACLSynchronisationCapabilityContext = {
 };
 
 describeCapabilityProvider({
-  name: 'ServerACLSynchronisationCapability',
+  name: "ServerACLSynchronisationCapability",
   description:
-    'An implementation of ServerConsequences that uses m.room.server_acl to change access to rooms for servers.',
-  interface: 'ServerBanSynchronisationCapability',
+    "An implementation of ServerConsequences that uses m.room.server_acl to change access to rooms for servers.",
+  interface: "ServerBanSynchronisationCapability",
   factory(
     _protectionDescription,
     context: ServerACLSynchronisationCapabilityContext

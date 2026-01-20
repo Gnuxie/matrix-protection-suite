@@ -9,9 +9,9 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
-import { StateEvent } from './Events';
-import { EDStatic } from '../Interface/Static';
+import { StaticDecode, Type } from "@sinclair/typebox";
+import { StateEvent } from "./Events";
+import { EDStatic } from "../Interface/Static";
 
 export type PowerLevelsEventContent = StaticDecode<
   typeof PowerLevelsEventContent
@@ -20,45 +20,45 @@ export const PowerLevelsEventContent = Type.Object({
   ban: Type.Optional(
     Type.Number({
       description:
-        'The level required to ban a user. Defaults to 50 if unspecified.',
+        "The level required to ban a user. Defaults to 50 if unspecified.",
     })
   ),
   events: Type.Optional(Type.Record(Type.String(), Type.Number())),
   events_default: Type.Optional(
     Type.Number({
       description:
-        'The default level required to send message events. Can be\noverridden by the `events` key.  Defaults to 0 if unspecified.',
+        "The default level required to send message events. Can be\noverridden by the `events` key.  Defaults to 0 if unspecified.",
     })
   ),
   invite: Type.Optional(
     Type.Number({
       description:
-        'The level required to invite a user. Defaults to 0 if unspecified.',
+        "The level required to invite a user. Defaults to 0 if unspecified.",
     })
   ),
   kick: Type.Optional(
     Type.Number({
       description:
-        'The level required to kick a user. Defaults to 50 if unspecified.',
+        "The level required to kick a user. Defaults to 50 if unspecified.",
     })
   ),
   redact: Type.Optional(
     Type.Number({
       description:
-        'The level required to redact an event sent by another user. Defaults to 50 if unspecified.',
+        "The level required to redact an event sent by another user. Defaults to 50 if unspecified.",
     })
   ),
   state_default: Type.Optional(
     Type.Number({
       description:
-        'The default level required to send state events. Can be overridden\nby the `events` key. Defaults to 50 if unspecified.',
+        "The default level required to send state events. Can be overridden\nby the `events` key. Defaults to 50 if unspecified.",
     })
   ),
   users: Type.Optional(Type.Record(Type.String(), Type.Number())),
   users_default: Type.Optional(
     Type.Number({
       description:
-        'The power level for users in the room whose `user_id` is not mentioned in the `users` key. Defaults to 0 if\nunspecified.\n\n**Note**: When there is no `m.room.power_levels` event in the room, the room creator has\na power level of 100, and all other users have a power level of 0.     ',
+        "The power level for users in the room whose `user_id` is not mentioned in the `users` key. Defaults to 0 if\nunspecified.\n\n**Note**: When there is no `m.room.power_levels` event in the room, the room creator has\na power level of 100, and all other users have a power level of 0.     ",
     })
   ),
   notifications: Type.Optional(
@@ -67,7 +67,7 @@ export const PowerLevelsEventContent = Type.Object({
         room: Type.Optional(
           Type.Number({
             description:
-              'The level required to trigger an `@room` notification. Defaults to 50 if unspecified.',
+              "The level required to trigger an `@room` notification. Defaults to 50 if unspecified.",
           })
         ),
       },
@@ -78,12 +78,12 @@ export const PowerLevelsEventContent = Type.Object({
 
 export type PowerLevelsEvent = EDStatic<typeof PowerLevelsEvent>;
 export const PowerLevelsEvent = Type.Intersect([
-  Type.Omit(StateEvent(PowerLevelsEventContent), ['state_key', 'type']),
+  Type.Omit(StateEvent(PowerLevelsEventContent), ["state_key", "type"]),
   Type.Object({
     state_key: Type.String({
-      description: 'A zero-length string.',
-      pattern: '^$',
+      description: "A zero-length string.",
+      pattern: "^$",
     }),
-    type: Type.Literal('m.room.power_levels'),
+    type: Type.Literal("m.room.power_levels"),
   }),
 ]);

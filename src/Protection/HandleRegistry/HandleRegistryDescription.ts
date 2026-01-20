@@ -5,11 +5,11 @@
 import {
   AnyHandleDescription,
   HandleDataSourceType,
-} from './HandleDescription';
-import { SemanticType } from '../../Interface/SemanticType';
-import { Ok, Result } from '@gnuxie/typescript-result';
-import { HandleRegistry } from './HandleRegistry';
-import { OwnLifetime, StandardLifetime } from '../../Interface/Lifetime';
+} from "./HandleDescription";
+import { SemanticType } from "../../Interface/SemanticType";
+import { Ok, Result } from "@gnuxie/typescript-result";
+import { HandleRegistry } from "./HandleRegistry";
+import { OwnLifetime, StandardLifetime } from "../../Interface/Lifetime";
 
 export interface HandleRegistryDescription<
   TPluginContext = Record<string, unknown>,
@@ -37,17 +37,17 @@ export interface HandleRegistryDescription<
 }
 
 export const HandleRegistryDescriptionSemantics =
-  SemanticType<HandleRegistryDescription>('HandleRegistryDescription').Law({
+  SemanticType<HandleRegistryDescription>("HandleRegistryDescription").Law({
     descriptionBuilding: {
-      what: 'When a handle is registered and a new registry is returned, the original registry is not modified.',
-      why: 'Keeps the builder pattern clean and prevents bugs in downstream consumers',
+      what: "When a handle is registered and a new registry is returned, the original registry is not modified.",
+      why: "Keeps the builder pattern clean and prevents bugs in downstream consumers",
       law: "For empty RegistryDescription R and HandleDescription H, calling R.registerHandleDescription(H) => R' results in R.handleDescriptions = [] and R'.handleDescriptions = [H]",
       async check(makeSubject) {
         const registry = (await makeSubject()).expect(
-          'Should be able to make the subject'
+          "Should be able to make the subject"
         );
         const handle = {
-          handleName: 'handle',
+          handleName: "handle",
           dataSourceType: HandleDataSourceType.Context,
           establish: () => Ok(undefined),
         };
@@ -58,13 +58,13 @@ export const HandleRegistryDescriptionSemantics =
       },
     },
     registryFactory: {
-      what: 'A HandleRegistryDescription can produce HandleRegistry instances for a given context.',
-      why: 'Keeps the HandleRegistry abstraction clean by binding the context in construction rather than later on',
-      law: 'For RegistryDescription R with handle union H, calling R.registryForContext(L, C) produces a HandleRegistry<R,C>',
+      what: "A HandleRegistryDescription can produce HandleRegistry instances for a given context.",
+      why: "Keeps the HandleRegistry abstraction clean by binding the context in construction rather than later on",
+      law: "For RegistryDescription R with handle union H, calling R.registryForContext(L, C) produces a HandleRegistry<R,C>",
       async check(makeSubject) {
         let establishCount = 0;
         const contextHandle = {
-          handleName: 'handle',
+          handleName: "handle",
           dataSourceType: HandleDataSourceType.Context,
           establish: () => {
             establishCount += 1;
@@ -72,7 +72,7 @@ export const HandleRegistryDescriptionSemantics =
           },
         } as const;
         const registryDescription = (await makeSubject()).expect(
-          'Should be able to make the subject'
+          "Should be able to make the subject"
         );
         const descriptionWithHandle =
           registryDescription.registerHandleDescription(contextHandle);
@@ -81,7 +81,7 @@ export const HandleRegistryDescriptionSemantics =
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         await using _registry = descriptionWithHandle
           .registryForContext(lifetime, context)
-          .expect('Should be able to construct a registry for the context');
+          .expect("Should be able to construct a registry for the context");
         expect(establishCount).toBe(1);
       },
     },

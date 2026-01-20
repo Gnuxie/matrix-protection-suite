@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Result } from '@gnuxie/typescript-result';
+import { Result } from "@gnuxie/typescript-result";
 
 export interface PaginationIteratorOptions<ChunkItem> {
   forEachItemCB: (item: ChunkItem) => void;

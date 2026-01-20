@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionError, ActionResult, ResultError } from './Action';
+import { ActionError, ActionResult, ResultError } from "./Action";
 
 export class MultipleErrors extends ActionError {
   constructor(

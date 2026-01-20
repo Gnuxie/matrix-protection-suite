@@ -7,23 +7,23 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { StringServerName } from '@the-draupnir-project/matrix-basic-types';
-import { ProjectionNode } from '../../../Projection/ProjectionNode';
-import { PolicyListBridgeProjectionNode } from './PolicyListBridgeProjection';
+import { StringServerName } from "@the-draupnir-project/matrix-basic-types";
+import { ProjectionNode } from "../../../Projection/ProjectionNode";
+import { PolicyListBridgeProjectionNode } from "./PolicyListBridgeProjection";
 import {
   PolicyRuleChange,
   PolicyRuleChangeType,
-} from '../../../PolicyList/PolicyRuleChange';
-import { ULID, ULIDFactory } from 'ulidx';
+} from "../../../PolicyList/PolicyRuleChange";
+import { ULID, ULIDFactory } from "ulidx";
 import {
   GlobPolicyRule,
   LiteralPolicyRule,
   PolicyRuleMatchType,
   Recommendation,
-} from '../../../PolicyList/PolicyRule';
-import { Map as PersistentMap, List } from 'immutable';
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { ListMultiMap } from '../../../Projection/ListMultiMap';
+} from "../../../PolicyList/PolicyRule";
+import { Map as PersistentMap, List } from "immutable";
+import { PolicyRuleType } from "../../../MatrixTypes/PolicyEvents";
+import { ListMultiMap } from "../../../Projection/ListMultiMap";
 
 export type ServerBanIntentProjectionDelta = {
   deny: StringServerName[];
@@ -46,11 +46,11 @@ export type ServerBanIntentProjectionNode = ProjectionNode<
 export const ServerBanIntentProjectionHelper = Object.freeze({
   reducePolicyDelta(
     input: PolicyRuleChange[]
-  ): Pick<ServerBanIntentProjectionDelta, 'add' | 'remove'> {
-    const output: Pick<ServerBanIntentProjectionDelta, 'add' | 'remove'> = {
+  ): Pick<ServerBanIntentProjectionDelta, "add" | "remove"> {
+    const output: Pick<ServerBanIntentProjectionDelta, "add" | "remove"> = {
       add: [],
       remove: [],
-    } satisfies Pick<ServerBanIntentProjectionDelta, 'add' | 'remove'>;
+    } satisfies Pick<ServerBanIntentProjectionDelta, "add" | "remove">;
     for (const change of input) {
       if (change.rule.kind !== PolicyRuleType.Server) {
         continue;
@@ -66,7 +66,7 @@ export const ServerBanIntentProjectionHelper = Object.freeze({
         case PolicyRuleChangeType.Modified: {
           output.add.push(change.rule);
           if (change.previousRule === undefined) {
-            throw new TypeError('Things are very wrong');
+            throw new TypeError("Things are very wrong");
           }
           output.remove.push(change.previousRule as LiteralPolicyRule);
           break;
@@ -81,7 +81,7 @@ export const ServerBanIntentProjectionHelper = Object.freeze({
   },
 
   reduceIntentDelta(
-    input: Pick<ServerBanIntentProjectionDelta, 'add' | 'remove'>,
+    input: Pick<ServerBanIntentProjectionDelta, "add" | "remove">,
     policies: PersistentMap<
       StringServerName,
       List<GlobPolicyRule | LiteralPolicyRule>
@@ -101,9 +101,7 @@ export const ServerBanIntentProjectionHelper = Object.freeze({
   },
 });
 
-export class StandardServerBanIntentProjectionNode
-  implements ServerBanIntentProjectionNode
-{
+export class StandardServerBanIntentProjectionNode implements ServerBanIntentProjectionNode {
   public readonly ulid: ULID;
   constructor(
     private readonly ulidFactory: ULIDFactory,
@@ -134,7 +132,7 @@ export class StandardServerBanIntentProjectionNode
     PolicyListBridgeProjectionNode,
   ]): ServerBanIntentProjectionDelta {
     if (!this.isEmpty()) {
-      throw new TypeError('Cannot reduce initial inputs when inialised');
+      throw new TypeError("Cannot reduce initial inputs when inialised");
     }
     const serverPolicies = [
       ...policyListRevision.allRulesOfType(

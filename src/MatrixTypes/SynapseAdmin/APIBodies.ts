@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/synapse
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
-import { StringUserIDSchema } from '../StringlyTypedMatrix';
+import { StaticDecode, Type } from "@sinclair/typebox";
+import { StringUserIDSchema } from "../StringlyTypedMatrix";
 
 export type SynapseAdminGetUserAdminResponse = StaticDecode<
   typeof SynapseAdminGetUserAdminResponse
@@ -31,31 +31,31 @@ export type SynapseAdminDeleteRoomRequest = StaticDecode<
 export const SynapseAdminDeleteRoomRequest = Type.Object({
   new_room_user_id: Type.Union([Type.Optional(StringUserIDSchema)], {
     description:
-      ' If set, a new room will be created with this user ID as the creator and admin, and all users in the old room will be moved into that room. If not set, no new room will be created and the users will just be removed from the old room. The user ID must be on the local server, but does not necessarily have to belong to a registered user.',
+      " If set, a new room will be created with this user ID as the creator and admin, and all users in the old room will be moved into that room. If not set, no new room will be created and the users will just be removed from the old room. The user ID must be on the local server, but does not necessarily have to belong to a registered user.",
   }),
   room_name: Type.Optional(
     Type.String({
       description:
-        'A string representing the name of the room that new users will be invited to. Defaults to Content Violation Notification',
+        "A string representing the name of the room that new users will be invited to. Defaults to Content Violation Notification",
     })
   ),
   message: Type.Optional(
     Type.String({
       description:
-        'A string containing the first message that will be sent as new_room_user_id in the new room. Ideally this will clearly convey why the original room was shut down. Defaults to Sharing illegal content on this server is not permitted and rooms in violation will be blocked.',
+        "A string containing the first message that will be sent as new_room_user_id in the new room. Ideally this will clearly convey why the original room was shut down. Defaults to Sharing illegal content on this server is not permitted and rooms in violation will be blocked.",
     })
   ),
   block: Type.Optional(
     Type.Boolean({
       description:
-        'block - Optional. If set to true, this room will be added to a blocking list, preventing future attempts to join the room. Defaults to true. Defaults to false in Synapse (annoyingly)',
+        "block - Optional. If set to true, this room will be added to a blocking list, preventing future attempts to join the room. Defaults to true. Defaults to false in Synapse (annoyingly)",
       default: true,
     })
   ),
   purge: Type.Optional(
     Type.Boolean({
       description:
-        'If set to true, it will remove all traces of the room from your database. Defaults to true.',
+        "If set to true, it will remove all traces of the room from your database. Defaults to true.",
       default: true,
     })
   ),
