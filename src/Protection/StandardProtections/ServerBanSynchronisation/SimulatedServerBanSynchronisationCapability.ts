@@ -2,19 +2,19 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Ok } from '@gnuxie/typescript-result';
-import { randomEventID } from '../../../TestUtilities/EventGeneration';
-import { RoomStateEventSender } from '../../../Client/RoomStateEventSender';
-import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
+import { Ok } from "@gnuxie/typescript-result";
+import { randomEventID } from "../../../TestUtilities/EventGeneration";
+import { RoomStateEventSender } from "../../../Client/RoomStateEventSender";
+import { ServerBanSynchronisationCapability } from "./ServerBanSynchronisationCapability";
 import {
   Capability,
   describeCapabilityProvider,
-} from '../../Capability/CapabilityProvider';
+} from "../../Capability/CapabilityProvider";
 import {
   ServerACLSynchronisationCapability,
   ServerACLSynchronisationCapabilityContext,
-} from './ServerACLSynchronisationCapability';
-import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
+} from "./ServerACLSynchronisationCapability";
+import { ProtectedRoomsSet } from "../../ProtectedRoomsSet";
 
 const FakeStateSender = Object.freeze({
   sendStateEvent(_room, _stateType, _stateKey, _content) {
@@ -29,30 +29,30 @@ export class SimulatedServerBanSynchronisationCapability
   public readonly requiredEventPermissions = [];
   public readonly requiredStatePermissions = [];
   public readonly isSimulated = true;
-  private readonly simulatedCapability = new ServerACLSynchronisationCapability(
-    FakeStateSender,
-    this.protectedRoomsSet
-  );
+  private readonly simulatedCapability;
+  public readonly outcomeFromIntentInRoom;
+  public readonly outcomeFromIntentInRoomSet;
   public constructor(private readonly protectedRoomsSet: ProtectedRoomsSet) {
-    // nothing to do.
+    this.simulatedCapability = new ServerACLSynchronisationCapability(
+      FakeStateSender,
+      this.protectedRoomsSet
+    );
+    this.outcomeFromIntentInRoom =
+      this.simulatedCapability.outcomeFromIntentInRoom.bind(
+        this.simulatedCapability
+      );
+    this.outcomeFromIntentInRoomSet =
+      this.simulatedCapability.outcomeFromIntentInRoomSet.bind(
+        this.simulatedCapability
+      );
   }
-
-  public outcomeFromIntentInRoom =
-    this.simulatedCapability.outcomeFromIntentInRoom.bind(
-      this.simulatedCapability
-    );
-
-  public outcomeFromIntentInRoomSet =
-    this.simulatedCapability.outcomeFromIntentInRoomSet.bind(
-      this.simulatedCapability
-    );
 }
 
 describeCapabilityProvider({
-  name: 'SimulatedServerBanSynchronisationCapability',
+  name: "SimulatedServerBanSynchronisationCapability",
   description:
-    'Simulates banning servers in protected rooms, but has no real effects',
-  interface: 'ServerBanSynchronisationCapability',
+    "Simulates banning servers in protected rooms, but has no real effects",
+  interface: "ServerBanSynchronisationCapability",
   isSimulated: true,
   factory(_description, context: ServerACLSynchronisationCapabilityContext) {
     return new SimulatedServerBanSynchronisationCapability(

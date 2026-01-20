@@ -2,48 +2,48 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { randomUUID } from 'crypto';
-import { StateEvent } from '../MatrixTypes/Events';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { Membership } from '../Membership/MembershipChange';
-import { StandardRoomStateRevision } from './StandardRoomStateRevision';
-import { isError } from '../Interface/Action';
-import { Recommendation } from '../PolicyList/PolicyRule';
-import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { StandardRoomMembershipRevision } from '../Membership/StandardRoomMembershipRevision';
-import { StandardPolicyRoomRevision } from '../PolicyList/StandardPolicyRoomRevision';
+import { randomUUID } from "crypto";
+import { StateEvent } from "../MatrixTypes/Events";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { randomRoomID, randomUserID } from "../TestUtilities/EventGeneration";
+import { Membership } from "../Membership/MembershipChange";
+import { StandardRoomStateRevision } from "./StandardRoomStateRevision";
+import { isError } from "../Interface/Action";
+import { Recommendation } from "../PolicyList/PolicyRule";
+import { PolicyRuleEvent, PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { StandardRoomMembershipRevision } from "../Membership/StandardRoomMembershipRevision";
+import { StandardPolicyRoomRevision } from "../PolicyList/StandardPolicyRoomRevision";
 import {
   ProtectedRoomsSet,
   StandardProtectedRoomsSet,
-} from '../Protection/ProtectedRoomsSet';
-import { FakeProtectedRoomsConfig } from '../Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig';
-import { FakeRoomStateRevisionIssuer } from './FakeRoomStateRevisionIssuer';
-import { FakeRoomStateManager } from './FakeRoomStateManager';
-import { StandardSetRoomMembership } from '../Membership/StandardSetRoomMembership';
-import { FakeRoomMembershipManager } from '../Membership/FakeRoomMembershipManager';
-import { FakePolicyRoomManager } from './FakePolicyRoomManager';
-import { StandardSetRoomState } from './StandardSetRoomState';
-import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
-import { FakeRoomMembershipRevisionIssuer } from '../Membership/FakeRoomMembershipRevisionIssuer';
-import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
-import { FakeProtectionsManager } from '../Protection/ProtectionsManager/FakeProtectionsManager';
-import { StandardProtectedRoomsManager } from '../Protection/ProtectedRoomsManager/StandardProtectedRoomsManager';
-import { DummyRoomJoiner } from '../Client/DummyClientPlatform';
-import { Logger } from '../Logging/Logger';
+} from "../Protection/ProtectedRoomsSet";
+import { FakeProtectedRoomsConfig } from "../Protection/ProtectedRoomsConfig/FakeProtectedRoomsConfig";
+import { FakeRoomStateRevisionIssuer } from "./FakeRoomStateRevisionIssuer";
+import { FakeRoomStateManager } from "./FakeRoomStateManager";
+import { StandardSetRoomMembership } from "../Membership/StandardSetRoomMembership";
+import { FakeRoomMembershipManager } from "../Membership/FakeRoomMembershipManager";
+import { FakePolicyRoomManager } from "./FakePolicyRoomManager";
+import { StandardSetRoomState } from "./StandardSetRoomState";
+import { FakePolicyRoomRevisionIssuer } from "../PolicyList/FakePolicyRoomRevisionIssuer";
+import { FakeRoomMembershipRevisionIssuer } from "../Membership/FakeRoomMembershipRevisionIssuer";
+import { buildPolicyEvent } from "../PolicyList/PolicyRuleEventBuilder";
+import { FakeProtectionsManager } from "../Protection/ProtectionsManager/FakeProtectionsManager";
+import { StandardProtectedRoomsManager } from "../Protection/ProtectedRoomsManager/StandardProtectedRoomsManager";
+import { DummyRoomJoiner } from "../Client/DummyClientPlatform";
+import { Logger } from "../Logging/Logger";
 import {
   MatrixRoomID,
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { FakePersistentConfigBackend } from '../Interface/FakePersistentMatrixData';
-import { MjolnirPolicyRoomsEncodedShape } from '../Protection/PolicyListConfig/MjolnirPolicyRoomsDescription';
-import { MjolnirPolicyRoomsConfig } from '../Protection/PolicyListConfig/MjolnirPolicyRoomsConfig';
-import { StandardWatchedPolicyRooms } from '../Protection/WatchedPolicyRooms/StandardWatchedPolicyRooms';
-import { DefaultEventDecoder } from '../MatrixTypes/DefaultEventDecoder';
-import { DefaultMixinExtractor } from '../SafeMatrixEvents/MatrixEventMixinDescriptions/DefaultMixinExtractor';
+} from "@the-draupnir-project/matrix-basic-types";
+import { FakePersistentConfigBackend } from "../Interface/FakePersistentMatrixData";
+import { MjolnirPolicyRoomsEncodedShape } from "../Protection/PolicyListConfig/MjolnirPolicyRoomsDescription";
+import { MjolnirPolicyRoomsConfig } from "../Protection/PolicyListConfig/MjolnirPolicyRoomsConfig";
+import { StandardWatchedPolicyRooms } from "../Protection/WatchedPolicyRooms/StandardWatchedPolicyRooms";
+import { DefaultEventDecoder } from "../MatrixTypes/DefaultEventDecoder";
+import { DefaultMixinExtractor } from "../SafeMatrixEvents/MatrixEventMixinDescriptions/DefaultMixinExtractor";
 
-const log = new Logger('DeclareRoomState');
+const log = new Logger("DeclareRoomState");
 
 // TODO:
 // all describe* methods need to return description objects, not concrete
@@ -125,14 +125,14 @@ export async function describeProtectedRoomsSet({
       policyListConfigAccountData,
       DummyRoomJoiner
     )
-  ).expect('Unable to create policy rooms config backend');
+  ).expect("Unable to create policy rooms config backend");
   const watchedPolicyRooms = (
     await StandardWatchedPolicyRooms.create(
       policyRoomsConfig,
       policyRoomManager,
       DummyRoomJoiner
     )
-  ).expect('unable to create watched policy rooms');
+  ).expect("unable to create watched policy rooms");
   const protectedRoomsSet = new StandardProtectedRoomsSet(
     watchedPolicyRooms,
     protectedRoomsManager.ok,
@@ -173,7 +173,7 @@ export function describeRoomStateEvents({
   stateDescriptions = [],
   membershipDescriptions = [],
   policyDescriptions = [],
-}: Omit<DescribeRoomOptions, 'room'> & {
+}: Omit<DescribeRoomOptions, "room"> & {
   room: MatrixRoomID;
 }): RoomStateDescription {
   const membershipEvents = membershipDescriptions.map((description) =>
@@ -278,7 +278,7 @@ export function describeRoomMember({
       displayname,
       reason,
     },
-    type: 'm.room.member',
+    type: "m.room.member",
     room_id,
   }) as MembershipEvent;
 }
@@ -300,7 +300,7 @@ export function describePolicyRule({
   room_id,
   type,
   entity,
-  reason = '<no reason supplied>',
+  reason = "<no reason supplied>",
   recommendation = Recommendation.Ban,
   copyFrom,
   remove,
@@ -354,7 +354,7 @@ export type DescribeStateEventOptions = {
 
 export function describeStateEvent({
   sender,
-  state_key = '',
+  state_key = "",
   type,
   content = {},
   room_id = `!${randomUUID()}:example.com` as StringRoomID,
@@ -370,9 +370,7 @@ export function describeStateEvent({
   };
   const decodeResult = DefaultEventDecoder.decodeStateEvent(rawEventJSON);
   if (isError(decodeResult)) {
-    throw new TypeError(
-      `Something is wrong with the event generator [${decodeResult.error.errors.toString()}]`
-    );
+    throw new TypeError(`Something is wrong with the event generator`);
   } else {
     return decodeResult.ok;
   }

@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { Logger } from '../Logging/Logger';
-import { RoomEvent } from '../MatrixTypes/Events';
+import { StringRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { Logger } from "../Logging/Logger";
+import { RoomEvent } from "../MatrixTypes/Events";
 
-const log = new Logger('RoomPauser');
+const log = new Logger("RoomPauser");
 
 type RoomPauseTaskCB = () => Promise<unknown>;
 type RoomPauseThenCB = (roomID: StringRoomID, event: RoomEvent) => void;
@@ -73,7 +73,7 @@ export class StandardRoomPauser implements RoomPauser {
       () => {
         this.unpause(roomID, then);
       },
-      (reason) => {
+      (reason: unknown) => {
         log.error(
           `RoomPause task was rejected, this should not happen and the task should catch all exceptions.`,
           reason

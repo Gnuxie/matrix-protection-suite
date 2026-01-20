@@ -8,22 +8,22 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { SHA256 } from 'crypto-js';
-import Base64 from 'crypto-js/enc-base64';
-import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
-import { RoomStateEventSender } from '../Client/RoomStateEventSender';
-import { PolicyListRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyRoomEditor, TakedownPolicyOption } from './PolicyRoomEditor';
+import { SHA256 } from "crypto-js";
+import Base64 from "crypto-js/enc-base64";
+import { RoomStateRevisionIssuer } from "../StateTracking/StateRevisionIssuer";
+import { RoomStateEventSender } from "../Client/RoomStateEventSender";
+import { PolicyListRevisionIssuer } from "./PolicyListRevisionIssuer";
+import { PolicyRoomEditor, TakedownPolicyOption } from "./PolicyRoomEditor";
 import {
   PolicyRuleType,
   variantsForPolicyRuleType,
-} from '../MatrixTypes/PolicyEvents';
-import { PolicyRule, Recommendation } from './PolicyRule';
-import { ActionResult, Ok, isError } from '../Interface/Action';
+} from "../MatrixTypes/PolicyEvents";
+import { PolicyRule, Recommendation } from "./PolicyRule";
+import { ActionResult, Ok, isError } from "../Interface/Action";
 import {
   MatrixRoomID,
   StringEventID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export class StandardPolicyRoomEditor implements PolicyRoomEditor {
   constructor(
@@ -106,7 +106,7 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
     ruleType: PolicyRuleType,
     recommendation: Recommendation,
     entity: string,
-    _reason?: string | undefined
+    _reason?: string
   ): Promise<ActionResult<PolicyRule[]>> {
     const eventTypesToCheck = variantsForPolicyRuleType(ruleType);
     const sendNullState = async (
@@ -174,13 +174,13 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
   public async banEntity(
     ruleType: PolicyRuleType,
     entity: string,
-    reason?: string | undefined
+    reason?: string
   ): Promise<ActionResult<string>> {
     return await this.createPolicy(
       ruleType,
       Recommendation.Ban,
       entity,
-      reason ?? '<no reason supplied>',
+      reason ?? "<no reason supplied>",
       {}
     );
   }
@@ -199,7 +199,7 @@ export class StandardPolicyRoomEditor implements PolicyRoomEditor {
         recommendation,
         ...(options.shouldHash
           ? {
-              ['org.matrix.msc4205.hashes']: {
+              ["org.matrix.msc4205.hashes"]: {
                 sha256: Base64.stringify(SHA256(entity)),
               },
             }

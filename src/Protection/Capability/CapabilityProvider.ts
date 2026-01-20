@@ -8,18 +8,18 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { Type } from '@sinclair/typebox';
-import { DescriptionMeta } from '../DescriptionMeta';
+import { Type } from "@sinclair/typebox";
+import { DescriptionMeta } from "../DescriptionMeta";
 import {
   CapabilityInterfaceDescription,
   findCapabilityInterface,
-} from './CapabilityInterface';
+} from "./CapabilityInterface";
 import {
   CapabilityProviderSet,
   CapabilitySet,
   GenericCapabilityDescription,
-} from './CapabilitySet';
-import { PowerLevelPermission } from '../../Client/PowerLevelsMirror';
+} from "./CapabilitySet";
+import { PowerLevelPermission } from "../../Client/PowerLevelsMirror";
 
 /**
  * We don't want to give protections access to the capability provider
@@ -106,7 +106,11 @@ export function describeCapabilityProvider<Context = unknown>({
   description: string;
   interface: string;
   isSimulated?: boolean;
-  factory(description: DescriptionMeta, context: Context): Capability;
+  factory: (
+    this: unknown,
+    description: DescriptionMeta,
+    context: Context
+  ) => Capability;
 }): void {
   const entry = findCapabilityInterface(interfaceName);
   if (entry === undefined) {

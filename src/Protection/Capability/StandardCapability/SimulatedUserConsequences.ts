@@ -2,25 +2,25 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Ok, Result } from '@gnuxie/typescript-result';
-import { RoomBanner } from '../../../Client/RoomBanner';
-import { SetRoomMembership } from '../../../Membership/SetRoomMembership';
-import { Capability, describeCapabilityProvider } from '../CapabilityProvider';
+import { Ok, Result } from "@gnuxie/typescript-result";
+import { RoomBanner } from "../../../Client/RoomBanner";
+import { SetRoomMembership } from "../../../Membership/SetRoomMembership";
+import { Capability, describeCapabilityProvider } from "../CapabilityProvider";
 import {
   StandardUserConsequences,
   StandardUserConsequencesContext,
-} from './StandardUserConsequences';
-import { TargetMember, UserConsequences } from './UserConsequences';
-import { RoomUnbanner } from '../../../Client/RoomUnbanner';
+} from "./StandardUserConsequences";
+import { TargetMember, UserConsequences } from "./UserConsequences";
+import { RoomUnbanner } from "../../../Client/RoomUnbanner";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   ResultForUsersInRoom,
   ResultForUsersInSet,
   RoomSetResult,
-} from './RoomSetResult';
+} from "./RoomSetResult";
 
 const FakeRoomBanner = Object.freeze({
   banUser(_room, _userID, _reason) {
@@ -39,13 +39,13 @@ export class SimulatedUserConsequences implements UserConsequences, Capability {
   public readonly requiredEventPermissions = [];
   public readonly requiredStatePermissions = [];
   public readonly isSimulated = true;
-  private readonly simulatedCapability = new StandardUserConsequences(
-    FakeRoomBanner,
-    FakeRoomUnbanner,
-    this.setMembership
-  );
+  private readonly simulatedCapability;
   public constructor(private readonly setMembership: SetRoomMembership) {
-    // nothing to do.
+    this.simulatedCapability = new StandardUserConsequences(
+      FakeRoomBanner,
+      FakeRoomUnbanner,
+      this.setMembership
+    );
   }
   public async consequenceForUserInRoom(
     roomID: StringRoomID,
@@ -81,10 +81,10 @@ export class SimulatedUserConsequences implements UserConsequences, Capability {
 }
 
 describeCapabilityProvider({
-  name: 'SimulatedUserConsequences',
+  name: "SimulatedUserConsequences",
   description:
-    'Simulates banning users from the protected rooms set, but has no real effects',
-  interface: 'UserConsequences',
+    "Simulates banning users from the protected rooms set, but has no real effects",
+  interface: "UserConsequences",
   isSimulated: true,
   factory(_description, context: StandardUserConsequencesContext) {
     return new SimulatedUserConsequences(context.setMembership);
