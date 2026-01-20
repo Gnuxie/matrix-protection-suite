@@ -8,18 +8,17 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { EventEmitter } from 'events';
-import { PolicyListRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { StandardPolicyListRevision } from '../PolicyList/StandardPolicyListRevision';
+import { EventEmitter } from "events";
+import { PolicyListRevisionIssuer } from "../PolicyList/PolicyListRevisionIssuer";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
+import { StandardPolicyListRevision } from "../PolicyList/StandardPolicyListRevision";
 import {
   PolicyRuleChange,
   PolicyRuleChangeType,
-} from '../PolicyList/PolicyRuleChange';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+} from "../PolicyList/PolicyRuleChange";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 
-export interface DirectPropagationPolicyListRevisionIssuer
-  extends PolicyListRevisionIssuer {
+export interface DirectPropagationPolicyListRevisionIssuer extends PolicyListRevisionIssuer {
   addIssuer(issuer: PolicyListRevisionIssuer): void;
   removeIssuer(issuer: PolicyListRevisionIssuer): void;
   unregisterListeners(): void;
@@ -59,7 +58,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
       this.revision = this.revision.reviseFromChanges(
         this.filterChanges(changes)
       );
-      this.emit('revision', this.revision, changes, oldRevision);
+      this.emit("revision", this.revision, changes, oldRevision);
     }
   }
 
@@ -68,7 +67,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
   }
   unregisterListeners(): void {
     for (const issuer of this.policyListRevisionIssuers) {
-      issuer.off('revision', this.revisionListener);
+      issuer.off("revision", this.revisionListener);
     }
   }
 
@@ -76,7 +75,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     const references: MatrixRoomID[] = [];
     for (const issuer of this.policyListRevisionIssuers) {
       // i don't like this adhoc structural typing, but we don't really have a choice.
-      if ('room' in issuer && issuer.room instanceof MatrixRoomID) {
+      if ("room" in issuer && issuer.room instanceof MatrixRoomID) {
         references.push(issuer.room);
       }
     }
@@ -118,7 +117,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
     let changes: PolicyRuleChange[] = [];
     for (const issuer of issuers) {
       this.policyListRevisionIssuers.add(issuer);
-      issuer.on('revision', this.revisionListener);
+      issuer.on("revision", this.revisionListener);
       changes = changes.concat(
         this.previewIncorperationOfRevision(issuer.currentRevision)
       );
@@ -131,7 +130,7 @@ export class StandardDirectPropagationPolicyListRevisionIssuer
   }
 
   public removeIssuer(issuer: PolicyListRevisionIssuer): void {
-    issuer.off('revision', this.revisionListener);
+    issuer.off("revision", this.revisionListener);
     this.policyListRevisionIssuers.delete(issuer);
     const changes = this.previewRemovalOfRevision(issuer.currentRevision);
     this.handleRevision(this.revision, changes);

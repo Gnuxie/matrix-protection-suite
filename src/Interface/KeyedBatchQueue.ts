@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Result } from '@gnuxie/typescript-result';
-import { Task } from './Task';
-import { Logger } from '../Logging/Logger';
-import { ActionException, ActionExceptionKind } from './ActionException';
+import { Result } from "@gnuxie/typescript-result";
+import { Task } from "./Task";
+import { Logger } from "../Logging/Logger";
+import { ActionException, ActionExceptionKind } from "./ActionException";
 
-const log = new Logger('KeyedBatchQueue');
+const log = new Logger("KeyedBatchQueue");
 
 export type KeyedBatchRequest<Value extends string = string> = {
   value: Value;
@@ -73,10 +73,10 @@ export class KeyedBatchQueue<
         request.resolve(processResult);
       }
     } catch (error) {
-      log.error('Uncaught error in batch processor', error);
+      log.error("Uncaught error in batch processor", error);
       if (error instanceof Error) {
         const errorResult = ActionException.Result(
-          'Uncaught error in batch processor',
+          "Uncaught error in batch processor",
           {
             exception: error,
             exceptionKind: ActionExceptionKind.Unknown,

@@ -2,18 +2,18 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { DescriptionMeta } from '../DescriptionMeta';
-import { findCapabilityContextGlue } from './CapabilityContextGlue';
-import { findCapabilityInterface } from './CapabilityInterface';
+import { DescriptionMeta } from "../DescriptionMeta";
+import { findCapabilityContextGlue } from "./CapabilityContextGlue";
+import { findCapabilityInterface } from "./CapabilityInterface";
 import {
   Capability,
   CapabilityProviderDescription,
-} from './CapabilityProvider';
+} from "./CapabilityProvider";
 
 export interface CapabilityRendererDescription<
   TCapabilityInterface = unknown,
   Context = unknown,
-> extends Omit<CapabilityProviderDescription<Context>, 'factory'> {
+> extends Omit<CapabilityProviderDescription<Context>, "factory"> {
   factory(
     protectionDescription: DescriptionMeta,
     context: Context,
@@ -72,7 +72,7 @@ export function describeCapabilityRenderer<
   factory: CapabilityRendererDescription<
     TCapabilityInterface,
     Context
-  >['factory'];
+  >["factory"];
   isDefaultForInterface?: true;
 }): void {
   const entry = findCapabilityInterface(interfaceName);

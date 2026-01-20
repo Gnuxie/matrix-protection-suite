@@ -12,20 +12,20 @@ import {
   PersistentConfigBackend,
   PersistentConfigData,
   StandardPersistentConfigData,
-} from '../../Config/PersistentConfigData';
-import { ActionResult, Ok, isError, isOk } from '../../Interface/Action';
-import { LoggableConfigTracker } from '../../Interface/LoggableConfig';
-import { SchemedDataManager } from '../../Interface/SchemedMatrixData';
-import { Logger } from '../../Logging/Logger';
-import { ProtectionDescription, findProtection } from '../Protection';
+} from "../../Config/PersistentConfigData";
+import { ActionResult, Ok, isError, isOk } from "../../Interface/Action";
+import { LoggableConfigTracker } from "../../Interface/LoggableConfig";
+import { SchemedDataManager } from "../../Interface/SchemedMatrixData";
+import { Logger } from "../../Logging/Logger";
+import { ProtectionDescription, findProtection } from "../Protection";
 import {
   MjolnirEnabledProtectionsDescription,
   MjolnirEnabledProtectionsEncodedShape,
-} from './MjolnirEnabledProtectionsDescription';
-import { MjolnirEnabledProtectionsEvent } from './MjolnirEnabledProtectionsEvent';
-import { ProtectionsConfig, ProtectionsInfo } from './ProtectionsConfig';
+} from "./MjolnirEnabledProtectionsDescription";
+import { MjolnirEnabledProtectionsEvent } from "./MjolnirEnabledProtectionsEvent";
+import { ProtectionsConfig, ProtectionsInfo } from "./ProtectionsConfig";
 
-const log = new Logger('StandardProtectionsConfig');
+const log = new Logger("StandardProtectionsConfig");
 
 export type MissingProtectionCB = (protectionName: string) => void;
 

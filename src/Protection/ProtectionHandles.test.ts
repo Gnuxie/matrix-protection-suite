@@ -2,24 +2,24 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Type } from '@sinclair/typebox';
-import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
-import { StandardConfigDescription } from '../Config/ConfigDescription';
-import { Ok, isError } from '../Interface/Action';
-import { Logger } from '../Logging/Logger';
-import { PowerLevelsEventContent } from '../MatrixTypes/PowerLevels';
-import { Membership } from '../Membership/MembershipChange';
+import { Type } from "@sinclair/typebox";
+import { PowerLevelPermission } from "../Client/PowerLevelsMirror";
+import { StandardConfigDescription } from "../Config/ConfigDescription";
+import { Ok, isError } from "../Interface/Action";
+import { Logger } from "../Logging/Logger";
+import { PowerLevelsEventContent } from "../MatrixTypes/PowerLevels";
+import { Membership } from "../Membership/MembershipChange";
 import {
   describeProtectedRoomsSet,
   describeRoom,
-} from '../StateTracking/DeclareRoomState';
-import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { ProtectionDescription } from './Protection';
-import { RoomCreateContent } from '../MatrixTypes/CreateRoom';
+} from "../StateTracking/DeclareRoomState";
+import { randomRoomID, randomUserID } from "../TestUtilities/EventGeneration";
+import { ProtectionDescription } from "./Protection";
+import { RoomCreateContent } from "../MatrixTypes/CreateRoom";
 
-const log = new Logger('ProtectionHandles.test');
+const log = new Logger("ProtectionHandles.test");
 
-test('handlePermissionRequirementsMet is called when a new room is added with met permissions', async function () {
+test("handlePermissionRequirementsMet is called when a new room is added with met permissions", async function () {
   const userID = randomUserID();
   const { protectedRoomsSet, roomStateManager, roomMembershipManager } =
     await describeProtectedRoomsSet({
@@ -37,26 +37,26 @@ test('handlePermissionRequirementsMet is called when a new room is added with me
     stateDescriptions: [
       {
         content: {
-          room_version: '11',
+          room_version: "11",
         } satisfies RoomCreateContent,
         sender: userID,
-        type: 'm.room.create',
-        state_key: '',
+        type: "m.room.create",
+        state_key: "",
       },
       {
         content: {
           users_default: 100,
           ban: 0,
         } as PowerLevelsEventContent,
-        type: 'm.room.power_levels',
+        type: "m.room.power_levels",
         sender: userID,
       },
     ],
   });
   let handleCalled = false;
   const protectionDescription: ProtectionDescription = {
-    name: 'test',
-    description: 'test description',
+    name: "test",
+    description: "test description",
     capabilities: {},
     defaultCapabilities: {},
     protectionSettings: new StandardConfigDescription(Type.Object({})),

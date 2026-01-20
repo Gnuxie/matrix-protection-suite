@@ -2,25 +2,25 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticDecode } from '@sinclair/typebox';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+import { StaticDecode } from "@sinclair/typebox";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
 import {
   Membership,
   MembershipChange,
   membershipChangeType,
   profileChangeType,
-} from './MembershipChange';
-import { RoomMembershipRevision } from './MembershipRevision';
-import { Map as PersistentMap, Set as PersistentSet } from 'immutable';
-import { Logger } from '../Logging/Logger';
-import { SafeMembershipEventMirror } from '../SafeMatrixEvents/SafeMembershipEvent';
+} from "./MembershipChange";
+import { RoomMembershipRevision } from "./MembershipRevision";
+import { Map as PersistentMap, Set as PersistentSet } from "immutable";
+import { Logger } from "../Logging/Logger";
+import { SafeMembershipEventMirror } from "../SafeMatrixEvents/SafeMembershipEvent";
 import {
   MatrixRoomID,
   StringEventID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
-const log = new Logger('StandardRoomMembershipRevision');
+const log = new Logger("StandardRoomMembershipRevision");
 
 type MembershipByUserID = PersistentMap<StringUserID, MembershipChange>;
 

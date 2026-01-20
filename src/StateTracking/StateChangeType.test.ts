@@ -5,12 +5,12 @@
 // please note that the changes calculated from this test need to be tested
 // against the standard policy list revision.
 
-import { PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { describePolicyRule, describeRoomMember } from './DeclareRoomState';
-import { StandardRoomStateRevision } from './StandardRoomStateRevision';
-import { randomRoomID, randomUserID } from '../TestUtilities/EventGeneration';
-import { StateChangeType } from './StateChangeType';
-import { Membership } from '../Membership/MembershipChange';
+import { PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { describePolicyRule, describeRoomMember } from "./DeclareRoomState";
+import { StandardRoomStateRevision } from "./StandardRoomStateRevision";
+import { randomRoomID, randomUserID } from "../TestUtilities/EventGeneration";
+import { StateChangeType } from "./StateChangeType";
+import { Membership } from "../Membership/MembershipChange";
 
 // if events aren't normalized as they are indexed then we really need to make
 // sure that the policy room editor removes them according to their source
@@ -23,7 +23,7 @@ import { Membership } from '../Membership/MembershipChange';
 // that's probably going to change, so that policyRoomRevision don't have
 // a method to `reviseFromState`.
 
-test('A new policy rule will be seen as an Introduced rule by the revision', function () {
+test("A new policy rule will be seen as an Introduced rule by the revision", function () {
   const blankRevision = StandardRoomStateRevision.blankRevision(
     randomRoomID([])
   );
@@ -36,7 +36,7 @@ test('A new policy rule will be seen as an Introduced rule by the revision', fun
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.Introduced);
 });
-test('Sending a contentful state event over a blank state event with the same type-key pair will be seen as Reintroducing a rule', function () {
+test("Sending a contentful state event over a blank state event with the same type-key pair will be seen as Reintroducing a rule", function () {
   const entity = randomUserID();
   const policy = describePolicyRule({
     type: PolicyRuleType.User,
@@ -53,7 +53,7 @@ test('Sending a contentful state event over a blank state event with the same ty
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.Reintroduced);
 });
-test('A redacted event state event that is returned by `/state` on a blank revision should result in IntroducedAsEmpty', function () {
+test("A redacted event state event that is returned by `/state` on a blank revision should result in IntroducedAsEmpty", function () {
   const policy = describePolicyRule({
     type: PolicyRuleType.User,
     entity: randomUserID(),
@@ -67,7 +67,7 @@ test('A redacted event state event that is returned by `/state` on a blank revis
       content: {},
       unsigned: {
         redacted_because: {
-          reason: 'unbanning the user',
+          reason: "unbanning the user",
         },
       },
     },
@@ -75,7 +75,7 @@ test('A redacted event state event that is returned by `/state` on a blank revis
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.IntroducedAsBlank);
 });
-test('Sending a blank state event to an already blank type-key pair will result in BlankingEmptyContent', function () {
+test("Sending a blank state event to an already blank type-key pair will result in BlankingEmptyContent", function () {
   const entity = randomUserID();
   const policy = describePolicyRule({
     type: PolicyRuleType.User,
@@ -96,7 +96,7 @@ test('Sending a blank state event to an already blank type-key pair will result 
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.BlankedEmptyContent);
 });
-test('Sending a blank state event with the same type-key pair will be seen as making the rule have BlankedContent', function () {
+test("Sending a blank state event with the same type-key pair will be seen as making the rule have BlankedContent", function () {
   const entity = randomUserID();
   const policy = describePolicyRule({
     type: PolicyRuleType.User,
@@ -113,7 +113,7 @@ test('Sending a blank state event with the same type-key pair will be seen as ma
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.BlankedContent);
 });
-test('Redacting a rule will be seen as CompletelyRedacting a rule (without checking redacted_because)', function () {
+test("Redacting a rule will be seen as CompletelyRedacting a rule (without checking redacted_because)", function () {
   const entity = randomUserID();
   const event = describePolicyRule({
     type: PolicyRuleType.User,
@@ -131,7 +131,7 @@ test('Redacting a rule will be seen as CompletelyRedacting a rule (without check
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.CompletelyRedacted);
 });
-test('A redacted event for an existing state (ensures check for redacted_because)', function () {
+test("A redacted event for an existing state (ensures check for redacted_because)", function () {
   const policy = describePolicyRule({
     type: PolicyRuleType.User,
     entity: randomUserID(),
@@ -145,7 +145,7 @@ test('A redacted event for an existing state (ensures check for redacted_because
       content: {},
       unsigned: {
         redacted_because: {
-          reason: 'unbanning the user',
+          reason: "unbanning the user",
         },
       },
     },
@@ -153,12 +153,12 @@ test('A redacted event for an existing state (ensures check for redacted_because
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.CompletelyRedacted);
 });
-test('A redacted membership event is classified as PartiallyRedacted because it still has keys', function () {
+test("A redacted membership event is classified as PartiallyRedacted because it still has keys", function () {
   const roomID = randomRoomID([]);
   const member = describeRoomMember({
     sender: randomUserID(),
-    avatar_url: 'mxc://example.com/wiejfoiejf',
-    displayname: 'Red Wine from Coloroy',
+    avatar_url: "mxc://example.com/wiejfoiejf",
+    displayname: "Red Wine from Coloroy",
     membership: Membership.Join,
   });
   const revision = StandardRoomStateRevision.blankRevision(
@@ -172,7 +172,7 @@ test('A redacted membership event is classified as PartiallyRedacted because it 
       },
       unsigned: {
         redacted_because: {
-          reason: 'unbanning the user',
+          reason: "unbanning the user",
         },
       },
     },
@@ -180,7 +180,7 @@ test('A redacted membership event is classified as PartiallyRedacted because it 
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.PartiallyRedacted);
 });
-test('A modified rule will be seen as a Superseding an existing rule', function () {
+test("A modified rule will be seen as a Superseding an existing rule", function () {
   const entity = randomUserID();
   const revision = StandardRoomStateRevision.blankRevision(
     randomRoomID([])
@@ -194,13 +194,13 @@ test('A modified rule will be seen as a Superseding an existing rule', function 
     describePolicyRule({
       type: PolicyRuleType.User,
       entity,
-      reason: 'A brand new reason, because the old one was out of date',
+      reason: "A brand new reason, because the old one was out of date",
     }),
   ]);
   expect(changes.length).toBe(1);
   expect(changes.at(0)?.changeType).toBe(StateChangeType.SupersededContent);
 });
-test('Recieving the same poliy rule will not count as a modification or addition', function () {
+test("Recieving the same poliy rule will not count as a modification or addition", function () {
   const policy = describePolicyRule({
     type: PolicyRuleType.User,
     entity: randomUserID(),

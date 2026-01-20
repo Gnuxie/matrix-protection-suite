@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticEncode, Type } from '@sinclair/typebox';
-import { describeConfig } from '../../Config/describeConfig';
-import { EDStatic } from '../../Interface/Static';
-import { DRAUPNIR_SCHEMA_VERSION_KEY } from '../../Interface/SchemedMatrixData';
+import { StaticEncode, Type } from "@sinclair/typebox";
+import { describeConfig } from "../../Config/describeConfig";
+import { EDStatic } from "../../Interface/Static";
+import { DRAUPNIR_SCHEMA_VERSION_KEY } from "../../Interface/SchemedMatrixData";
 
 export const MjolnirEnabledProtectionsDescription = describeConfig({
   schema: Type.Object(
@@ -13,7 +13,7 @@ export const MjolnirEnabledProtectionsDescription = describeConfig({
       enabled: Type.Array(Type.String(), { default: [], uniqueItems: true }),
       [DRAUPNIR_SCHEMA_VERSION_KEY]: Type.Optional(Type.Number()),
     },
-    { title: 'EnabledProtectionsConfig' }
+    { title: "EnabledProtectionsConfig" }
   ),
 });
 

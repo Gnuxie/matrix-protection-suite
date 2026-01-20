@@ -7,20 +7,20 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { monotonicFactory } from 'ulidx';
+import { monotonicFactory } from "ulidx";
 import {
   PolicyListRevisionIssuer,
   RevisionListener,
-} from '../../../PolicyList/PolicyListRevisionIssuer';
+} from "../../../PolicyList/PolicyListRevisionIssuer";
 import {
   Projection,
   ProjectionOutputHelper,
-} from '../../../Projection/Projection';
+} from "../../../Projection/Projection";
 import {
   ServerBanIntentProjectionNode,
   StandardServerBanIntentProjectionNode,
-} from './ServerBanIntentProjectionNode';
-import { PolicyListBridgeProjectionNode } from './PolicyListBridgeProjection';
+} from "./ServerBanIntentProjectionNode";
+import { PolicyListBridgeProjectionNode } from "./PolicyListBridgeProjection";
 
 export type ServerBanIntentProjection =
   Projection<ServerBanIntentProjectionNode>;
@@ -38,7 +38,7 @@ export class StandardServerBanIntentProjection
       policyListRevisionIssuer.currentRevision as unknown as PolicyListBridgeProjectionNode,
     ]);
     super(node.reduceDelta(delta));
-    this.policyListRevisionIssuer.on('revision', this.handleUpstreamRevision);
+    this.policyListRevisionIssuer.on("revision", this.handleUpstreamRevision);
   }
 
   private handleUpstreamRevision = ((_revision, delta) => {
@@ -46,7 +46,7 @@ export class StandardServerBanIntentProjection
   }) satisfies RevisionListener;
 
   [Symbol.dispose]() {
-    this.policyListRevisionIssuer.off('revision', this.handleUpstreamRevision);
+    this.policyListRevisionIssuer.off("revision", this.handleUpstreamRevision);
     super[Symbol.dispose]();
   }
 }

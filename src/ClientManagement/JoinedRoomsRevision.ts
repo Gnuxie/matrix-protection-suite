@@ -5,8 +5,8 @@
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { Set as PersistentSet } from 'immutable';
+} from "@the-draupnir-project/matrix-basic-types";
+import { Set as PersistentSet } from "immutable";
 
 export interface JoinedRoomsChange {
   joined: StringRoomID[];

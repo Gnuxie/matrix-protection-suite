@@ -7,9 +7,9 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { RoomEvent } from '../../MatrixTypes/Events';
-import { UnsafeContentKey } from '../SafeMembershipEvent';
-import { isUndecodableEvent } from '../UndecodableEventContent';
+import { RoomEvent } from "../../MatrixTypes/Events";
+import { UnsafeContentKey } from "../SafeMembershipEvent";
+import { isUndecodableEvent } from "../UndecodableEventContent";
 import {
   ErroneousEventMixin,
   EventMixin,
@@ -17,12 +17,12 @@ import {
   ExtractEerrorMixinFromDescription,
   ExtractOkMixinFromDescription,
   OkEventMixin,
-} from './EventMixinDescription';
+} from "./EventMixinDescription";
 import {
   MixinExtractor,
   EventWithMixins,
   ContentMixins,
-} from './EventMixinExtraction';
+} from "./EventMixinExtraction";
 
 export function extractPrimaryContent(
   event: RoomEvent

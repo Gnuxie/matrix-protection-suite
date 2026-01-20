@@ -7,15 +7,15 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { Type } from '@sinclair/typebox';
+import { Type } from "@sinclair/typebox";
 import {
   ErroneousEventMixin,
   EventMixinDescription,
   OkEventMixin,
-} from '../EventMixinExtraction/EventMixinDescription';
-import { ErroneousMixin } from '../EventMixinExtraction/StandardMixinExtractor';
-import { hasOwn } from '../hasOwn';
-import { Value } from '../../Interface/Value';
+} from "../EventMixinExtraction/EventMixinDescription";
+import { ErroneousMixin } from "../EventMixinExtraction/StandardMixinExtractor";
+import { hasOwn } from "../hasOwn";
+import { Value } from "../../Interface/Value";
 
 export type RoomMessageFileMixin = OkEventMixin & {
   url: string;
@@ -32,12 +32,12 @@ const FileMediaMixinSchema = Type.Object({
 });
 
 export const RoomMessageFileMixinDescription = Object.freeze({
-  name: 'm.room.message file mixin',
+  name: "m.room.message file mixin",
   description:
-    'Extracts the file mixin from content that looks like m.room.message',
-  properties: ['file', 'filename', 'body'],
+    "Extracts the file mixin from content that looks like m.room.message",
+  properties: ["file", "filename", "body"],
   parser(content) {
-    if (!hasOwn(content, 'file')) {
+    if (!hasOwn(content, "file")) {
       return undefined;
     }
     if (Value.Check(FileMediaMixinSchema, content)) {
@@ -47,7 +47,7 @@ export const RoomMessageFileMixinDescription = Object.freeze({
           ? content.body
           : undefined;
       if (filename === undefined) {
-        return ErroneousMixin(this, 'The filename property is missing.');
+        return ErroneousMixin(this, "The filename property is missing.");
       }
       return {
         description: this,

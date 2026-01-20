@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 import {
   PolicyListRevision,
   PolicyRoomRevision,
-} from '../../PolicyList/PolicyListRevision';
-import { Result } from '@gnuxie/typescript-result';
-import { PropagationType } from '../PolicyListConfig/PolicyListConfig';
-import { PolicyListRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
+} from "../../PolicyList/PolicyListRevision";
+import { Result } from "@gnuxie/typescript-result";
+import { PropagationType } from "../PolicyListConfig/PolicyListConfig";
+import { PolicyListRevisionIssuer } from "../../PolicyList/PolicyListRevisionIssuer";
 
 export type WatchedPolicyRoom = {
   readonly room: MatrixRoomID;

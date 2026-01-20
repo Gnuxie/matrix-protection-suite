@@ -2,24 +2,24 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
+import EventEmitter from "events";
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateChange,
-} from './StateRevisionIssuer';
-import { StandardRoomStateRevision } from './StandardRoomStateRevision';
-import { ConstantPeriodEventBatch, EventBatch } from './EventBatch';
-import { isError } from '../Interface/Action';
-import { Logger } from '../Logging/Logger';
-import { RoomEvent, StateEvent } from '../MatrixTypes/Events';
-import { Redaction, redactionTargetEvent } from '../MatrixTypes/Redaction';
-import { calculateStateChange } from './StateChangeType';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { RoomStateGetter } from '../Client/RoomStateGetter';
-import AwaitLock from 'await-lock';
+} from "./StateRevisionIssuer";
+import { StandardRoomStateRevision } from "./StandardRoomStateRevision";
+import { ConstantPeriodEventBatch, EventBatch } from "./EventBatch";
+import { isError } from "../Interface/Action";
+import { Logger } from "../Logging/Logger";
+import { RoomEvent, StateEvent } from "../MatrixTypes/Events";
+import { Redaction, redactionTargetEvent } from "../MatrixTypes/Redaction";
+import { calculateStateChange } from "./StateChangeType";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { RoomStateGetter } from "../Client/RoomStateGetter";
+import AwaitLock from "await-lock";
 
-const log = new Logger('StandardRoomStateRevisionIssuer');
+const log = new Logger("StandardRoomStateRevisionIssuer");
 
 export class StandardRoomStateRevisionIssuer
   extends EventEmitter
@@ -27,7 +27,7 @@ export class StandardRoomStateRevisionIssuer
 {
   public currentRevision: RoomStateRevision;
   private currentBatch: ConstantPeriodEventBatch;
-  private batchCompleteCallback: EventBatch['batchCompleteCallback'];
+  private batchCompleteCallback: EventBatch["batchCompleteCallback"];
   private readonly stateRefreshLock = new AwaitLock();
   constructor(
     public readonly room: MatrixRoomID,
@@ -95,7 +95,7 @@ export class StandardRoomStateRevisionIssuer
   private createRevisionFromChanges(changes: StateChange[]): void {
     const previousRevision = this.currentRevision;
     this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   private async createBatchedRevision(): Promise<void> {

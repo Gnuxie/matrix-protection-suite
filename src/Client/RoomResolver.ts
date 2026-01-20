@@ -7,8 +7,8 @@ import {
   StringRoomAlias,
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
 
 export interface RoomResolver {
   resolveRoom(

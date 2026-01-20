@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MembershipChange } from './MembershipChange';
-import { RoomMembershipRevision } from './MembershipRevision';
+import { MembershipChange } from "./MembershipChange";
+import { RoomMembershipRevision } from "./MembershipRevision";
 import {
   MembershipRevisionListener,
   RoomMembershipRevisionIssuer,
-} from './MembershipRevisionIssuer';
-import { RoomStateMembershipRevisionIssuer } from './RoomStateMembershipRevisionIssuer';
-import { RoomStateRevisionIssuer } from '../StateTracking/StateRevisionIssuer';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+} from "./MembershipRevisionIssuer";
+import { RoomStateMembershipRevisionIssuer } from "./RoomStateMembershipRevisionIssuer";
+import { RoomStateRevisionIssuer } from "../StateTracking/StateRevisionIssuer";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 
 export class FakeRoomMembershipRevisionIssuer
   extends RoomStateMembershipRevisionIssuer
@@ -28,7 +28,7 @@ export class FakeRoomMembershipRevisionIssuer
   }
 
   public emit(
-    event: 'revision',
+    event: "revision",
     nextRevision: RoomMembershipRevision,
     changes: MembershipChange[],
     previousRevision: RoomMembershipRevision
@@ -36,7 +36,7 @@ export class FakeRoomMembershipRevisionIssuer
     // I can see why this rule exists but it's not appropriate here, as we don't
     // really know the context that this fake might gets used in (maybe js?).
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (event !== 'revision') {
+    if (event !== "revision") {
       throw new TypeError(
         `FakeRoomMembershipRevisionIssuer was only written for the revision event`
       );

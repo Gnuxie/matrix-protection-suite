@@ -8,18 +8,18 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionResult } from '../Interface/Action';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { EventReport } from '../Reporting/EventReport';
-import { MembershipChange } from '../Membership/MembershipChange';
-import { RoomMembershipRevision } from '../Membership/MembershipRevision';
+import { ActionResult } from "../Interface/Action";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
+import { PolicyRuleChange } from "../PolicyList/PolicyRuleChange";
+import { EventReport } from "../Reporting/EventReport";
+import { MembershipChange } from "../Membership/MembershipChange";
+import { RoomMembershipRevision } from "../Membership/MembershipRevision";
 import {
   RoomStateRevision,
   StateChange,
-} from '../StateTracking/StateRevisionIssuer';
-import { ProtectedRoomsSet } from './ProtectedRoomsSet';
+} from "../StateTracking/StateRevisionIssuer";
+import { ProtectedRoomsSet } from "./ProtectedRoomsSet";
 import {
   CapabilityInterfaceSet,
   CapabilityProviderSet,
@@ -28,38 +28,38 @@ import {
   capabilitySetEventPermissions,
   capabilitySetPermissions,
   capabilitySetStatePermissions,
-} from './Capability/CapabilitySet';
-import { findCapabilityInterfaceSet } from './Capability/CapabilityInterface';
-import { findCapabilityProviderSet } from './Capability/CapabilityProvider';
-import { PowerLevelPermission } from '../Client/PowerLevelsMirror';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+} from "./Capability/CapabilitySet";
+import { findCapabilityInterfaceSet } from "./Capability/CapabilityInterface";
+import { findCapabilityProviderSet } from "./Capability/CapabilityProvider";
+import { PowerLevelPermission } from "../Client/PowerLevelsMirror";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   ConfigDescription,
   StandardConfigDescription,
   UnknownConfig,
-} from '../Config/ConfigDescription';
-import { TObject, Type } from '@sinclair/typebox';
-import { EDStatic } from '../Interface/Static';
+} from "../Config/ConfigDescription";
+import { TObject, Type } from "@sinclair/typebox";
+import { EDStatic } from "../Interface/Static";
 import {
   SetMembershipDelta,
   SetMembershipRevision,
-} from '../Membership/SetMembershipRevision';
+} from "../Membership/SetMembershipRevision";
 import {
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
-} from '../MembershipPolicies/MembershipPolicyRevision';
-import { EventWithMixins } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
-import { AllocatableLifetime, OwnLifetime } from '../Interface/Lifetime';
-import { Ok, Result } from '@gnuxie/typescript-result';
-import { ExtractProjectionNode, Projection } from '../Projection/Projection';
+} from "../MembershipPolicies/MembershipPolicyRevision";
+import { EventWithMixins } from "../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction";
+import { AllocatableLifetime, OwnLifetime } from "../Interface/Lifetime";
+import { Ok, Result } from "@gnuxie/typescript-result";
+import { ExtractProjectionNode, Projection } from "../Projection/Projection";
 import {
   AnyProjectionNode,
   ExtractDeltaShape,
-} from '../Projection/ProjectionNode';
+} from "../Projection/ProjectionNode";
 
 /**
  * @param description The description for the protection being constructed.
@@ -226,9 +226,9 @@ export type Protection<
         ): void;
       });
 
-export class AbstractProtection<TProtectionDescription>
-  implements Protection<TProtectionDescription>
-{
+export class AbstractProtection<
+  TProtectionDescription,
+> implements Protection<TProtectionDescription> {
   private readonly clientEventPermissions: string[];
   private readonly clientPermissions: PowerLevelPermission[];
   private readonly clientStatePermissions: string[];
@@ -321,7 +321,7 @@ export function describeProtection<
     Context,
     TConfigSchema,
     TCapabilitySet
-  >['factory'];
+  >["factory"];
   capabilityInterfaces: GenericCapabilityDescription<TCapabilitySet>;
   defaultCapabilities: GenericCapabilityDescription<TCapabilitySet>;
   configSchema?: TConfigSchema;

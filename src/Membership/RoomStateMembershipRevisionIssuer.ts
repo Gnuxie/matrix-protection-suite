@@ -2,18 +2,18 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
-import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
-import { RoomMembershipRevision } from './MembershipRevision';
+import EventEmitter from "events";
+import { RoomMembershipRevisionIssuer } from "./MembershipRevisionIssuer";
+import { RoomMembershipRevision } from "./MembershipRevision";
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateChange,
   StateRevisionListener,
-} from '../StateTracking/StateRevisionIssuer';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+} from "../StateTracking/StateRevisionIssuer";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that
@@ -31,7 +31,7 @@ export class RoomStateMembershipRevisionIssuer
   ) {
     super();
     this.stateRevisionListener = this.listener.bind(this);
-    this.roomStateRevisionIssuer.on('revision', this.stateRevisionListener);
+    this.roomStateRevisionIssuer.on("revision", this.stateRevisionListener);
   }
 
   updateForMembershipEvent(event: MembershipEvent): void {
@@ -50,7 +50,7 @@ export class RoomStateMembershipRevisionIssuer
     stateChanges: StateChange[]
   ) {
     const membershipEvents = stateChanges
-      .filter((change) => change.eventType === 'm.room.member')
+      .filter((change) => change.eventType === "m.room.member")
       .map((change) => change.state) as MembershipEvent[];
     const membershipChanges =
       this.currentRevision.changesFromMembership(membershipEvents);
@@ -58,7 +58,7 @@ export class RoomStateMembershipRevisionIssuer
     this.currentRevision =
       previousRevision.reviseFromChanges(membershipChanges);
     this.emit(
-      'revision',
+      "revision",
       this.currentRevision,
       membershipChanges,
       previousRevision
@@ -66,6 +66,6 @@ export class RoomStateMembershipRevisionIssuer
   }
 
   public unregisterListeners(): void {
-    this.roomStateRevisionIssuer.off('revision', this.stateRevisionListener);
+    this.roomStateRevisionIssuer.off("revision", this.stateRevisionListener);
   }
 }

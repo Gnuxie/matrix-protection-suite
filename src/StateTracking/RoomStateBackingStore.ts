@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
-import { StateEvent } from '../MatrixTypes/Events';
-import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
+import { StringRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
+import { StateEvent } from "../MatrixTypes/Events";
+import { RoomStateRevision, StateChange } from "./StateRevisionIssuer";
 
 /**
  * An interface for a persistent store for room state.
@@ -18,7 +18,7 @@ import { RoomStateRevision, StateChange } from './StateRevisionIssuer';
  * the provider of the concrete depenednecy needs to call and handle those.
  */
 export interface RoomStateBackingStore {
-  readonly revisionListener: RoomStateBackingStore['handleRevision'];
+  readonly revisionListener: RoomStateBackingStore["handleRevision"];
   /**
    * A self contained version of `updateState` that can be called directly by
    * a revision issuer, with a self contained method to process in the background.

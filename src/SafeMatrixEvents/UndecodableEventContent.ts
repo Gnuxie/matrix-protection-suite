@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { isError, Ok, Result } from '@gnuxie/typescript-result';
-import { UnsafeEvent } from './UnsafeEvent';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { DecodeException, Value } from '../Interface/Value';
-import { Type } from '@sinclair/typebox';
-import { UnsafeContentKey } from './SafeMembershipEvent';
+import { isError, Ok, Result } from "@gnuxie/typescript-result";
+import { UnsafeEvent } from "./UnsafeEvent";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { DecodeException, Value } from "../Interface/Value";
+import { Type } from "@sinclair/typebox";
+import { UnsafeContentKey } from "./SafeMembershipEvent";
 
-export const UNDECODABLE_CONTENT_EVENT_TYPE = 'me.marewolf.undecodable_content';
+export const UNDECODABLE_CONTENT_EVENT_TYPE = "me.marewolf.undecodable_content";
 
 export interface UndecodableEvent extends UnsafeEvent {
   originalType: string;
@@ -23,7 +23,7 @@ export function isUndecodableEvent(
   return (
     event.type === UNDECODABLE_CONTENT_EVENT_TYPE &&
     UnsafeContentKey in event &&
-    typeof event.originalType === 'string'
+    typeof event.originalType === "string"
   );
 }
 

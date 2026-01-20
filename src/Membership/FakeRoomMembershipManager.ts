@@ -5,12 +5,12 @@
 import {
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionError, ActionResult, Ok } from '../Interface/Action';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { FakeRoomMembershipRevisionIssuer } from './FakeRoomMembershipRevisionIssuer';
-import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
-import { RoomMembershipManager } from './RoomMembershipManager';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionError, ActionResult, Ok } from "../Interface/Action";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { FakeRoomMembershipRevisionIssuer } from "./FakeRoomMembershipRevisionIssuer";
+import { RoomMembershipRevisionIssuer } from "./MembershipRevisionIssuer";
+import { RoomMembershipManager } from "./RoomMembershipManager";
 
 // TODO: This sucks and should be backed by the RoomStateManager only.
 //       I should hope that by now the concrete version in MPSForBotSDK

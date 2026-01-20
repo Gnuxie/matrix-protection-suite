@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { TSchema } from '@sinclair/typebox';
+import { TSchema } from "@sinclair/typebox";
 import {
   CapabilityInterfaceSet,
   CapabilitySet,
   GenericCapabilityDescription,
-} from './CapabilitySet';
+} from "./CapabilitySet";
 
 const CAPABILITY_INTERFACES = new Map<string, CapabilityInterfaceDescription>();
 

@@ -8,52 +8,52 @@
 // https://github.com/matrix-org/matrix-spec
 // </text>
 
-import { Type } from '@sinclair/typebox';
-import { EmptyContent, RoomEvent } from './Events';
-import { EDStatic } from '../Interface/Static';
+import { Type } from "@sinclair/typebox";
+import { EmptyContent, RoomEvent } from "./Events";
+import { EDStatic } from "../Interface/Static";
 
 export type MessageContent = EDStatic<typeof MessageContent>;
 export const MessageContent = Type.Object({
   body: Type.String({
-    description: 'The textual representation of this message.',
+    description: "The textual representation of this message.",
   }),
   msgtype: Type.String({
-    description: 'The type of message, e.g. `m.image`, `m.text`',
+    description: "The type of message, e.g. `m.image`, `m.text`",
   }),
 });
 
 export type TextMessageContent = EDStatic<typeof TextMessageContent>;
 export const TextMessageContent = Type.Object({
-  body: Type.String({ description: 'The body of the message.' }),
-  msgtype: Type.Literal('m.text'),
+  body: Type.String({ description: "The body of the message." }),
+  msgtype: Type.Literal("m.text"),
   format: Type.Optional(
     Type.String({
       description:
-        'The format used in the `formatted_body`. Currently only\n`org.matrix.custom.html` is supported.',
+        "The format used in the `formatted_body`. Currently only\n`org.matrix.custom.html` is supported.",
     })
   ),
   formatted_body: Type.Optional(
     Type.String({
       description:
-        'The formatted version of the `body`. This is required if `format`\nis specified.',
+        "The formatted version of the `body`. This is required if `format`\nis specified.",
     })
   ),
 });
 
 export type NoticeMessageContent = EDStatic<typeof NoticeMessageContent>;
 export const NoticeMessageContent = Type.Object({
-  body: Type.String({ description: 'The notice text to send.' }),
-  msgtype: Type.Literal('m.notice'),
+  body: Type.String({ description: "The notice text to send." }),
+  msgtype: Type.Literal("m.notice"),
   format: Type.Optional(
     Type.String({
       description:
-        'The format used in the `formatted_body`. Currently only\n`org.matrix.custom.html` is supported.',
+        "The format used in the `formatted_body`. Currently only\n`org.matrix.custom.html` is supported.",
     })
   ),
   formatted_body: Type.Optional(
     Type.String({
       description:
-        'The formatted version of the `body`. This is required if `format`\nis specified.',
+        "The formatted version of the `body`. This is required if `format`\nis specified.",
     })
   ),
 });
@@ -63,22 +63,22 @@ export const ThumbnailInfo = Type.Object({
   h: Type.Optional(
     Type.Number({
       description:
-        'The intended display height of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+        "The intended display height of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.",
     })
   ),
   w: Type.Optional(
     Type.Number({
       description:
-        'The intended display width of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+        "The intended display width of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.",
     })
   ),
   mimetype: Type.Optional(
     Type.String({
-      description: 'The mimetype of the image, e.g. `image/jpeg`.',
+      description: "The mimetype of the image, e.g. `image/jpeg`.",
     })
   ),
   size: Type.Optional(
-    Type.Number({ description: 'Size of the image in bytes.' })
+    Type.Number({ description: "Size of the image in bytes." })
   ),
 });
 
@@ -87,27 +87,27 @@ export const ImageInfo = Type.Object({
   h: Type.Optional(
     Type.Number({
       description:
-        'The intended display height of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+        "The intended display height of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.",
     })
   ),
   w: Type.Optional(
     Type.Number({
       description:
-        'The intended display width of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.',
+        "The intended display width of the image in pixels. This may\ndiffer from the intrinsic dimensions of the image file.",
     })
   ),
   mimetype: Type.Optional(
     Type.String({
-      description: 'The mimetype of the image, e.g. `image/jpeg`.',
+      description: "The mimetype of the image, e.g. `image/jpeg`.",
     })
   ),
   size: Type.Optional(
-    Type.Number({ description: 'Size of the image in bytes.' })
+    Type.Number({ description: "Size of the image in bytes." })
   ),
   thumbnail_url: Type.Optional(
     Type.String({
       description:
-        'The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris)) to a thumbnail of the image.\nOnly present if the thumbnail is unencrypted.',
+        "The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris)) to a thumbnail of the image.\nOnly present if the thumbnail is unencrypted.",
     })
   ),
   thumbnail_file: Type.Optional(Type.Unknown()),
@@ -121,11 +121,11 @@ export const ImageMessageContent = Type.Object({
       "A textual representation of the image. This could be the alt text of the image, the filename of the image, or some kind of content description for accessibility e.g. 'image attachment'.",
   }),
   info: Type.Optional(ImageInfo),
-  msgtype: Type.Literal('m.image'),
+  msgtype: Type.Literal("m.image"),
   url: Type.Optional(
     Type.String({
       description:
-        'Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the image.',
+        "Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the image.",
     })
   ),
   file: Type.Optional(Type.Unknown()),
@@ -141,38 +141,38 @@ export const VideoMessageContent = Type.Object({
     Type.Object({
       duration: Type.Optional(
         Type.Number({
-          description: 'The duration of the video in milliseconds.',
+          description: "The duration of the video in milliseconds.",
         })
       ),
       h: Type.Optional(
-        Type.Number({ description: 'The height of the video in pixels.' })
+        Type.Number({ description: "The height of the video in pixels." })
       ),
       w: Type.Optional(
-        Type.Number({ description: 'The width of the video in pixels.' })
+        Type.Number({ description: "The width of the video in pixels." })
       ),
       mimetype: Type.Optional(
         Type.String({
-          description: 'The mimetype of the video e.g. `video/mp4`.',
+          description: "The mimetype of the video e.g. `video/mp4`.",
         })
       ),
       size: Type.Optional(
-        Type.Number({ description: 'The size of the video in bytes.' })
+        Type.Number({ description: "The size of the video in bytes." })
       ),
       thumbnail_url: Type.Optional(
         Type.String({
           description:
-            'The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris)) to an image thumbnail of\nthe video clip. Only present if the thumbnail is unencrypted.',
+            "The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris)) to an image thumbnail of\nthe video clip. Only present if the thumbnail is unencrypted.",
         })
       ),
       thumbnail_file: Type.Optional(Type.Unknown()),
       thumbnail_info: Type.Optional(ThumbnailInfo),
     })
   ),
-  msgtype: Type.Literal('m.video'),
+  msgtype: Type.Literal("m.video"),
   url: Type.Optional(
     Type.String({
       description:
-        'Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the video clip.',
+        "Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the video clip.",
     })
   ),
   file: Type.Optional(Type.Unknown()),
@@ -188,24 +188,24 @@ export const AudioMessageContent = Type.Object({
     Type.Object({
       duration: Type.Optional(
         Type.Number({
-          description: 'The duration of the audio in milliseconds.',
+          description: "The duration of the audio in milliseconds.",
         })
       ),
       mimetype: Type.Optional(
         Type.String({
-          description: 'The mimetype of the audio e.g. `audio/aac`.',
+          description: "The mimetype of the audio e.g. `audio/aac`.",
         })
       ),
       size: Type.Optional(
-        Type.Number({ description: 'The size of the audio clip in bytes.' })
+        Type.Number({ description: "The size of the audio clip in bytes." })
       ),
     })
   ),
-  msgtype: Type.Literal('m.audio'),
+  msgtype: Type.Literal("m.audio"),
   url: Type.Optional(
     Type.String({
       description:
-        'Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the audio clip.',
+        "Required if the file is unencrypted. The URL (typically [`mxc://` URI](/client-server-api/#matrix-content-mxc-uris))\nto the audio clip.",
     })
   ),
   file: Type.Optional(Type.Unknown()),
@@ -224,7 +224,7 @@ export const AudioMessageContent = Type.Object({
 // Thanks guys.
 export type RoomMessage = EDStatic<typeof RoomMessage>;
 export const RoomMessage = Type.Intersect([
-  Type.Omit(RoomEvent(Type.Unknown()), ['content', 'type']),
+  Type.Omit(RoomEvent(Type.Unknown()), ["content", "type"]),
   Type.Object({
     content: Type.Union([
       TextMessageContent,
@@ -234,6 +234,6 @@ export const RoomMessage = Type.Intersect([
       AudioMessageContent,
       EmptyContent,
     ]),
-    type: Type.Literal('m.room.message'),
+    type: Type.Literal("m.room.message"),
   }),
 ]);

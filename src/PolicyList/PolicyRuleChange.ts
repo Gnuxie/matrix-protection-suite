@@ -8,14 +8,14 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
-import { PolicyRule } from './PolicyRule';
+import { PolicyRuleEvent } from "../MatrixTypes/PolicyEvents";
+import { PolicyRule } from "./PolicyRule";
 
 export enum PolicyRuleChangeType {
-  Added = 'Added',
-  Modified = 'Modified',
-  Removed = 'Removed',
-  RevealedLiteral = 'RevealedLiteral',
+  Added = "Added",
+  Modified = "Modified",
+  Removed = "Removed",
+  RevealedLiteral = "RevealedLiteral",
 }
 
 /**

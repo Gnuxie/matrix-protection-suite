@@ -8,18 +8,18 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { EventEmitter } from 'stream';
-import { PolicyRoomRevision } from './PolicyListRevision';
-import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyRoomManager } from './PolicyRoomManger';
-import { isError } from '../Interface/Action';
-import { Logger } from '../Logging/Logger';
-import { PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { LiteralPolicyRule } from './PolicyRule';
+import { EventEmitter } from "stream";
+import { PolicyRoomRevision } from "./PolicyListRevision";
+import { PolicyRoomRevisionIssuer } from "./PolicyListRevisionIssuer";
+import { PolicyRoomManager } from "./PolicyRoomManger";
+import { isError } from "../Interface/Action";
+import { Logger } from "../Logging/Logger";
+import { PolicyRuleEvent } from "../MatrixTypes/PolicyEvents";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { LiteralPolicyRule } from "./PolicyRule";
 
-const log = new Logger('StandardPolicyRoomRevisionIssuer');
+const log = new Logger("StandardPolicyRoomRevisionIssuer");
 
 /**
  * A standard implementation of PolicyRoomRevisionIssuer.
@@ -67,7 +67,7 @@ export class StandardPolicyRoomRevisionIssuer
     }
     const previousRevision = this.currentRevision;
     this.currentRevision = previousRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   public unregisterListeners(): void {
@@ -167,7 +167,7 @@ class RevisionBatcher {
     );
     this.policyListRevisionIssuer.currentRevision = nextRevision;
     this.policyListRevisionIssuer.emit(
-      'revision',
+      "revision",
       nextRevision,
       changes,
       previousRevision

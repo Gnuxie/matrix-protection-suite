@@ -7,7 +7,7 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { MixinExtractor } from './EventMixinExtraction';
+import { MixinExtractor } from "./EventMixinExtraction";
 
 export interface OkEventMixin {
   readonly description: EventMixinDescription<this, ErroneousEventMixin>;

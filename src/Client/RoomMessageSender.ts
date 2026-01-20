@@ -5,9 +5,9 @@
 import {
   StringEventID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { MessageContent } from '../MatrixTypes/RoomMessage';
-import { Result } from '@gnuxie/typescript-result';
+} from "@the-draupnir-project/matrix-basic-types";
+import { MessageContent } from "../MatrixTypes/RoomMessage";
+import { Result } from "@gnuxie/typescript-result";
 
 export interface RoomMessageSender {
   sendMessage<TContent extends MessageContent>(

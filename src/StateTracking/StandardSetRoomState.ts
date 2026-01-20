@@ -2,23 +2,23 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
+import EventEmitter from "events";
 import {
   SetRoomState,
   SetRoomStateMirror,
   SetRoomStateMirrorCord,
-} from './SetRoomState';
+} from "./SetRoomState";
 import {
   RoomStateManager,
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateRevisionListener,
-} from './StateRevisionIssuer';
-import { ActionResult, Ok, isError } from '../Interface/Action';
+} from "./StateRevisionIssuer";
+import { ActionResult, Ok, isError } from "../Interface/Action";
 import {
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 /**
  * Provides immediate (synchronous) access to the room state within a set of rooms.
@@ -71,7 +71,7 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
       return;
     }
     this.issuers.set(room.toRoomIDOrAlias(), roomStateRevisionIssuer);
-    roomStateRevisionIssuer.on('revision', this.revisionListener);
+    roomStateRevisionIssuer.on("revision", this.revisionListener);
   }
   public [SetRoomStateMirrorCord.removeRoom](room: MatrixRoomID): void {
     const issuer = this.issuers.get(room.toRoomIDOrAlias());
@@ -79,11 +79,11 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
       return;
     }
     this.issuers.delete(room.toRoomIDOrAlias());
-    issuer.off('revision', this.revisionListener);
+    issuer.off("revision", this.revisionListener);
   }
   public unregisterListeners(): void {
     for (const issuer of this.issuers.values()) {
-      issuer.off('revision', this.revisionListener);
+      issuer.off("revision", this.revisionListener);
     }
   }
   public get allRooms(): RoomStateRevision[] {
@@ -96,7 +96,7 @@ export class StandardSetRoomState extends EventEmitter implements SetRoomState {
     >
   ) {
     this.emit(
-      'revision',
+      "revision",
       nextRevision.room.toRoomIDOrAlias(),
       nextRevision,
       changes,

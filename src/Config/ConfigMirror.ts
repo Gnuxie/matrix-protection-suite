@@ -8,13 +8,13 @@ import {
   TArray,
   TObject,
   TProperties,
-} from '@sinclair/typebox';
-import { ConfigDescription } from './ConfigDescription';
-import { EDStatic } from '../Interface/Static';
-import { ConfigPropertyError } from './ConfigParseError';
-import { Ok, Result, isError } from '@gnuxie/typescript-result';
-import { Value as TBValue } from '@sinclair/typebox/value';
-import { Value } from '../Interface/Value';
+} from "@sinclair/typebox";
+import { ConfigDescription } from "./ConfigDescription";
+import { EDStatic } from "../Interface/Static";
+import { ConfigPropertyError } from "./ConfigParseError";
+import { Ok, Result, isError } from "@gnuxie/typescript-result";
+import { Value as TBValue } from "@sinclair/typebox/value";
+import { Value } from "../Interface/Value";
 
 // We should really have a conditional type here for unknown config.
 export interface ConfigMirror<TConfigSchema extends TObject = TObject> {
@@ -52,13 +52,13 @@ export interface ConfigMirror<TConfigSchema extends TObject = TObject> {
   filterItems<TKey extends string>(
     config: Record<TKey, unknown[]>,
     key: TKey,
-    callbackFn: Parameters<Array<unknown>['filter']>[0]
+    callbackFn: Parameters<Array<unknown>["filter"]>[0]
   ): Record<TKey, unknown[]>;
 }
 
-export class StandardConfigMirror<TConfigSchema extends TObject>
-  implements ConfigMirror<TConfigSchema>
-{
+export class StandardConfigMirror<
+  TConfigSchema extends TObject,
+> implements ConfigMirror<TConfigSchema> {
   public constructor(
     public readonly description: ConfigDescription<TConfigSchema>
   ) {
@@ -100,10 +100,10 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
         `Property ${key.toString()} does not exist in schema`
       );
     }
-    if (!('items' in schema)) {
+    if (!("items" in schema)) {
       throw new TypeError(`Property ${key.toString()} is not an array`);
     }
-    const isSet = 'uniqueItems' in schema && schema.uniqueItems === true;
+    const isSet = "uniqueItems" in schema && schema.uniqueItems === true;
     if (isSet) {
       const set = new Set(config[key] as unknown[]);
       set.add(TBValue.Decode((schema as TArray).items, value));
@@ -162,7 +162,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
         `Property ${key.toString()} does not exist in schema`
       );
     }
-    if (!('items' in propertySchema)) {
+    if (!("items" in propertySchema)) {
       throw new TypeError(`Property ${key.toString()} is not an array`);
     }
     const itemSchema = (propertySchema as TArray).items;
@@ -231,7 +231,7 @@ export class StandardConfigMirror<TConfigSchema extends TObject>
   filterItems<TKey extends string>(
     config: Record<TKey, unknown[]>,
     key: TKey,
-    callbackFn: Parameters<Array<unknown>['filter']>[0]
+    callbackFn: Parameters<Array<unknown>["filter"]>[0]
   ): Record<TKey, unknown[]> {
     return {
       ...config,

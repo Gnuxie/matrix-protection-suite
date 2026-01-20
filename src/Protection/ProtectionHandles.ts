@@ -2,23 +2,23 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Ok, Result, ResultError } from '@gnuxie/typescript-result';
-import { AllocatableLifetime } from '../Interface/Lifetime';
+import { Ok, Result, ResultError } from "@gnuxie/typescript-result";
+import { AllocatableLifetime } from "../Interface/Lifetime";
 import {
   HandleDataSourceType,
   HandleDescription,
-} from './HandleRegistry/HandleDescription';
-import { ProtectedRoomsSet } from './ProtectedRoomsSet';
-import { Protection, ProtectionDescription } from './Protection';
-import { AnyProjectionNode } from '../Projection/ProjectionNode';
-import { StandardHandleRegistryDescription } from './HandleRegistry/StandardHandleRegistryDescription';
+} from "./HandleRegistry/HandleDescription";
+import { ProtectedRoomsSet } from "./ProtectedRoomsSet";
+import { Protection, ProtectionDescription } from "./Protection";
+import { AnyProjectionNode } from "../Projection/ProjectionNode";
+import { StandardHandleRegistryDescription } from "./HandleRegistry/StandardHandleRegistryDescription";
 
 export const ProtectionIntentProjectionNodeHandle: HandleDescription<
-  'handleIntentProjectionNode',
+  "handleIntentProjectionNode",
   ProtectedRoomsSet,
   (node: AnyProjectionNode, delta: unknown) => void
 > = {
-  handleName: 'handleIntentProjectionNode',
+  handleName: "handleIntentProjectionNode",
   dataSourceType: HandleDataSourceType.Plugin,
   establish<TPlugin>(
     _context: ProtectedRoomsSet,

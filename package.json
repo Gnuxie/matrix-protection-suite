@@ -22,20 +22,20 @@
     "make:docs": "typedoc",
     "test": "jest --coverage",
     "test:ci": "cross-env CI=1 jest",
-    "prepare": "husky install && yarn build"
+    "prepare": "yarn build"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.2.2",
-    "@eslint/js": "^9.6.0",
+    "@eslint/js": "^9.39.2",
+    "@gnuxie/tsconfig": "^2.2.2",
     "@sinclair/typebox": "0.34.13",
-    "@the-draupnir-project/matrix-basic-types": "1.4.1",
+    "@the-draupnir-project/matrix-basic-types": "^1.5.0",
     "@types/crypto-js": "^4.2.2",
-    "@types/eslint__js": "^8.42.3",
     "@types/glob-to-regexp": "^0.4.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.14.9",
     "cross-env": "^7.0.3",
-    "eslint": "^9.6.0",
+    "eslint": "^9.39.2",
     "husky": "^9.0.11",
     "jest": "^30.2.0",
     "lint-staged": "^15.2.7",
@@ -44,28 +44,10 @@
     "ts-jest": "^29.4.5",
     "ts-patch": "^3.2.1",
     "tslib": "^2.6.3",
-    "typedoc": "^0.26.3",
-    "typescript": "^5.5.3",
-    "typescript-eslint": "^7.15.0",
+    "typedoc": "^0.28.16",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.1",
     "wait-for-expect": "^3.0.2"
-  },
-  "lint-staged": {
-    "src/**/*.ts": [
-      "./node_modules/.bin/prettier --write",
-      "./node_modules/.bin/eslint"
-    ]
-  },
-  "prettier": {
-    "tabWidth": 2,
-    "useTabs": false,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
   },
   "dependencies": {
     "@gnuxie/typescript-result": "^1.0.0",
@@ -77,7 +59,7 @@
   },
   "peerDependencies": {
     "@sinclair/typebox": "0.34.13",
-    "@the-draupnir-project/matrix-basic-types": "1.4.1"
+    "@the-draupnir-project/matrix-basic-types": "^1.5.0"
   },
   "publishConfig": {
     "@gnuxie:registry": "https://registry.npmjs.org"

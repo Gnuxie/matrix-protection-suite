@@ -8,31 +8,31 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { ActionResult, Ok, isError } from '../../Interface/Action';
-import { MjolnirProtectedRoomsEvent } from './MjolnirProtectedRoomsEvent';
-import AwaitLock from 'await-lock';
+import { ActionResult, Ok, isError } from "../../Interface/Action";
+import { MjolnirProtectedRoomsEvent } from "./MjolnirProtectedRoomsEvent";
+import AwaitLock from "await-lock";
 import {
   LoggableConfig,
   LoggableConfigTracker,
-} from '../../Interface/LoggableConfig';
-import { RoomResolver } from '../../Client/RoomResolver';
-import { Logger } from '../../Logging/Logger';
+} from "../../Interface/LoggableConfig";
+import { RoomResolver } from "../../Client/RoomResolver";
+import { Logger } from "../../Logging/Logger";
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 import {
   PersistentConfigBackend,
   PersistentConfigData,
   StandardPersistentConfigData,
-} from '../../Config/PersistentConfigData';
+} from "../../Config/PersistentConfigData";
 import {
   MjolnirProtectedRoomsDescription,
   MjolnirProtectedRoomsEncodedShape,
-} from './MjolnirProtectedRoomsDescription';
-import { ResultError } from '@gnuxie/typescript-result';
+} from "./MjolnirProtectedRoomsDescription";
+import { ResultError } from "@gnuxie/typescript-result";
 
-const log = new Logger('MjolnirProtectedroomsCofnig');
+const log = new Logger("MjolnirProtectedroomsCofnig");
 
 export interface ProtectedRoomsConfig {
   addRoom(room: MatrixRoomID): Promise<ActionResult<void>>;
@@ -83,7 +83,7 @@ export class MjolnirProtectedRoomsConfig
       const resolvedRef = await resolver.resolveRoom(ref);
       if (isError(resolvedRef)) {
         log.info(`Current config`, data);
-        return await config.reportUseError('Unable to resolve room reference', {
+        return await config.reportUseError("Unable to resolve room reference", {
           path: `/rooms/${i}`,
           value: ref,
           cause: resolvedRef.error,
@@ -105,7 +105,7 @@ export class MjolnirProtectedRoomsConfig
     return [...this.protectedRooms.values()];
   }
   public logCurrentConfig(): void {
-    log.info('Current config', this.rawData);
+    log.info("Current config", this.rawData);
   }
   public async addRoom(room: MatrixRoomID): Promise<ActionResult<void>> {
     await this.writeLock.acquireAsync();

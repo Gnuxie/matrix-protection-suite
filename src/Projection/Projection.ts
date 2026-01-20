@@ -7,7 +7,7 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { EventEmitter } from 'stream';
+import { EventEmitter } from "stream";
 import {
   AnyProjectionNode,
   ExtractDeltaShape,
@@ -15,7 +15,7 @@ import {
   ExtractInputProjectionNodes,
   ExtractProjectionInputs,
   ProjectionNode,
-} from './ProjectionNode';
+} from "./ProjectionNode";
 
 export type ProjectionNodeListener<
   TProjectionNode extends ProjectionNode = ProjectionNode,
@@ -72,7 +72,7 @@ export class ProjectionOutputHelper<
     for (const output of this.outputs) {
       output.applyInput(delta);
     }
-    this.emitter.emit('projection', this.currentNode, delta, previousNode);
+    this.emitter.emit("projection", this.currentNode, delta, previousNode);
   }
 
   addOutput(projection: Projection): this {
@@ -86,11 +86,11 @@ export class ProjectionOutputHelper<
   }
 
   addNodeListener(listener: ProjectionNodeListener<TProjectionNode>): this {
-    this.emitter.addListener('projection', listener);
+    this.emitter.addListener("projection", listener);
     return this;
   }
   removeNodeListener(listener: ProjectionNodeListener<TProjectionNode>): this {
-    this.emitter.removeListener('projection', listener);
+    this.emitter.removeListener("projection", listener);
     return this;
   }
 

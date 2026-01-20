@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
-import { PowerLevelsEventContent } from '../MatrixTypes/PowerLevels';
-import { RoomCreateEvent, RoomVersionMirror } from '../MatrixTypes/CreateRoom';
+import { StringUserID } from "@the-draupnir-project/matrix-basic-types";
+import { PowerLevelsEventContent } from "../MatrixTypes/PowerLevels";
+import { RoomCreateEvent, RoomVersionMirror } from "../MatrixTypes/CreateRoom";
 
 export enum PowerLevelPermission {
-  Ban = 'ban',
-  Invite = 'invite',
-  Kick = 'kick',
-  Redact = 'redact',
+  Ban = "ban",
+  Invite = "invite",
+  Kick = "kick",
+  Redact = "redact",
 }
 
 export type MissingPermissionsChange = {

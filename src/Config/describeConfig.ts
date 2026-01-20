@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { TObject } from '@sinclair/typebox';
+import { TObject } from "@sinclair/typebox";
 import {
   ConfigDescription,
   StandardConfigDescription,
-} from './ConfigDescription';
+} from "./ConfigDescription";
 
 export type DescribeConfig<TConfigProperties extends TObject> = {
   schema: TConfigProperties;

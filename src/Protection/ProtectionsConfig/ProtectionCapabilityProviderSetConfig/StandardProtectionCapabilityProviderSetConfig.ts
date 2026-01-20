@@ -2,25 +2,25 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Ok, Result, isError } from '@gnuxie/typescript-result';
-import { CapabilityProviderSet } from '../../Capability/CapabilitySet';
-import { ProtectionDescription } from '../../Protection';
-import { ProtectionCapabilityProviderSetConfig } from './ProtectionCapabilityProviderSetConfig';
+import { Ok, Result, isError } from "@gnuxie/typescript-result";
+import { CapabilityProviderSet } from "../../Capability/CapabilitySet";
+import { ProtectionDescription } from "../../Protection";
+import { ProtectionCapabilityProviderSetConfig } from "./ProtectionCapabilityProviderSetConfig";
 import {
   PersistentConfigBackend,
   StandardPersistentConfigData,
-} from '../../../Config/PersistentConfigData';
-import { describeConfig } from '../../../Config/describeConfig';
-import { Type } from '@sinclair/typebox';
-import { findCapabilityProvider } from '../../Capability/CapabilityProvider';
-import { Logger } from '../../../Logging/Logger';
+} from "../../../Config/PersistentConfigData";
+import { describeConfig } from "../../../Config/describeConfig";
+import { Type } from "@sinclair/typebox";
+import { findCapabilityProvider } from "../../Capability/CapabilityProvider";
+import { Logger } from "../../../Logging/Logger";
 import {
   DRAUPNIR_SCHEMA_VERSION_KEY,
   SchemedData,
   SchemedDataManager,
-} from '../../../Interface/SchemedMatrixData';
+} from "../../../Interface/SchemedMatrixData";
 
-const log = new Logger('StandardProtectionCapabilityProviderSetConfig');
+const log = new Logger("StandardProtectionCapabilityProviderSetConfig");
 
 export const CapabilityProviderConfig = Type.Object(
   { [DRAUPNIR_SCHEMA_VERSION_KEY]: Type.Optional(Type.Number()) },
@@ -45,9 +45,7 @@ export type MakePersistentConfigBackendForStandardCapabilityProviderSetConfig =
     protectionDescription: ProtectionDescription
   ) => Result<PersistentConfigBackend>;
 
-export class StandardProtectionCapabilityProviderSetConfig
-  implements ProtectionCapabilityProviderSetConfig
-{
+export class StandardProtectionCapabilityProviderSetConfig implements ProtectionCapabilityProviderSetConfig {
   public constructor(
     private readonly makePersistentConfigBackend: MakePersistentConfigBackendForStandardCapabilityProviderSetConfig,
     private readonly migrationHandler?:
@@ -89,8 +87,8 @@ export class StandardProtectionCapabilityProviderSetConfig
     });
   }
   public async getCapabilityProviderSet<
-    TProtectionDescription extends
-      ProtectionDescription = ProtectionDescription,
+    TProtectionDescription extends ProtectionDescription =
+      ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription
   ): Promise<Result<CapabilityProviderSet>> {

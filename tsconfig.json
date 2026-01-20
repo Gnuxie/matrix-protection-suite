@@ -1,38 +1,7 @@
 {
+  "extends": "@gnuxie/tsconfig/tsconfig.json",
   "compilerOptions": {
-    "target": "es2018",
-    "module": "CommonJS",
-    "lib": [
-      "ESNext",
-    ],
-    "declaration": true,
     "declarationDir": "dist",
-    "declarationMap": true,
-    "exactOptionalPropertyTypes": true,
-    "outDir": "dist",
-    "sourceMap": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": false,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUncheckedIndexedAccess": true,
-    "noUnusedLocals": true,
-    "noImplicitAny": true,
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/__tests__",
-    "**/*.test.tsx",
-    "**/*.spec.tsx",
-  ],
-  "include": [
-    "src/**/*"
-  ]
+    "outDir": "dist"
+  }
 }

@@ -2,22 +2,22 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
-import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
-import { RoomMembershipRevision } from './MembershipRevision';
-import { RoomMembershipManager } from './RoomMembershipManager';
-import { Logger } from '../Logging/Logger';
-import { isError } from '../Interface/Action';
+import EventEmitter from "events";
+import { RoomMembershipRevisionIssuer } from "./MembershipRevisionIssuer";
+import { RoomMembershipRevision } from "./MembershipRevision";
+import { RoomMembershipManager } from "./RoomMembershipManager";
+import { Logger } from "../Logging/Logger";
+import { isError } from "../Interface/Action";
 import {
   ConstantPeriodEventBatch,
   EventBatch,
-} from '../StateTracking/EventBatch';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+} from "../StateTracking/EventBatch";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 
-const log = new Logger('StandardRoomMembershipRevisionIssuer');
+const log = new Logger("StandardRoomMembershipRevisionIssuer");
 
 /**
  * Users of this class are strongly recommended to consider the
@@ -29,7 +29,7 @@ export class StandardRoomMembershipRevisionIssuer
   implements RoomMembershipRevisionIssuer
 {
   private currentBatch: ConstantPeriodEventBatch;
-  private batchCompleteCallback: EventBatch['batchCompleteCallback'];
+  private batchCompleteCallback: EventBatch["batchCompleteCallback"];
   constructor(
     public readonly room: MatrixRoomID,
     public currentRevision: RoomMembershipRevision,
@@ -79,7 +79,7 @@ export class StandardRoomMembershipRevisionIssuer
       currentRoomMembershipResult.ok
     );
     this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   public unregisterListeners(): void {

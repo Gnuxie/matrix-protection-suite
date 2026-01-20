@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Result } from '@gnuxie/typescript-result';
-import { PaginationChunk } from './PaginationChunk';
-import { PaginationOptions } from './PaginationOptions';
+import { Result } from "@gnuxie/typescript-result";
+import { PaginationChunk } from "./PaginationChunk";
+import { PaginationOptions } from "./PaginationOptions";
 
 /**
  * A generalized paginator over a Matrix endpoint.

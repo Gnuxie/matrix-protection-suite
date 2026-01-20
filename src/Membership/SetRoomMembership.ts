@@ -5,10 +5,10 @@
 import {
   StringRoomID,
   MatrixRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { MembershipChange } from './MembershipChange';
-import { RoomMembershipRevision } from './MembershipRevision';
-import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
+} from "@the-draupnir-project/matrix-basic-types";
+import { MembershipChange } from "./MembershipChange";
+import { RoomMembershipRevision } from "./MembershipRevision";
+import { RoomMembershipRevisionIssuer } from "./MembershipRevisionIssuer";
 
 export type SetRoomMembershipListener = (
   roomID: StringRoomID,
@@ -19,13 +19,13 @@ export type SetRoomMembershipListener = (
 
 export type SetRoomMembershipChangeListener = (
   roomID: StringRoomID,
-  direction: 'add' | 'remove',
+  direction: "add" | "remove",
   revision: RoomMembershipRevision
 ) => void;
 
 export const SetRoomMembershipMirrorCord = Object.freeze({
-  addRoom: Symbol('addRoom'),
-  removeRoom: Symbol('removeRoom'),
+  addRoom: Symbol("addRoom"),
+  removeRoom: Symbol("removeRoom"),
 }) as Readonly<{
   readonly addRoom: unique symbol;
   readonly removeRoom: unique symbol;
@@ -37,16 +37,16 @@ export declare interface SetRoomMembership {
     issuer: RoomMembershipRevisionIssuer
   ): void;
   [SetRoomMembershipMirrorCord.removeRoom](room: MatrixRoomID): void;
-  on(event: 'membership', listener: SetRoomMembershipListener): this;
-  off(event: 'membership', listener: SetRoomMembershipListener): this;
+  on(event: "membership", listener: SetRoomMembershipListener): this;
+  off(event: "membership", listener: SetRoomMembershipListener): this;
   emit(
-    event: 'membership',
+    event: "membership",
     ...args: Parameters<SetRoomMembershipListener>
   ): boolean;
-  on(event: 'SetChange', listener: SetRoomMembershipChangeListener): this;
-  off(event: 'SetChange', listener: SetRoomMembershipChangeListener): this;
+  on(event: "SetChange", listener: SetRoomMembershipChangeListener): this;
+  off(event: "SetChange", listener: SetRoomMembershipChangeListener): this;
   emit(
-    event: 'SetChange',
+    event: "SetChange",
     ...args: Parameters<SetRoomMembershipChangeListener>
   ): boolean;
   unregisterListeners(): void;

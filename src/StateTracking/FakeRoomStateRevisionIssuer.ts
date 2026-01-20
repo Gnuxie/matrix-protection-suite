@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
+import EventEmitter from "events";
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateChange,
-} from './StateRevisionIssuer';
-import { StateEvent } from '../MatrixTypes/Events';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+} from "./StateRevisionIssuer";
+import { StateEvent } from "../MatrixTypes/Events";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 
 export class FakeRoomStateRevisionIssuer
   extends EventEmitter
@@ -45,7 +45,7 @@ export class FakeRoomStateRevisionIssuer
   reviseRevision(changes: StateChange[]): void {
     const previousRevision = this.currentRevision;
     this.currentRevision = this.currentRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   // this method is also on the Fake side.

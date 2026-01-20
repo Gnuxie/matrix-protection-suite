@@ -6,25 +6,25 @@ import {
   Membership,
   MembershipChange,
   MembershipChangeType,
-} from './MembershipChange';
+} from "./MembershipChange";
 import {
   StringRoomID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { RoomMembershipRevision } from './MembershipRevision';
-import { Map as PersistentMap, Set as PersistentSet } from 'immutable';
+} from "@the-draupnir-project/matrix-basic-types";
+import { RoomMembershipRevision } from "./MembershipRevision";
+import { Map as PersistentMap, Set as PersistentSet } from "immutable";
 
 export enum SetMembershipKind {
   // incorporates knock, join, invite
-  Present = 'present',
+  Present = "present",
   // incorporates leave, ban, and never present
-  Absent = 'absent',
+  Absent = "absent",
 }
 
 export enum SetMembershipChangeType {
-  BecamePresent = 'became_present',
-  BecameAbsent = 'became_absent',
-  NoOverallChange = 'no_overall_change',
+  BecamePresent = "became_present",
+  BecameAbsent = "became_absent",
+  NoOverallChange = "no_overall_change",
 }
 
 export type SetMembershipChange = {
@@ -84,7 +84,7 @@ export class StandardSetMembershipRevision implements SetMembershipRevision {
       )
     ) {
       throw new TypeError(
-        'Cannot revise from changes that do not all belong to the same room set.'
+        "Cannot revise from changes that do not all belong to the same room set."
       );
     }
     const changes = new Map<StringUserID, SetMembershipChange>();
@@ -139,7 +139,7 @@ export class StandardSetMembershipRevision implements SetMembershipRevision {
   ): SetMembershipDelta {
     if (this.internedRooms.has(roomMembershipRevision.room.toRoomIDOrAlias())) {
       throw new TypeError(
-        'Cannot revise from a room that is already in the room set.'
+        "Cannot revise from a room that is already in the room set."
       );
     }
     const changes: SetMembershipChange[] = [];
@@ -203,7 +203,7 @@ export class StandardSetMembershipRevision implements SetMembershipRevision {
     if (delta.addedRoom !== undefined) {
       if (internedRooms.has(delta.addedRoom)) {
         throw new TypeError(
-          'Cannot revise from a room that is already in the room set.'
+          "Cannot revise from a room that is already in the room set."
         );
       }
       internedRooms = internedRooms.add(delta.addedRoom);
@@ -211,7 +211,7 @@ export class StandardSetMembershipRevision implements SetMembershipRevision {
     if (delta.removedRoom !== undefined) {
       if (!internedRooms.has(delta.removedRoom)) {
         throw new TypeError(
-          'Cannot revise from a room that is not in the room set.'
+          "Cannot revise from a room that is not in the room set."
         );
       }
       internedRooms = internedRooms.remove(delta.removedRoom);

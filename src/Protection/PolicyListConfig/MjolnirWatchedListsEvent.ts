@@ -8,9 +8,9 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
-import { Value } from '../../Interface/Value';
-import { RoomReferencePermalinkSchema } from '../../MatrixTypes/PermalinkSchema';
+import { StaticDecode, Type } from "@sinclair/typebox";
+import { Value } from "../../Interface/Value";
+import { RoomReferencePermalinkSchema } from "../../MatrixTypes/PermalinkSchema";
 
 export type MjolnirWatchedPolicyRoomsEvent = StaticDecode<
   typeof MjolnirWatchedPolicyRoomsEvent
@@ -21,4 +21,4 @@ export const MjolnirWatchedPolicyRoomsEvent = Type.Object({
 Value.Compile(MjolnirWatchedPolicyRoomsEvent);
 
 export const MJOLNIR_WATCHED_POLICY_ROOMS_EVENT_TYPE =
-  'org.matrix.mjolnir.watched_lists';
+  "org.matrix.mjolnir.watched_lists";

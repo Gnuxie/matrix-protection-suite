@@ -8,14 +8,14 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { TObject } from '@sinclair/typebox';
-import { ActionError, ActionResult } from '../../Interface/Action';
-import { CapabilityProviderSet } from '../Capability/CapabilitySet';
-import { ProtectedRoomsSet } from '../ProtectedRoomsSet';
-import { Protection, ProtectionDescription } from '../Protection';
-import { EDStatic } from '../../Interface/Static';
-import { UnknownConfig } from '../../Config/ConfigDescription';
-import { CapabilityProviderDescription } from '../Capability/CapabilityProvider';
+import { TObject } from "@sinclair/typebox";
+import { ActionError, ActionResult } from "../../Interface/Action";
+import { CapabilityProviderSet } from "../Capability/CapabilitySet";
+import { ProtectedRoomsSet } from "../ProtectedRoomsSet";
+import { Protection, ProtectionDescription } from "../Protection";
+import { EDStatic } from "../../Interface/Static";
+import { UnknownConfig } from "../../Config/ConfigDescription";
+import { CapabilityProviderDescription } from "../Capability/CapabilityProvider";
 
 /**
  * The idea needs to be that protections are defined using a state event
@@ -87,8 +87,8 @@ export interface ProtectionsManager<Context = unknown> {
    * then this method will fail.
    */
   changeProtectionSettings<
-    TProtectionDescription extends
-      ProtectionDescription = ProtectionDescription,
+    TProtectionDescription extends ProtectionDescription =
+      ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription,
     protectedRoomsSet: ProtectedRoomsSet,
@@ -124,8 +124,8 @@ export interface ProtectionsManager<Context = unknown> {
    * @param protectionDescription The protection description to find the configured
    */
   getCapabilityProviderSet<
-    TProtectionDescription extends
-      ProtectionDescription = ProtectionDescription,
+    TProtectionDescription extends ProtectionDescription =
+      ProtectionDescription,
   >(
     protectionDescription: TProtectionDescription
   ): Promise<ActionResult<CapabilityProviderSet>>;

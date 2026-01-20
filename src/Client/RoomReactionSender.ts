@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Result } from '@gnuxie/typescript-result';
+import { Result } from "@gnuxie/typescript-result";
 import {
   StringEventID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export interface RoomReactionSender {
   sendReaction(

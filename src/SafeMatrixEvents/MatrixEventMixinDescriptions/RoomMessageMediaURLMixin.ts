@@ -11,24 +11,24 @@ import {
   ErroneousEventMixin,
   EventMixinDescription,
   OkEventMixin,
-} from '../EventMixinExtraction/EventMixinDescription';
-import { ErroneousMixin } from '../EventMixinExtraction/StandardMixinExtractor';
-import { hasOwn } from '../hasOwn';
+} from "../EventMixinExtraction/EventMixinDescription";
+import { ErroneousMixin } from "../EventMixinExtraction/StandardMixinExtractor";
+import { hasOwn } from "../hasOwn";
 
 export type RoomMessageMediaURLMixin = OkEventMixin & {
   url: string;
 };
 
 export const RoomMessageMediaURLMixinDescription = Object.freeze({
-  name: 'm.room.message media URL mixin',
+  name: "m.room.message media URL mixin",
   description:
-    'Extracts the media URL mixin from content that looks like m.room.message',
-  properties: ['url'],
+    "Extracts the media URL mixin from content that looks like m.room.message",
+  properties: ["url"],
   parser(content) {
-    if (!hasOwn(content, 'url')) {
+    if (!hasOwn(content, "url")) {
       return undefined;
     }
-    if (typeof content.url !== 'string') {
+    if (typeof content.url !== "string") {
       return ErroneousMixin(
         this,
         "The mediaURL mixin doesn't match the schema"

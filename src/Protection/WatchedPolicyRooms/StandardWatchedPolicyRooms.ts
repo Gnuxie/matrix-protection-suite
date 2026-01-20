@@ -5,21 +5,21 @@
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { PolicyListRevision } from '../../PolicyList/PolicyListRevision';
-import { WatchedPolicyRoom, WatchedPolicyRooms } from './WatchedPolicyRooms';
-import { isError, Ok, Result, ResultError } from '@gnuxie/typescript-result';
+} from "@the-draupnir-project/matrix-basic-types";
+import { PolicyListRevision } from "../../PolicyList/PolicyListRevision";
+import { WatchedPolicyRoom, WatchedPolicyRooms } from "./WatchedPolicyRooms";
+import { isError, Ok, Result, ResultError } from "@gnuxie/typescript-result";
 import {
   PolicyListConfig,
   PropagationType,
-} from '../PolicyListConfig/PolicyListConfig';
+} from "../PolicyListConfig/PolicyListConfig";
 import {
   DirectPropagationPolicyListRevisionIssuer,
   StandardDirectPropagationPolicyListRevisionIssuer,
-} from '../DirectPropagationPolicyListRevisionIssuer';
-import { PolicyRoomManager } from '../../PolicyList/PolicyRoomManger';
-import { PolicyRoomRevisionIssuer } from '../../PolicyList/PolicyListRevisionIssuer';
-import { RoomJoiner } from '../../Client/RoomJoiner';
+} from "../DirectPropagationPolicyListRevisionIssuer";
+import { PolicyRoomManager } from "../../PolicyList/PolicyRoomManger";
+import { PolicyRoomRevisionIssuer } from "../../PolicyList/PolicyListRevisionIssuer";
+import { RoomJoiner } from "../../Client/RoomJoiner";
 
 export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
   private constructor(
@@ -70,14 +70,14 @@ export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
     const joinResult = await this.roomJoiner.joinRoom(room);
     if (isError(joinResult)) {
       return joinResult.elaborate(
-        'Unable to join a policy room to be able to watch it'
+        "Unable to join a policy room to be able to watch it"
       );
     }
     const issuerResult =
       await this.policyRoomManager.getPolicyRoomRevisionIssuer(room);
     if (isError(issuerResult)) {
       return issuerResult.elaborate(
-        'Unable to get the policy room revision issuer to watch the policy room'
+        "Unable to get the policy room revision issuer to watch the policy room"
       );
     }
     const storeResult = await this.policyListConfig.watchList(
@@ -87,7 +87,7 @@ export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
     );
     if (isError(storeResult)) {
       return storeResult.elaborate(
-        'Unable to persist the new list subscription'
+        "Unable to persist the new list subscription"
       );
     }
     this.revisionIssuer.addIssuer(issuerResult.ok);
@@ -99,7 +99,7 @@ export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
     const issuer = this.policyRoomRevisionIssuers.get(room.toRoomIDOrAlias());
     if (issuer === undefined) {
       return ResultError.Result(
-        'Unable to unwatch the list because it is not currently being watched'
+        "Unable to unwatch the list because it is not currently being watched"
       );
     }
     const storeResult = await this.policyListConfig.unwatchList(
@@ -108,7 +108,7 @@ export class StandardWatchedPolicyRooms implements WatchedPolicyRooms {
     );
     if (isError(storeResult)) {
       return storeResult.elaborate(
-        'Unable to persist removing the list subscription'
+        "Unable to persist removing the list subscription"
       );
     }
     this.policyRoomRevisionIssuers.delete(room.toRoomIDOrAlias());

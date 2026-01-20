@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { Capability } from '../../Capability/CapabilityProvider';
-import { ServerBanIntentProjection } from './ServerBanIntentProjection';
-import { Result } from '@gnuxie/typescript-result';
-import { RoomSetResult } from '../../Capability/StandardCapability/RoomSetResult';
-import { CapabilityMethodSchema } from '../../Capability/StandardCapability/CapabilityMethodSchema';
-import { Type } from '@sinclair/typebox';
-import { describeCapabilityInterface } from '../../Capability/CapabilityInterface';
+import { StringRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { Capability } from "../../Capability/CapabilityProvider";
+import { ServerBanIntentProjection } from "./ServerBanIntentProjection";
+import { Result } from "@gnuxie/typescript-result";
+import { RoomSetResult } from "../../Capability/StandardCapability/RoomSetResult";
+import { CapabilityMethodSchema } from "../../Capability/StandardCapability/CapabilityMethodSchema";
+import { Type } from "@sinclair/typebox";
+import { describeCapabilityInterface } from "../../Capability/CapabilityInterface";
 
 export interface ServerBanSynchronisationCapability extends Capability {
   /**
@@ -35,7 +35,7 @@ export const ServerBanSynchronisationCapability = Type.Intersect([
 ]);
 
 describeCapabilityInterface({
-  name: 'ServerBanSynchronisationCapability',
-  description: 'Capability used by the ServerBanSynchronisationProtection',
+  name: "ServerBanSynchronisationCapability",
+  description: "Capability used by the ServerBanSynchronisationProtection",
   schema: ServerBanSynchronisationCapability,
 });

@@ -2,37 +2,37 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { findProtection } from '../../Protection';
-import './MemberBanSynchronisation';
-import { isError, isOk } from '../../../Interface/Action';
+import { findProtection } from "../../Protection";
+import "./MemberBanSynchronisation";
+import { isError, isOk } from "../../../Interface/Action";
 import {
   randomRoomID,
   randomUserID,
-} from '../../../TestUtilities/EventGeneration';
-import { describeProtectedRoomsSet } from '../../../StateTracking/DeclareRoomState';
+} from "../../../TestUtilities/EventGeneration";
+import { describeProtectedRoomsSet } from "../../../StateTracking/DeclareRoomState";
 import {
   Membership,
   MembershipChangeType,
-} from '../../../Membership/MembershipChange';
-import waitForExpect from 'wait-for-expect';
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
+} from "../../../Membership/MembershipChange";
+import waitForExpect from "wait-for-expect";
+import { PolicyRuleType } from "../../../MatrixTypes/PolicyEvents";
+import { ProtectedRoomsSet } from "../../ProtectedRoomsSet";
 import {
   MemberBanSynchronisationProtection,
   MemberBanSynchronisationProtectionCapabilities,
-} from './MemberBanSynchronisation';
-import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
-import { StandardLifetime } from '../../../Interface/Lifetime';
-import { SimulatedUserConsequences } from '../../Capability/StandardCapability/SimulatedUserConsequences';
+} from "./MemberBanSynchronisation";
+import { StringUserID } from "@the-draupnir-project/matrix-basic-types";
+import { StandardLifetime } from "../../../Interface/Lifetime";
+import { SimulatedUserConsequences } from "../../Capability/StandardCapability/SimulatedUserConsequences";
 
 async function createMemberBanSynchronisationProtection(
   capabilities: MemberBanSynchronisationProtectionCapabilities,
   protectedRoomsSet: ProtectedRoomsSet
 ): Promise<MemberBanSynchronisationProtection> {
-  const description = findProtection('MemberBanSynchronisationProtection');
+  const description = findProtection("MemberBanSynchronisationProtection");
   if (description === undefined) {
     throw new TypeError(
-      'Should be able to find the member ban synchronisation protection'
+      "Should be able to find the member ban synchronisation protection"
     );
   }
   const protectionResult = await description.factory(
@@ -45,7 +45,7 @@ async function createMemberBanSynchronisationProtection(
     {}
   );
   if (isError(protectionResult)) {
-    throw new TypeError('Should be able to construct the protection');
+    throw new TypeError("Should be able to construct the protection");
   }
   // cba to add a generic to the protection description so the factory can have
   // a generic return type. Shouldn't be this level of disconect between types
@@ -55,7 +55,7 @@ async function createMemberBanSynchronisationProtection(
 }
 
 // handleMembershipChange
-test('Membership changes that should result in a ban when matching an existing policy', async function () {
+test("Membership changes that should result in a ban when matching an existing policy", async function () {
   const policyRoom = randomRoomID([]);
   const protectedRoom = randomRoomID([]);
   const changesToTest = [
@@ -98,7 +98,7 @@ test('Membership changes that should result in a ban when matching an existing p
   );
   const consequenceSpy = jest.spyOn(
     userConsequences,
-    'consequenceForUserInRoom'
+    "consequenceForUserInRoom"
   );
   const protection = await createMemberBanSynchronisationProtection(
     { userConsequences },
@@ -150,7 +150,7 @@ test('Membership changes that should result in a ban when matching an existing p
 
 // handlePolicyRevision
 // We need to test the consequence method itself in another test?
-test('A policy change banning a user on a directly watched list will call the consequence to update for the revision', async function () {
+test("A policy change banning a user on a directly watched list will call the consequence to update for the revision", async function () {
   const spammerToBanUserID = `@spam:example.com` as StringUserID;
   const policyRoom = randomRoomID([]);
   const { protectedRoomsSet, roomStateManager, policyRoomManager } =
@@ -177,7 +177,7 @@ test('A policy change banning a user on a directly watched list will call the co
   );
   const consequenceSpy = jest.spyOn(
     userConsequences,
-    'consequenceForUsersInRoomSet'
+    "consequenceForUsersInRoomSet"
   );
 
   const protection = await createMemberBanSynchronisationProtection(

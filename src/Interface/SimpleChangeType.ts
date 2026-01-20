@@ -12,7 +12,7 @@
  * A simplified change type for event emitters to use.
  */
 export enum SimpleChangeType {
-  Added = 'Added',
-  Modified = 'Modified',
-  Removed = 'Removed',
+  Added = "Added",
+  Modified = "Modified",
+  Removed = "Removed",
 }

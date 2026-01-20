@@ -2,62 +2,62 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Task } from '../Interface/Task';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { PolicyListRevision } from '../PolicyList/PolicyListRevision';
-import { RevisionListener } from '../PolicyList/PolicyListRevisionIssuer';
-import { PolicyRuleChange } from '../PolicyList/PolicyRuleChange';
-import { EventReport } from '../Reporting/EventReport';
-import { MembershipChange } from '../Membership/MembershipChange';
-import { RoomMembershipRevision } from '../Membership/MembershipRevision';
+import { Task } from "../Interface/Task";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { PolicyListRevision } from "../PolicyList/PolicyListRevision";
+import { RevisionListener } from "../PolicyList/PolicyListRevisionIssuer";
+import { PolicyRuleChange } from "../PolicyList/PolicyRuleChange";
+import { EventReport } from "../Reporting/EventReport";
+import { MembershipChange } from "../Membership/MembershipChange";
+import { RoomMembershipRevision } from "../Membership/MembershipRevision";
 import {
   SetRoomMembership,
   SetRoomMembershipListener,
-} from '../Membership/SetRoomMembership';
+} from "../Membership/SetRoomMembership";
 import {
   SetRoomState,
   SetRoomStateListener,
-} from '../StateTracking/SetRoomState';
+} from "../StateTracking/SetRoomState";
 import {
   RoomStateRevision,
   StateChange,
-} from '../StateTracking/StateRevisionIssuer';
-import { ProtectionsManager } from './ProtectionsManager/ProtectionsManager';
+} from "../StateTracking/StateRevisionIssuer";
+import { ProtectionsManager } from "./ProtectionsManager/ProtectionsManager";
 import {
   PowerLevelsEvent,
   PowerLevelsEventContent,
-} from '../MatrixTypes/PowerLevels';
-import { Protection, ProtectionDescription } from './Protection';
+} from "../MatrixTypes/PowerLevels";
+import { Protection, ProtectionDescription } from "./Protection";
 import {
   MissingPermissionsChange,
   PowerLevelsMirror,
-} from '../Client/PowerLevelsMirror';
+} from "../Client/PowerLevelsMirror";
 import {
   ProtectedRoomChangeType,
   ProtectedRoomsManager,
-} from './ProtectedRoomsManager/ProtectedRoomsManager';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
+} from "./ProtectedRoomsManager/ProtectedRoomsManager";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
 import {
   StringUserID,
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { SetMembershipRevisionIssuer } from '../Membership/SetMembershipRevisionIssuer';
+} from "@the-draupnir-project/matrix-basic-types";
+import { SetMembershipRevisionIssuer } from "../Membership/SetMembershipRevisionIssuer";
 import {
   SetMembershipDelta,
   SetMembershipRevision,
-} from '../Membership/SetMembershipRevision';
+} from "../Membership/SetMembershipRevision";
 import {
   SetMembershipPolicyRevisionIssuer,
   StandardMembershipPolicyRevisionIssuer,
-} from '../MembershipPolicies/SetMembershipPolicyRevisionIssuer';
+} from "../MembershipPolicies/SetMembershipPolicyRevisionIssuer";
 import {
   MembershipPolicyRevisionDelta,
   SetMembershipPolicyRevision,
-} from '../MembershipPolicies/MembershipPolicyRevision';
-import { WatchedPolicyRooms } from './WatchedPolicyRooms/WatchedPolicyRooms';
-import { MixinExtractor } from '../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction';
-import { RoomCreateEvent, RoomVersionMirror } from '../MatrixTypes/CreateRoom';
+} from "../MembershipPolicies/MembershipPolicyRevision";
+import { WatchedPolicyRooms } from "./WatchedPolicyRooms/WatchedPolicyRooms";
+import { MixinExtractor } from "../SafeMatrixEvents/EventMixinExtraction/EventMixinExtraction";
+import { RoomCreateEvent, RoomVersionMirror } from "../MatrixTypes/CreateRoom";
 
 export interface ProtectedRoomsSet {
   readonly watchedPolicyRooms: WatchedPolicyRooms;
@@ -109,18 +109,18 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     public readonly eventMixinExtractor: MixinExtractor,
     private readonly handleMissingProtectionPermissions?: HandleMissingProtectionPermissions
   ) {
-    this.setRoomMembership.on('membership', this.membershipChangeListener);
-    this.setRoomState.on('revision', this.stateChangeListener);
-    watchedPolicyRooms.revisionIssuer.on('revision', this.policyChangeListener);
-    this.protectedRoomsManager.on('change', this.roomsChangeListener);
-    this.setMembership.on('revision', this.setMembershiprevisionListener);
+    this.setRoomMembership.on("membership", this.membershipChangeListener);
+    this.setRoomState.on("revision", this.stateChangeListener);
+    watchedPolicyRooms.revisionIssuer.on("revision", this.policyChangeListener);
+    this.protectedRoomsManager.on("change", this.roomsChangeListener);
+    this.setMembership.on("revision", this.setMembershiprevisionListener);
     this.setPoliciesMatchingMembership =
       new StandardMembershipPolicyRevisionIssuer(
         this.setMembership,
         watchedPolicyRooms.revisionIssuer
       );
     this.setPoliciesMatchingMembership.on(
-      'revision',
+      "revision",
       this.setMembershipPolicyRevisionListener
     );
   }
@@ -271,20 +271,20 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
   ): void {
     const previousPowerLevels =
       previousRevision.getStateEvent<PowerLevelsEvent>(
-        'm.room.power_levels',
-        ''
+        "m.room.power_levels",
+        ""
       );
     const nextPowerLevels = nextRevision.getStateEvent<PowerLevelsEvent>(
-      'm.room.power_levels',
-      ''
+      "m.room.power_levels",
+      ""
     );
     const createEvent = nextRevision.getStateEvent<RoomCreateEvent>(
-      'm.room.create',
-      ''
+      "m.room.create",
+      ""
     );
     if (createEvent === undefined) {
       throw new TypeError(
-        'Room with missing create event found, this is not ok'
+        "Room with missing create event found, this is not ok"
       );
     }
     this.powerLevelsChangeFromContent(
@@ -303,7 +303,7 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     previousRevision: RoomStateRevision
   ): void {
     const powerLevelsEvent = changes.find(
-      (change) => change.eventType === 'm.room.power_levels'
+      (change) => change.eventType === "m.room.power_levels"
     );
     if (powerLevelsEvent !== undefined) {
       this.powerLevelsChangeFromRevision(nextRevision, previousRevision);
@@ -332,16 +332,16 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
       );
     }
     const currentPowerLevelsEvent = currentRevision.getStateEvent(
-      'm.room.power_levels',
-      ''
+      "m.room.power_levels",
+      ""
     );
     const createEvent = currentRevision.getStateEvent<RoomCreateEvent>(
-      'm.room.create',
-      ''
+      "m.room.create",
+      ""
     );
     if (createEvent === undefined) {
       throw new TypeError(
-        'Room with missing create event found, this is not ok'
+        "Room with missing create event found, this is not ok"
       );
     }
     // We call the powerLevelsChange so that handlePermissionsMet will be called
@@ -391,22 +391,22 @@ export class StandardProtectedRoomsSet implements ProtectedRoomsSet {
     // shared revision issuers that are given by the "RoomStateManager" deriratives.
     // The listener situation here kinda sucks, setting up and managing these relationships
     // should be left to some other component.
-    this.setRoomMembership.off('membership', this.membershipChangeListener);
+    this.setRoomMembership.off("membership", this.membershipChangeListener);
     this.setRoomMembership.unregisterListeners();
-    this.setRoomState.off('revision', this.stateChangeListener);
+    this.setRoomState.off("revision", this.stateChangeListener);
     this.setRoomState.unregisterListeners();
     this.watchedPolicyRooms.revisionIssuer.off(
-      'revision',
+      "revision",
       this.policyChangeListener
     );
     this.watchedPolicyRooms.unregisterListeners();
-    this.protectedRoomsManager.off('change', this.roomsChangeListener);
+    this.protectedRoomsManager.off("change", this.roomsChangeListener);
     this.protectedRoomsManager.unregisterListeners();
     this.protections.unregisterListeners();
-    this.setMembership.off('revision', this.setMembershiprevisionListener);
+    this.setMembership.off("revision", this.setMembershiprevisionListener);
     this.setMembership.unregisterListeners();
     this.setPoliciesMatchingMembership.off(
-      'revision',
+      "revision",
       this.setMembershipPolicyRevisionListener
     );
     this.setPoliciesMatchingMembership.unregisterListeners();

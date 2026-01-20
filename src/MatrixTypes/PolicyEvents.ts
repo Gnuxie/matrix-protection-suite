@@ -8,22 +8,22 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { Type } from '@sinclair/typebox';
-import { EmptyContent, StateEvent } from './Events';
-import { Value } from '../Interface/Value';
-import { EDStatic } from '../Interface/Static';
+import { Type } from "@sinclair/typebox";
+import { EmptyContent, StateEvent } from "./Events";
+import { Value } from "../Interface/Value";
+import { EDStatic } from "../Interface/Static";
 
 export enum PolicyRuleType {
   /// `entity` is to be parsed as a glob of users IDs
-  User = 'm.policy.rule.user',
+  User = "m.policy.rule.user",
 
   /// `entity` is to be parsed as a glob of room IDs/aliases
-  Room = 'm.policy.rule.room',
+  Room = "m.policy.rule.room",
 
   /// `entity` is to be parsed as a glob of server names
-  Server = 'm.policy.rule.server',
+  Server = "m.policy.rule.server",
 
-  Unknown = 'unknown',
+  Unknown = "unknown",
 }
 
 // FIXME: I don't see how this is relevant. The obsoleting behavior is weird,
@@ -34,18 +34,18 @@ export enum PolicyRuleType {
 // Most rules (as of writing) will have the prefix `m.room.rule.*` as this has been in use for roughly 2 years.
 export const USER_RULE_TYPES = [
   PolicyRuleType.User,
-  'm.room.rule.user',
-  'org.matrix.mjolnir.rule.user',
+  "m.room.rule.user",
+  "org.matrix.mjolnir.rule.user",
 ];
 export const ROOM_RULE_TYPES = [
   PolicyRuleType.Room,
-  'm.room.rule.room',
-  'org.matrix.mjolnir.rule.room',
+  "m.room.rule.room",
+  "org.matrix.mjolnir.rule.room",
 ];
 export const SERVER_RULE_TYPES = [
   PolicyRuleType.Server,
-  'm.room.rule.server',
-  'org.matrix.mjolnir.rule.server',
+  "m.room.rule.server",
+  "org.matrix.mjolnir.rule.server",
 ];
 export const ALL_RULE_TYPES = [
   ...USER_RULE_TYPES,
@@ -107,15 +107,15 @@ export function isPolicyTypeObsolete(
 export const PlainTextPolicyContent = Type.Object({
   entity: Type.String({
     description:
-      'The entity affected by this rule. Glob characters `*` and `?` can be used\nto match zero or more characters or exactly one character respectively.',
+      "The entity affected by this rule. Glob characters `*` and `?` can be used\nto match zero or more characters or exactly one character respectively.",
   }),
   recommendation: Type.String({
     description:
-      'The suggested action to take. Currently only `m.ban` is specified.',
+      "The suggested action to take. Currently only `m.ban` is specified.",
   }),
   reason: Type.Optional(
     Type.String({
-      description: 'The human-readable description for the `recommendation`.',
+      description: "The human-readable description for the `recommendation`.",
     })
   ),
 });
@@ -123,13 +123,13 @@ export const PlainTextPolicyContent = Type.Object({
 export type HashedPolicyContent = EDStatic<typeof HashedPolicyContent>;
 export const HashedPolicyContent = Type.Union([
   Type.Intersect([
-    Type.Omit(PlainTextPolicyContent, ['entity']),
+    Type.Omit(PlainTextPolicyContent, ["entity"]),
     Type.Object({
-      'org.matrix.msc4205.hashes': Type.Record(Type.String(), Type.String()),
+      "org.matrix.msc4205.hashes": Type.Record(Type.String(), Type.String()),
     }),
   ]),
   Type.Intersect([
-    Type.Omit(PlainTextPolicyContent, ['entity']),
+    Type.Omit(PlainTextPolicyContent, ["entity"]),
     Type.Object({
       hashes: Type.Record(Type.String(), Type.String()),
     }),
@@ -156,7 +156,7 @@ export const PolicyRuleUser = Type.Intersect([
   Type.Object({
     state_key: Type.Optional(
       Type.String({
-        description: 'An arbitrary string decided upon by the sender.',
+        description: "An arbitrary string decided upon by the sender.",
       })
     ),
     type: Type.Union(USER_RULE_TYPES.map((type) => Type.Literal(type))),
@@ -169,7 +169,7 @@ export const PolicyRuleServer = Type.Intersect([
   Type.Object({
     state_key: Type.Optional(
       Type.String({
-        description: 'An arbitrary string decided upon by the sender.',
+        description: "An arbitrary string decided upon by the sender.",
       })
     ),
     type: Type.Union(SERVER_RULE_TYPES.map((type) => Type.Literal(type))),
@@ -182,7 +182,7 @@ export const PolicyRuleRoom = Type.Intersect([
   Type.Object({
     state_key: Type.Optional(
       Type.String({
-        description: 'An arbitrary string decided upon by the sender.',
+        description: "An arbitrary string decided upon by the sender.",
       })
     ),
     type: Type.Union(ROOM_RULE_TYPES.map((type) => Type.Literal(type))),

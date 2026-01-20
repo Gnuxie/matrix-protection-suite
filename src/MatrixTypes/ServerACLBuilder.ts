@@ -8,8 +8,8 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixGlob } from '@the-draupnir-project/matrix-basic-types';
-import { ServerACLContent } from './ServerACL';
+import { MatrixGlob } from "@the-draupnir-project/matrix-basic-types";
+import { ServerACLContent } from "./ServerACL";
 
 export class ServerACLBuilder {
   private allowedServers: Set<string> = new Set<string>();
@@ -39,7 +39,7 @@ export class ServerACLBuilder {
   public safeAllowedServers(): string[] {
     const allowed = [...this.allowedServers];
     if (allowed.length === 0) {
-      allowed.push('*'); // allow everything
+      allowed.push("*"); // allow everything
     }
     if (
       !allowed.some((server) => new MatrixGlob(server).test(this.homeserver))
@@ -88,9 +88,9 @@ export class ServerACLBuilder {
   }
 
   public matches(acl: ServerACLContent): boolean {
-    const allow = acl['allow'];
-    const deny = acl['deny'];
-    const ips = acl['allow_ip_literals'];
+    const allow = acl["allow"];
+    const deny = acl["deny"];
+    const ips = acl["allow_ip_literals"];
 
     let allowMatches = true; // until proven false
     let denyMatches = true; // until proven false

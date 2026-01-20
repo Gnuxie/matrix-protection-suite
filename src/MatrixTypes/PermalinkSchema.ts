@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { isError, Result } from '@gnuxie/typescript-result';
-import { Type } from '@sinclair/typebox';
+import { isError, Result } from "@gnuxie/typescript-result";
+import { Type } from "@sinclair/typebox";
 import {
   MatrixEventReference,
   MatrixRoomAlias,
   MatrixRoomID,
   MatrixRoomReference,
-} from '@the-draupnir-project/matrix-basic-types';
-import { EDStatic } from '../Interface/Static';
+} from "@the-draupnir-project/matrix-basic-types";
+import { EDStatic } from "../Interface/Static";
 
 type PermalinkDecoder<T> = (string: string) => Result<T>;
 
@@ -49,7 +49,7 @@ export const RoomIDPermalinkSchema = Type.Transform(
       MatrixRoomReference.fromPermalink
     );
     if (roomReference instanceof MatrixRoomAlias) {
-      throw new TypeError('Things are badly wrong');
+      throw new TypeError("Things are badly wrong");
     }
     return roomReference;
   })
@@ -68,7 +68,7 @@ export const RoomAliasPermalinkSchema = Type.Transform(
       MatrixRoomReference.fromPermalink
     );
     if (roomReference instanceof MatrixRoomID) {
-      throw new TypeError('Things are badly wrong');
+      throw new TypeError("Things are badly wrong");
     }
     return roomReference;
   })

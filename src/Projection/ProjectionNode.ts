@@ -7,7 +7,7 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { ULID } from 'ulidx';
+import { ULID } from "ulidx";
 
 export type ExtractDeltaShape<TProjectionNode extends ProjectionNode> =
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

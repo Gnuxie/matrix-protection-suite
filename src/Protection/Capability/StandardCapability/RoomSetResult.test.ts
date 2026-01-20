@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionError, Ok } from '../../../Interface/Action';
+import { ActionError, Ok } from "../../../Interface/Action";
 import {
   randomRoomID,
   randomUserID,
-} from '../../../TestUtilities/EventGeneration';
-import { ResultForUsersInSetBuilder } from './RoomSetResult';
+} from "../../../TestUtilities/EventGeneration";
+import { ResultForUsersInSetBuilder } from "./RoomSetResult";
 
 test(`RoomSetResult detects failed results correctly`, function () {
   const builder = new ResultForUsersInSetBuilder();

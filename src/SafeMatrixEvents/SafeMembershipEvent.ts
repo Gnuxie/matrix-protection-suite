@@ -2,29 +2,29 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { ActionResult, Ok, isError, isOk } from '../Interface/Action';
-import { DecodeException, Value } from '../Interface/Value';
+import { ActionResult, Ok, isError, isOk } from "../Interface/Action";
+import { DecodeException, Value } from "../Interface/Value";
 import {
   BaseMembershipEvent,
   MembershipEventContent,
-} from '../MatrixTypes/MembershipEvent';
-import { ValuePointer } from '@sinclair/typebox/value';
+} from "../MatrixTypes/MembershipEvent";
+import { ValuePointer } from "@sinclair/typebox/value";
 
 /**
  * Used by the `SafeMembershipEventMirror` to extract unsafe content from an event.
  */
-export const UnsafeContentKey = Symbol('unsafeContent');
+export const UnsafeContentKey = Symbol("unsafeContent");
 /**
  * Used by the `SafeMembershipEventMirror` to determine if an object is `SafeMembershipEventContent`.
  */
-const SafeMembershipEventContentKey = Symbol('SafeMembershipEventContent');
+const SafeMembershipEventContentKey = Symbol("SafeMembershipEventContent");
 
 export interface SafeMembershipEventContent extends MembershipEventContent {
   [UnsafeContentKey]?: Record<string, unknown>;
   [SafeMembershipEventContentKey]: true;
 }
 
-export type SafeMembershipEvent = Omit<BaseMembershipEvent, 'content'> & {
+export type SafeMembershipEvent = Omit<BaseMembershipEvent, "content"> & {
   content: SafeMembershipEventContent;
 };
 
@@ -36,7 +36,7 @@ export const SafeMembershipEventMirror = Object.freeze({
   },
   isSafeContent(content: unknown): content is SafeMembershipEventContent {
     return (
-      typeof content === 'object' &&
+      typeof content === "object" &&
       content !== null &&
       SafeMembershipEventContentKey in content
     );
@@ -79,7 +79,7 @@ export const SafeMembershipEventMirror = Object.freeze({
       const unsafePropertyKeys = decodeResult.error.errors.map(
         (error) => ValuePointer.Format(error.path).next().value as string
       );
-      if (unsafePropertyKeys.includes('membership')) {
+      if (unsafePropertyKeys.includes("membership")) {
         // this is a legitimatly unsafe event.
         return decodeResult;
       }

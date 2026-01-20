@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Result } from '@gnuxie/typescript-result';
+import { Result } from "@gnuxie/typescript-result";
 
 export type InvariantCheck<Subject> = Invariant<Subject>;
 

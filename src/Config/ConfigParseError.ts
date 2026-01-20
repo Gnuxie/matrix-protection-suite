@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Err, ResultError } from '@gnuxie/typescript-result';
-import { ConfigRecoveryOption } from './PersistentConfigData';
-import { ConfigDescription } from './ConfigDescription';
+import { Err, ResultError } from "@gnuxie/typescript-result";
+import { ConfigRecoveryOption } from "./PersistentConfigData";
+import { ConfigDescription } from "./ConfigDescription";
 
 export class ConfigRecoverableError extends ResultError {
   public readonly recoveryOptions: ConfigRecoveryOption[] = [];
@@ -26,8 +26,8 @@ export class ConfigRecoverableError extends ResultError {
 // We call them problematic because we can get errors once they are used too rather
 // than just during parsing.
 export enum ConfigErrorDiagnosis {
-  ProblematicValue = 'ProblematicValue',
-  ProblematicArrayItem = 'ProblematicArrayItem',
+  ProblematicValue = "ProblematicValue",
+  ProblematicArrayItem = "ProblematicArrayItem",
 }
 
 export class ConfigParseError extends ConfigRecoverableError {
@@ -99,15 +99,15 @@ export class ConfigPropertyError extends ConfigRecoverableError {
   public itemIndex(): number {
     const match = this.path.match(/\/(\d+)$/)?.[1];
     if (match === undefined) {
-      throw new TypeError('Invalid path was given to ConfigPropertyError');
+      throw new TypeError("Invalid path was given to ConfigPropertyError");
     }
     return parseInt(match, 10);
   }
 
   public topLevelProperty(): string {
-    const key = this.path.split('/')[1];
+    const key = this.path.split("/")[1];
     if (key === undefined) {
-      throw new TypeError('Invalid path was given to ConfigPropertyError');
+      throw new TypeError("Invalid path was given to ConfigPropertyError");
     }
     return key;
   }

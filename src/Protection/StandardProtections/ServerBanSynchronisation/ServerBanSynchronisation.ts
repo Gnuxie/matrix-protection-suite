@@ -8,32 +8,32 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult, Ok, isError } from '../../../Interface/Action';
-import { Task } from '../../../Interface/Task';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult, Ok, isError } from "../../../Interface/Action";
+import { Task } from "../../../Interface/Task";
 import {
   RoomStateRevision,
   StateChange,
-} from '../../../StateTracking/StateRevisionIssuer';
-import { ProtectedRoomsSet } from '../../ProtectedRoomsSet';
+} from "../../../StateTracking/StateRevisionIssuer";
+import { ProtectedRoomsSet } from "../../ProtectedRoomsSet";
 import {
   AbstractProtection,
   Protection,
   ProtectionDescription,
   describeProtection,
-} from '../../Protection';
-import { UnknownConfig } from '../../../Config/ConfigDescription';
-import './ServerBanSynchronisationCapability';
-import './ServerACLSynchronisationCapability';
-import { OwnLifetime } from '../../../Interface/Lifetime';
+} from "../../Protection";
+import { UnknownConfig } from "../../../Config/ConfigDescription";
+import "./ServerBanSynchronisationCapability";
+import "./ServerACLSynchronisationCapability";
+import { OwnLifetime } from "../../../Interface/Lifetime";
 import {
   ServerBanIntentProjection,
   StandardServerBanIntentProjection,
-} from './ServerBanIntentProjection';
-import { ServerBanSynchronisationCapability } from './ServerBanSynchronisationCapability';
-import { Logger } from '../../../Logging/Logger';
+} from "./ServerBanIntentProjection";
+import { ServerBanSynchronisationCapability } from "./ServerBanSynchronisationCapability";
+import { Logger } from "../../../Logging/Logger";
 
-const log = new Logger('ServerBanSynchronisationProtection');
+const log = new Logger("ServerBanSynchronisationProtection");
 
 // FIXME: We need a linear gate around the server ACL consequence for the entire
 // room set.
@@ -70,7 +70,7 @@ export class ServerBanSynchronisationProtection
     changes: StateChange[]
   ): Promise<ActionResult<void>> {
     const serverACLEventChanges = changes.filter(
-      (change) => change.eventType === 'm.room.server_acl'
+      (change) => change.eventType === "m.room.server_acl"
     );
     if (serverACLEventChanges.length === 0) {
       return Ok(undefined);
@@ -110,14 +110,14 @@ type Capabilities = {
 };
 
 describeProtection<Capabilities>({
-  name: 'ServerBanSynchronisationProtection',
+  name: "ServerBanSynchronisationProtection",
   description:
-    'Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events',
+    "Synchronise server bans from watched policy lists across the protected rooms set by producing ServerACL events",
   capabilityInterfaces: {
-    serverConsequences: 'ServerBanSynchronisationCapability',
+    serverConsequences: "ServerBanSynchronisationCapability",
   },
   defaultCapabilities: {
-    serverConsequences: 'ServerACLSynchronisationCapability',
+    serverConsequences: "ServerACLSynchronisationCapability",
   },
   factory: async (
     description,
@@ -134,7 +134,7 @@ describeProtection<Capabilities>({
       )
     );
     if (isError(intentProjection)) {
-      return intentProjection.elaborate('Unable to allocate intent projection');
+      return intentProjection.elaborate("Unable to allocate intent projection");
     }
     return Ok(
       new ServerBanSynchronisationProtection(

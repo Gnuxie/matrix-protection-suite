@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { randomUUID } from 'crypto';
-import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { Recommendation } from '../PolicyList/PolicyRule';
-import { Value } from '../Interface/Value';
-import { isError } from '../Interface/Action';
-import { buildPolicyEvent } from '../PolicyList/PolicyRuleEventBuilder';
+import { randomUUID } from "crypto";
+import { PolicyRuleEvent, PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { Recommendation } from "../PolicyList/PolicyRule";
+import { Value } from "../Interface/Value";
+import { isError } from "../Interface/Action";
+import { buildPolicyEvent } from "../PolicyList/PolicyRuleEventBuilder";
 import {
   MatrixRoomID,
   MatrixRoomReference,
@@ -17,7 +17,7 @@ import {
   isStringEventID,
   isStringRoomID,
   isStringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 export function randomRawEvent(sender: string, room_id: string): unknown {
   const rawEventJSON = {
@@ -25,10 +25,10 @@ export function randomRawEvent(sender: string, room_id: string): unknown {
     sender,
     event_id: `$${randomUUID()}:example.com`,
     origin_server_ts: Date.now(),
-    type: 'm.room.message',
+    type: "m.room.message",
     content: {
       body: randomUUID(),
-      msgtype: 'm.text',
+      msgtype: "m.text",
     },
   };
   return rawEventJSON;
@@ -37,7 +37,7 @@ export function randomRawEvent(sender: string, room_id: string): unknown {
 export function makePolicyRuleUserEvent({
   sender = randomUserID(),
   room_id = `!${randomUUID()}:example.com` as StringRoomID,
-  reason = '<no reason supplied>',
+  reason = "<no reason supplied>",
   entity = randomUserID(),
   recommendation = Recommendation.Ban,
   state_key,
@@ -75,10 +75,7 @@ export function makePolicyRuleUserEvent({
   };
   const decodeResult = Value.Decode(PolicyRuleEvent, rawEventJSON);
   if (isError(decodeResult)) {
-    const errors = [...Value.Errors(PolicyRuleEvent, rawEventJSON)];
-    throw new TypeError(
-      `Something is wrong with the event generator [${errors.toString()}]`
-    );
+    throw new TypeError(`Something is wrong with the event generator`);
   } else {
     return decodeResult.ok;
   }

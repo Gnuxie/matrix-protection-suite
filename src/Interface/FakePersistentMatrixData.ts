@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MatrixAccountData } from './PersistentMatrixData';
-import { ActionResult, Ok } from './Action';
-import { PersistentConfigBackend } from '../Config/PersistentConfigData';
+import { MatrixAccountData } from "./PersistentMatrixData";
+import { ActionResult, Ok } from "./Action";
+import { PersistentConfigBackend } from "../Config/PersistentConfigData";
 
 export class FakeMatrixAccountData<T> implements MatrixAccountData<T> {
   private fakePersistedData: T;
@@ -20,9 +20,9 @@ export class FakeMatrixAccountData<T> implements MatrixAccountData<T> {
   }
 }
 
-export class FakePersistentConfigBackend<T extends Record<string, unknown>>
-  implements PersistentConfigBackend<T>
-{
+export class FakePersistentConfigBackend<
+  T extends Record<string, unknown>,
+> implements PersistentConfigBackend<T> {
   private fakePersistedData: T;
   constructor(initialData: T) {
     this.fakePersistedData = initialData;

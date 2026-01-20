@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Map as PersistentMap, List } from 'immutable';
+import { Map as PersistentMap, List } from "immutable";
 
 export type ListMultiMap<Key, Value> = PersistentMap<Key, List<Value>>;
 type GetKeyFromValue<Key, Value> = (value: Value) => Key;
@@ -90,7 +90,7 @@ export const ListMultiMap = Object.freeze({
       } else if (change.valueCount === 0) {
         output.recall.push(key);
       } else if (change.valueCount < 0) {
-        throw new TypeError('Things are super wrong');
+        throw new TypeError("Things are super wrong");
       }
     }
     return output;

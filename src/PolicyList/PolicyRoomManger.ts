@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
-import { ActionResult } from '../Interface/Action';
-import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
-import { PolicyRoomEditor } from './PolicyRoomEditor';
+import { RoomCreateOptions } from "../MatrixTypes/CreateRoom";
+import { ActionResult } from "../Interface/Action";
+import { PolicyRuleEvent, PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { PolicyRoomRevisionIssuer } from "./PolicyListRevisionIssuer";
+import { PolicyRoomEditor } from "./PolicyRoomEditor";
 import {
   MatrixRoomID,
   MatrixRoomReference,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 /**
  * An interface to access models of a `PolicyRoom` (a PolicyList which is a direct

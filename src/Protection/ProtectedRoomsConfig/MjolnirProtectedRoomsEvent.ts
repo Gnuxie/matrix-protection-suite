@@ -8,9 +8,9 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { StaticDecode, Type } from '@sinclair/typebox';
-import { Value } from '../../Interface/Value';
-import { StringRoomIDSchema } from '../../MatrixTypes/StringlyTypedMatrix';
+import { StaticDecode, Type } from "@sinclair/typebox";
+import { Value } from "../../Interface/Value";
+import { StringRoomIDSchema } from "../../MatrixTypes/StringlyTypedMatrix";
 
 export type MjolnirProtectedRoomsEvent = StaticDecode<
   typeof MjolnirProtectedRoomsEvent
@@ -21,4 +21,4 @@ export const MjolnirProtectedRoomsEvent = Type.Object({
 Value.Compile(MjolnirProtectedRoomsEvent);
 
 export const MJOLNIR_PROTECTED_ROOMS_EVENT_TYPE =
-  'org.matrix.mjolnir.protected_rooms';
+  "org.matrix.mjolnir.protected_rooms";

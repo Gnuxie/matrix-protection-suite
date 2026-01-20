@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { MembershipChange } from './MembershipChange';
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { MembershipChange } from "./MembershipChange";
 import {
   MembershipRevision,
   RoomMembershipRevision,
-} from './MembershipRevision';
+} from "./MembershipRevision";
 
 export type MembershipRevisionListener<
   Revision extends MembershipRevision = MembershipRevision,
@@ -21,17 +21,16 @@ export type MembershipRevisionListener<
 
 export declare interface MembershipRevisionIssuer {
   currentRevision: MembershipRevision;
-  on(event: 'revision', listener: MembershipRevisionListener): this;
-  off(...args: Parameters<MembershipRevisionIssuer['on']>): this;
+  on(event: "revision", listener: MembershipRevisionListener): this;
+  off(...args: Parameters<MembershipRevisionIssuer["on"]>): this;
   emit(
-    event: 'revision',
+    event: "revision",
     ...args: Parameters<MembershipRevisionListener>
   ): boolean;
   unregisterListeners(): void;
 }
 
-export declare interface RoomMembershipRevisionIssuer
-  extends MembershipRevisionIssuer {
+export declare interface RoomMembershipRevisionIssuer extends MembershipRevisionIssuer {
   currentRevision: RoomMembershipRevision;
   room: MatrixRoomID;
   /**
@@ -45,12 +44,12 @@ export declare interface RoomMembershipRevisionIssuer
    */
   updateForRedactionEvent(event: Redaction): void;
   on(
-    event: 'revision',
+    event: "revision",
     listener: MembershipRevisionListener<RoomMembershipRevision>
   ): this;
-  off(...args: Parameters<RoomMembershipRevisionIssuer['on']>): this;
+  off(...args: Parameters<RoomMembershipRevisionIssuer["on"]>): this;
   emit(
-    event: 'revision',
+    event: "revision",
     ...args: Parameters<MembershipRevisionListener<RoomMembershipRevision>>
   ): boolean;
 }

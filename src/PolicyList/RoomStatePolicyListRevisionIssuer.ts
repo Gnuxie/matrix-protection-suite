@@ -2,25 +2,25 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import EventEmitter from 'events';
+import EventEmitter from "events";
 import {
   RoomStateRevision,
   RoomStateRevisionIssuer,
   StateChange,
   StateRevisionListener,
-} from '../StateTracking//StateRevisionIssuer';
-import { PolicyRoomRevisionIssuer } from './PolicyListRevisionIssuer';
+} from "../StateTracking//StateRevisionIssuer";
+import { PolicyRoomRevisionIssuer } from "./PolicyListRevisionIssuer";
 import {
   MJOLNIR_SHORTCODE_EVENT_TYPE,
   MjolnirShortcodeEvent,
   PolicyRoomRevision,
-} from './PolicyListRevision';
-import { ALL_RULE_TYPES, PolicyRuleEvent } from '../MatrixTypes/PolicyEvents';
-import { PowerLevelsEvent } from '../MatrixTypes/PowerLevels';
-import { StateEvent } from '../MatrixTypes/Events';
-import { Redaction } from '../MatrixTypes/Redaction';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { LiteralPolicyRule } from './PolicyRule';
+} from "./PolicyListRevision";
+import { ALL_RULE_TYPES, PolicyRuleEvent } from "../MatrixTypes/PolicyEvents";
+import { PowerLevelsEvent } from "../MatrixTypes/PowerLevels";
+import { StateEvent } from "../MatrixTypes/Events";
+import { Redaction } from "../MatrixTypes/Redaction";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { LiteralPolicyRule } from "./PolicyRule";
 
 /**
  * An implementation of the {@link RoomMembershipRevisionIssuer} that
@@ -39,8 +39,8 @@ export class RoomStatePolicyRoomRevisionIssuer
     super();
     const stateRevision = roomStateRevisionIssuer.currentRevision;
     const powerLevels = stateRevision.getStateEvent<PowerLevelsEvent>(
-      'm.room.power_levels',
-      ''
+      "m.room.power_levels",
+      ""
     );
     if (powerLevels !== undefined) {
       this.currentRevision =
@@ -48,7 +48,7 @@ export class RoomStatePolicyRoomRevisionIssuer
     }
     const shortcodeEvent = stateRevision.getStateEvent<MjolnirShortcodeEvent>(
       MJOLNIR_SHORTCODE_EVENT_TYPE,
-      ''
+      ""
     );
     if (shortcodeEvent !== undefined) {
       this.currentRevision =
@@ -58,7 +58,7 @@ export class RoomStatePolicyRoomRevisionIssuer
       stateRevision.getStateEventsOfTypes(ALL_RULE_TYPES)
     );
     this.stateRevisionListener = this.listener.bind(this);
-    this.roomStateRevisionIssuer.on('revision', this.stateRevisionListener);
+    this.roomStateRevisionIssuer.on("revision", this.stateRevisionListener);
   }
 
   updateForStateEvent(event: StateEvent): void {
@@ -82,7 +82,7 @@ export class RoomStatePolicyRoomRevisionIssuer
       .map((change) => change.state) as PolicyRuleEvent[];
     const policyChanges = this.currentRevision.changesFromState(policyEvents);
     const powerLevelsChange = stateChanges.find(
-      (change) => change.eventType === 'm.room.power_levels'
+      (change) => change.eventType === "m.room.power_levels"
     );
     if (policyChanges.length > 0) {
       this.currentRevision = previousRevision.reviseFromChanges(policyChanges);
@@ -102,7 +102,7 @@ export class RoomStatePolicyRoomRevisionIssuer
     }
     if (this.currentRevision.revisionID !== previousRevision.revisionID) {
       this.emit(
-        'revision',
+        "revision",
         this.currentRevision,
         policyChanges,
         previousRevision
@@ -117,10 +117,10 @@ export class RoomStatePolicyRoomRevisionIssuer
     }
     const previousRevision = this.currentRevision;
     this.currentRevision = previousRevision.reviseFromChanges(changes);
-    this.emit('revision', this.currentRevision, changes, previousRevision);
+    this.emit("revision", this.currentRevision, changes, previousRevision);
   }
 
   public unregisterListeners(): void {
-    this.roomStateRevisionIssuer.off('revision', this.stateRevisionListener);
+    this.roomStateRevisionIssuer.off("revision", this.stateRevisionListener);
   }
 }

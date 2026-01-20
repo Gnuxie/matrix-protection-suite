@@ -8,19 +8,19 @@ import {
   TypeBoxError,
   Static,
   StaticEncode,
-} from '@sinclair/typebox';
+} from "@sinclair/typebox";
 import {
   TypeCheck,
   TypeCompiler,
   ValueError,
   ValueErrorIterator,
-} from '@sinclair/typebox/compiler';
-import { ActionResult, Ok, ResultError } from './Action';
-import { ActionException, ActionExceptionKind } from './ActionException';
-import { Logger } from '../Logging/Logger';
+} from "@sinclair/typebox/compiler";
+import { ActionResult, Ok, ResultError } from "./Action";
+import { ActionException, ActionExceptionKind } from "./ActionException";
+import { Logger } from "../Logging/Logger";
 
 export class DecodeException extends ActionException {
-  private static log = new Logger('DecodeException');
+  private static log = new Logger("DecodeException");
   constructor(
     message: string,
     exception: unknown,
@@ -63,7 +63,7 @@ export class Value {
         const errors = [...decoder.Errors(value)];
         return ResultError(
           new DecodeException(
-            'Unable to decode an event',
+            "Unable to decode an event",
             e,
             errors,
             suppressLogOnError

@@ -5,9 +5,9 @@
 import {
   MatrixRoomID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { StateEvent } from '../MatrixTypes/Events';
-import { Result } from '@gnuxie/typescript-result';
+} from "@the-draupnir-project/matrix-basic-types";
+import { StateEvent } from "../MatrixTypes/Events";
+import { Result } from "@gnuxie/typescript-result";
 
 // Honestly in future I don't know if rooms should even be accepting room for
 // an argument? but then what about state type and state key?

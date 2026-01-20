@@ -7,14 +7,14 @@ import {
   MatrixRoomID,
   MatrixRoomReference,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionError, ActionResult, Ok } from '../Interface/Action';
-import { RoomCreateOptions } from '../MatrixTypes/CreateRoom';
-import { PolicyRuleEvent, PolicyRuleType } from '../MatrixTypes/PolicyEvents';
-import { FakePolicyRoomRevisionIssuer } from '../PolicyList/FakePolicyRoomRevisionIssuer';
-import { PolicyRoomRevisionIssuer } from '../PolicyList/PolicyListRevisionIssuer';
-import { PolicyRoomEditor } from '../PolicyList/PolicyRoomEditor';
-import { PolicyRoomManager } from '../PolicyList/PolicyRoomManger';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionError, ActionResult, Ok } from "../Interface/Action";
+import { RoomCreateOptions } from "../MatrixTypes/CreateRoom";
+import { PolicyRuleEvent, PolicyRuleType } from "../MatrixTypes/PolicyEvents";
+import { FakePolicyRoomRevisionIssuer } from "../PolicyList/FakePolicyRoomRevisionIssuer";
+import { PolicyRoomRevisionIssuer } from "../PolicyList/PolicyListRevisionIssuer";
+import { PolicyRoomEditor } from "../PolicyList/PolicyRoomEditor";
+import { PolicyRoomManager } from "../PolicyList/PolicyRoomManger";
 
 export class FakePolicyRoomManager implements PolicyRoomManager {
   private readonly policyRoomRevisionIssuers = new Map<

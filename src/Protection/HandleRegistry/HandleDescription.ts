@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { Result } from '@gnuxie/typescript-result';
-import { AllocatableLifetime } from '../../Interface/Lifetime';
-import { HandleRegistry } from './HandleRegistry';
+import { Result } from "@gnuxie/typescript-result";
+import { AllocatableLifetime } from "../../Interface/Lifetime";
+import { HandleRegistry } from "./HandleRegistry";
 
 export type BivariantHandler<T extends (...args: never[]) => void> = (
   ...args: Parameters<T>
@@ -17,12 +17,12 @@ export enum HandleDataSourceType {
    * For example, `handleProtectionIntent` is an example of a handle that
    * takes the protection's intent projection and uses to to derive a callback.
    */
-  Plugin = 'plugin',
+  Plugin = "plugin",
   /**
    * These are handles that use the plugin context to derive the source data
    * stream for the handle.
    */
-  Context = 'context',
+  Context = "context",
 }
 
 export type HandleDescription<

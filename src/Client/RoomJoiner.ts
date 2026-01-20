@@ -7,9 +7,9 @@ import {
   MatrixRoomReference,
   StringRoomAlias,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { ActionResult } from '../Interface/Action';
-import { RoomResolver } from './RoomResolver';
+} from "@the-draupnir-project/matrix-basic-types";
+import { ActionResult } from "../Interface/Action";
+import { RoomResolver } from "./RoomResolver";
 
 type JoinRoomOptions = {
   /**

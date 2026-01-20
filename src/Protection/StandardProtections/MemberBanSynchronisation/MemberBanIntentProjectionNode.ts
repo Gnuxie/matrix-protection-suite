@@ -7,25 +7,25 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { ULID, ULIDFactory } from 'ulidx';
+import { ULID, ULIDFactory } from "ulidx";
 import {
   ExtractInputDeltaShapes,
   ProjectionNode,
-} from '../../../Projection/ProjectionNode';
+} from "../../../Projection/ProjectionNode";
 import {
   MemberPolicyMatch,
   MemberPolicyMatches,
   MembershipPolicyRevision,
   MembershipPolicyRevisionDelta,
-} from '../../../MembershipPolicies/MembershipPolicyRevision';
-import { StringUserID } from '@the-draupnir-project/matrix-basic-types';
-import { List, Map as PersistentMap } from 'immutable';
+} from "../../../MembershipPolicies/MembershipPolicyRevision";
+import { StringUserID } from "@the-draupnir-project/matrix-basic-types";
+import { List, Map as PersistentMap } from "immutable";
 import {
   GlobPolicyRule,
   LiteralPolicyRule,
   Recommendation,
-} from '../../../PolicyList/PolicyRule';
-import { ListMultiMap } from '../../../Projection/ListMultiMap';
+} from "../../../PolicyList/PolicyRule";
+import { ListMultiMap } from "../../../Projection/ListMultiMap";
 
 /**
  * This is just a stand in while we wait to convert the upstream MembershipPolicyRevision
@@ -68,8 +68,8 @@ export type MemberBanIntentProjectionNode = ProjectionNode<
 export const MemberBanIntentProjectionNodeHelper = Object.freeze({
   reduceMembershipPolicyDelta(
     input: MembershipPolicyRevisionDelta
-  ): Pick<MemberBanIntentProjectionDelta, 'add' | 'remove'> {
-    const output: Pick<MemberBanIntentProjectionDelta, 'add' | 'remove'> = {
+  ): Pick<MemberBanIntentProjectionDelta, "add" | "remove"> {
+    const output: Pick<MemberBanIntentProjectionDelta, "add" | "remove"> = {
       add: [],
       remove: [],
     };
@@ -86,7 +86,7 @@ export const MemberBanIntentProjectionNodeHelper = Object.freeze({
     return output;
   },
   reduceIntentDelta(
-    input: Pick<MemberBanIntentProjectionDelta, 'add' | 'remove'>,
+    input: Pick<MemberBanIntentProjectionDelta, "add" | "remove">,
     policies: PersistentMap<
       StringUserID,
       List<LiteralPolicyRule | GlobPolicyRule>
@@ -108,9 +108,7 @@ export const MemberBanIntentProjectionNodeHelper = Object.freeze({
 
 // Upstream inputs are not yet converted to projections, so have to be never[]
 // for now.
-export class StandardMemberBanIntentProjectionNode
-  implements MemberBanIntentProjectionNode
-{
+export class StandardMemberBanIntentProjectionNode implements MemberBanIntentProjectionNode {
   public readonly ulid: ULID;
   constructor(
     private readonly ulidFactory: ULIDFactory,
@@ -169,7 +167,7 @@ export class StandardMemberBanIntentProjectionNode
   ]): MemberBanIntentProjectionDelta {
     if (!this.isEmpty()) {
       throw new TypeError(
-        'This can only be called on an empty projection node'
+        "This can only be called on an empty projection node"
       );
     }
     const matches = membershipPolicyRevision

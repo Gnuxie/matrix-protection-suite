@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticDecode } from '@sinclair/typebox';
-import { ActionResult } from '../Interface/Action';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { RoomMembershipRevisionIssuer } from './MembershipRevisionIssuer';
-import { MatrixRoomID } from '@the-draupnir-project/matrix-basic-types';
+import { StaticDecode } from "@sinclair/typebox";
+import { ActionResult } from "../Interface/Action";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { RoomMembershipRevisionIssuer } from "./MembershipRevisionIssuer";
+import { MatrixRoomID } from "@the-draupnir-project/matrix-basic-types";
 
 // NOTE: This isn't going to be used to query about a set of rooms
 //       a propagator version of the revision should be used for that.

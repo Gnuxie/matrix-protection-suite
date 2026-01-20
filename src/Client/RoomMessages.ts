@@ -2,21 +2,24 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StringRoomID } from '@the-draupnir-project/matrix-basic-types';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { MatrixPaginator } from './Pagination/MatrixPaginator';
-import { PaginationOptions } from './Pagination/PaginationOptions';
-import { RoomEventFilter } from './RoomEventFilter';
-import { PaginationIterator } from './Pagination/PaginationIteration';
-import { Type } from '@sinclair/typebox';
-import { StringPaginationTokenSchema } from './Pagination/PaginationToken';
+import { StringRoomID } from "@the-draupnir-project/matrix-basic-types";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { MatrixPaginator } from "./Pagination/MatrixPaginator";
+import { PaginationOptions } from "./Pagination/PaginationOptions";
+import { RoomEventFilter } from "./RoomEventFilter";
+import { PaginationIterator } from "./Pagination/PaginationIteration";
+import { Type } from "@sinclair/typebox";
+import { StringPaginationTokenSchema } from "./Pagination/PaginationToken";
 
 export interface RoomMessagesOptions extends PaginationOptions {
   filter?: RoomEventFilter;
 }
 
-export interface RoomMessagesPaginator<TEvent extends RoomEvent = RoomEvent>
-  extends MatrixPaginator<TEvent, RoomMessagesOptions> {}
+// We're specialising a type parameter.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface RoomMessagesPaginator<
+  TEvent extends RoomEvent = RoomEvent,
+> extends MatrixPaginator<TEvent, RoomMessagesOptions> {}
 
 export interface RoomMessages {
   toRoomMessagesPaginator<TEvent extends RoomEvent = RoomEvent>(

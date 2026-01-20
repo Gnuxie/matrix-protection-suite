@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { StaticDecode, TSchema } from '@sinclair/typebox';
-import { ActionResult } from './Action';
+import { StaticDecode, TSchema } from "@sinclair/typebox";
+import { ActionResult } from "./Action";
 
 export interface PersistentMatrixData<T extends TSchema> {
   requestPersistentData(): Promise<ActionResult<StaticDecode<T>>>;

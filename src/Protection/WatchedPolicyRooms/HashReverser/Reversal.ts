@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { PolicyRuleType } from '../../../MatrixTypes/PolicyEvents';
-import { PolicyListRevision } from '../../../PolicyList/PolicyListRevision';
+import { PolicyRuleType } from "../../../MatrixTypes/PolicyEvents";
+import { PolicyListRevision } from "../../../PolicyList/PolicyListRevision";
 import {
   LiteralPolicyRule,
   makeReversedHashedPolicy,
-} from '../../../PolicyList/PolicyRule';
+} from "../../../PolicyList/PolicyRule";
 
 type HashRecord = { sha256: string };
 type EntityFromRecord<R extends HashRecord> = (record: R) => string;
@@ -22,7 +22,7 @@ export function reversePoliciesOfType<Record extends HashRecord>(
   for (const record of hashRecords) {
     const matchingPolicies = sourceRevision.findRulesMatchingHash(
       record.sha256,
-      'sha256',
+      "sha256",
       {
         type,
       }

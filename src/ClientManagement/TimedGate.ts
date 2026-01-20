@@ -7,7 +7,7 @@
 // https://github.com/Gnuxie/matrix-protection-suite
 // </text>
 
-import { ConstantPeriodBatch } from './ConstantPeriodBatch';
+import { ConstantPeriodBatch } from "./ConstantPeriodBatch";
 
 export interface TimedGate {
   enqueueOpen(): void;

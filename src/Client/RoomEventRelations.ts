@@ -5,19 +5,21 @@
 import {
   StringEventID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { MatrixPaginator } from './Pagination/MatrixPaginator';
-import { PaginationOptions } from './Pagination/PaginationOptions';
-import { PaginationIterator } from './Pagination/PaginationIteration';
-import { Type } from '@sinclair/typebox';
-import { StringPaginationTokenSchema } from './Pagination/PaginationToken';
+} from "@the-draupnir-project/matrix-basic-types";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { MatrixPaginator } from "./Pagination/MatrixPaginator";
+import { PaginationOptions } from "./Pagination/PaginationOptions";
+import { PaginationIterator } from "./Pagination/PaginationIteration";
+import { Type } from "@sinclair/typebox";
+import { StringPaginationTokenSchema } from "./Pagination/PaginationToken";
 
 export interface RoomEventRelationsOptions extends PaginationOptions {
   relationType?: string;
   eventType?: string;
 }
 
+// We're specialising on a type parameter.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface RoomEventRelationsPaginator<
   TEvent extends RoomEvent = RoomEvent,
 > extends MatrixPaginator<TEvent, RoomEventRelationsOptions> {}

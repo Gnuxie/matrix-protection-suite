@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Gnuxie <Gnuxie@protonmail.com>
 #
-# SPDX-License-Identifier: CC0-1.0
+# SPDX-License-Identifier: 0BSD
 
 name: Node.js Package
 
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 18
           registry-url: https://registry.npmjs.org
-      - run: rm -rf node_modules && yarn install --frozen-lockfile
-      - run: yarn publish --access public
+      - run: rm -rf node_modules && npm ci
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

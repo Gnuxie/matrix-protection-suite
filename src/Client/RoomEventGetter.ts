@@ -5,9 +5,9 @@
 import {
   StringEventID,
   StringRoomID,
-} from '@the-draupnir-project/matrix-basic-types';
-import { RoomEvent } from '../MatrixTypes/Events';
-import { Result } from '@gnuxie/typescript-result';
+} from "@the-draupnir-project/matrix-basic-types";
+import { RoomEvent } from "../MatrixTypes/Events";
+import { Result } from "@gnuxie/typescript-result";
 
 export interface RoomEventGetter {
   getEvent<TRoomEvent extends RoomEvent>(

@@ -8,14 +8,14 @@
 // https://github.com/matrix-org/mjolnir
 // </text>
 
-import { StaticDecode } from '@sinclair/typebox';
-import { MembershipEvent } from '../MatrixTypes/MembershipEvent';
-import { Membership, MembershipChange } from './MembershipChange';
+import { StaticDecode } from "@sinclair/typebox";
+import { MembershipEvent } from "../MatrixTypes/MembershipEvent";
+import { Membership, MembershipChange } from "./MembershipChange";
 import {
   MatrixRoomID,
   StringEventID,
   StringUserID,
-} from '@the-draupnir-project/matrix-basic-types';
+} from "@the-draupnir-project/matrix-basic-types";
 
 /**
  * A revision is a view of a Membership at a given moment in history.

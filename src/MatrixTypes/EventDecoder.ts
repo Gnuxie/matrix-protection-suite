@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: AFL-3.0
 
-import { Type } from '@sinclair/typebox';
-import { ActionResult, isError, isOk } from '../Interface/Action';
-import { DecodeException, Value } from '../Interface/Value';
-import { RoomEvent, StateEvent } from './Events';
-import { Map as PersistentMap } from 'immutable';
+import { Type } from "@sinclair/typebox";
+import { ActionResult, isError, isOk } from "../Interface/Action";
+import { DecodeException, Value } from "../Interface/Value";
+import { RoomEvent, StateEvent } from "./Events";
+import { Map as PersistentMap } from "immutable";
 
 type EventDecoderFn = (
   event: unknown
@@ -58,9 +58,9 @@ export class StandardEventDecoder implements EventDecoder {
   public decodeEvent(event: unknown): ActionResult<RoomEvent, DecodeException> {
     if (
       event === null ||
-      typeof event !== 'object' ||
-      !('type' in event) ||
-      typeof event['type'] !== 'string'
+      typeof event !== "object" ||
+      !("type" in event) ||
+      typeof event["type"] !== "string"
     ) {
       throw new TypeError(
         `Somehow there's malformed events being given by the homeserver.`
@@ -85,12 +85,12 @@ export class StandardEventDecoder implements EventDecoder {
     if (isError(result)) {
       return result;
     } else if (
-      'state_key' in result.ok &&
-      typeof result.ok.state_key === 'string'
+      "state_key" in result.ok &&
+      typeof result.ok.state_key === "string"
     ) {
       return result as ActionResult<StateEvent, DecodeException>;
     }
-    throw new TypeError('Somehow decoded a state event without a state key');
+    throw new TypeError("Somehow decoded a state event without a state key");
   }
 
   public setDecoderForInvalidEventContent(
@@ -102,7 +102,7 @@ export class StandardEventDecoder implements EventDecoder {
   public getDecoderForInvalidContent(): EventDecoderFn {
     if (this.invalidContentDecoder === undefined) {
       throw new TypeError(
-        'No decoder for invalid content has been set on this event decoder.'
+        "No decoder for invalid content has been set on this event decoder."
       );
     }
     return this.invalidContentDecoder;
